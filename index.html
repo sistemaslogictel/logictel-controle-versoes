@@ -756,6 +756,68 @@
   .campos-extras { display:none; }
   .campos-extras.visible { display:grid; }
 
+  /* ===================== DC CARDS (TRELLO STYLE) ===================== */
+  .dc-cards-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:16px;
+    padding:8px 0;
+  }
+  .dc-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    box-shadow:0 2px 8px rgba(8,16,32,0.06);
+    cursor:pointer;
+    transition:all .2s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .dc-card:hover {
+    transform:translateY(-4px);
+    box-shadow:0 8px 24px rgba(8,16,32,0.12);
+  }
+  .dc-card .dc-number {
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:16px;
+    color:var(--text);
+    margin-bottom:4px;
+  }
+  .dc-card .dc-status {
+    font-size:12px;
+    padding:2px 10px;
+    border-radius:12px;
+    display:inline-block;
+  }
+  .dc-card .dc-status.verde { background:var(--success-bg); color:var(--success); }
+  .dc-card .dc-status.amarelo { background:var(--gold-bg); color:var(--gold); }
+  .dc-card .dc-status.vermelho { background:var(--danger-bg); color:var(--danger); }
+  .dc-card .dc-aging {
+    font-size:13px;
+    font-weight:600;
+    margin-top:6px;
+  }
+  .dc-card .dc-aging.verde { color:var(--success); }
+  .dc-card .dc-aging.amarelo { color:var(--gold); }
+  .dc-card .dc-aging.vermelho { color:var(--danger); }
+  .dc-card .dc-updated {
+    font-size:11px;
+    color:var(--text-soft);
+    margin-top:4px;
+  }
+  .dc-card .dc-badge {
+    position:absolute;
+    top:8px;
+    right:8px;
+    font-size:10px;
+    padding:2px 8px;
+    border-radius:10px;
+    background:var(--paper);
+    color:var(--text-muted);
+  }
+
   @media (max-width: 900px){
     .sidebar{ display:none; }
     .mobile-menu-toggle{ display:inline-flex; align-items:center; gap:8px; }
@@ -765,6 +827,7 @@
     #badge-ultima-atualizacao{ font-size:11px; }
     .checkbox-group{ grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); }
     .login-card{ padding:32px 24px; margin:16px; }
+    .dc-cards-grid{ grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); }
   }
   @media (max-width: 600px){
     .filters-bar{ grid-template-columns:1fr; }
@@ -778,6 +841,7 @@
     .flyout-wrap{ position:static; }
     .checkbox-group{ grid-template-columns:1fr 1fr; }
     .login-card{ padding:24px 20px; }
+    .dc-cards-grid{ grid-template-columns:1fr 1fr; }
   }
   @media (max-width: 480px){
     .flyout{ position:fixed; left:auto; right:8px; top:auto; min-width:180px; max-width:220px; max-height:250px; }
@@ -786,6 +850,7 @@
     .login-card{ padding:20px 16px; }
     .login-logo img{ height:56px; }
     .filters-bar{ grid-template-columns:1fr; }
+    .dc-cards-grid{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -898,7 +963,17 @@
       <div class="card">
         <div class="table-scroll">
           <table class="w-full text-left border-collapse dash-table">
-            <thead><tr><th>Gestor</th><th>Projeto</th><th>Descrição</th><th>Empresa</th><th class="text-right">Mês</th><th class="text-right">Ano</th><th class="text-right">Saldo</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Saldo</th>
+              </tr>
+            </thead>
             <tbody id="tabela-dashboard-corpo"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr></tbody>
           </table>
         </div>
@@ -918,7 +993,17 @@
       <div class="card">
         <div class="table-scroll">
           <table class="w-full text-left border-collapse dash-table">
-            <thead><tr><th>Gestor</th><th>Projeto</th><th>Descrição</th><th>Empresa</th><th class="text-right">Mês</th><th class="text-right">Ano</th><th class="text-right">Valor</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Valor</th>
+              </tr>
+            </thead>
             <tbody id="tabela-dash-apropriacao"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -938,10 +1023,38 @@
       <div class="card">
         <div class="table-scroll">
           <table class="w-full text-left border-collapse dash-table">
-            <thead><tr><th>Gestor</th><th>Projeto</th><th>Descrição</th><th>Empresa</th><th class="text-right">Mês</th><th class="text-right">Ano</th><th class="text-right">Valor</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Valor</th>
+              </tr>
+            </thead>
             <tbody id="tabela-dash-don"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- ===================== DC CARDS (TRELLO STYLE) ===================== -->
+    <div id="tab-dcs" class="tab-content space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p>
+      </div>
+      <div class="filters-bar">
+        <input type="text" id="filt-dcs-dc" placeholder="Filtrar por DC..." oninput="carregarDCCards()" class="input">
+        <select id="filt-dcs-status" class="input" onchange="carregarDCCards()"><option value="">Todos os Status</option></select>
+        <select id="filt-dcs-projeto" class="input" onchange="carregarDCCards()"><option value="">Todos os Projetos</option></select>
+        <select id="filt-dcs-gestor" class="input" onchange="carregarDCCards()"><option value="">Todos os Gestores</option></select>
+        <button onclick="carregarDCCards()" class="btn-primary">Filtrar</button>
+      </div>
+      <div class="dc-cards-grid" id="dc-cards-container">
+        <div class="p-6 text-center" style="color:var(--text-soft)">Carregando DC's...</div>
       </div>
     </div>
 
@@ -992,20 +1105,10 @@
           <div><label class="label">Valor (R$) *</label><input type="text" id="dc-valor" required placeholder="0,00" class="input money-input"></div>
           <div><label class="label">Mês Medido *</label><select id="dc-mes-medido" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
           <div><label class="label">Data Solicitação *</label><input type="text" id="dc-data-solicitacao" required placeholder="dd/mm/aaaa" class="input date-input"></div>
-          
-          <!-- Status DC -->
           <div><label class="label">Status DC *</label><select id="dc-status-dc" required class="input"><option value="">Selecione...</option></select></div>
-          
-          <!-- Status NF -->
           <div><label class="label">Status NF *</label><select id="dc-status-nf" required onchange="controlarCamposNF()" class="input"><option value="">Selecione...</option></select></div>
-          
-          <!-- Nº da NF -->
           <div><label class="label">Nº da NF</label><input type="text" id="dc-num-nf" disabled placeholder="Obrigatório se emitida" class="input"></div>
-          
-          <!-- Data Emissão NF -->
           <div><label class="label">Data Emissão NF</label><input type="text" id="dc-data-nf" disabled placeholder="dd/mm/aaaa" class="input date-input"></div>
-          
-          <!-- Campos Extras (Centro de Custo, Item, Folha de Registro) -->
           <div class="md:col-span-4 campos-extras" id="campos-extras-consumo">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div><label class="label">Centro de Custo</label><input type="text" id="dc-centro-custo" placeholder="Centro de Custo" class="input"></div>
@@ -1014,7 +1117,6 @@
               <div><label class="label">PO</label><input type="text" id="dc-po" placeholder="PO" class="input"></div>
             </div>
           </div>
-          
           <div class="md:col-span-4 flex justify-end pt-2 gap-2">
             <button type="button" onclick="cancelarEdicao('consumo')" class="btn-cancel" style="display:none;" id="consumo-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar Consumo</button>
@@ -1107,6 +1209,7 @@
               <label class="checkbox-item"><input type="checkbox" value="dashboard" class="permission-check"><span>Dashboard</span></label>
               <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Apropriação</span></label>
               <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="dcs" class="permission-check"><span>DC's</span></label>
               <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
               <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
               <label class="checkbox-item"><input type="checkbox" value="historico-aprop" class="permission-check"><span>Hist. Apropriação</span></label>
@@ -1517,6 +1620,7 @@
                 { id: 'dash-apropriacao', label: 'Dashboard Apropriação', area: 'dash-apropriacao' },
                 { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' }
             ]},
+            { id: 'dcs', label: 'DC\'s', icon: 'dcs', area: 'dcs', type: 'link' },
             { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
                 { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
                 { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' }
@@ -1553,6 +1657,7 @@
         function getIcon(name) {
             const icons = {
                 'dashboard': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
+                'dcs': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>',
                 'medicoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l13-13 5 5-13 13H3v-5z"/><path d="M13.5 6.5l4 4"/><path d="M9 11l1.5 1.5"/><path d="M6 14l1.5 1.5"/></svg>',
                 'historico': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
                 'adm': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
@@ -1790,6 +1895,7 @@
             'dashboard': 'dashboard',
             'dash-apropriacao': 'dash-apropriacao',
             'dash-don': 'dash-don',
+            'dcs': 'dcs',
             'cad-medicao': 'medicoes',
             'cad-consumo': 'consumos',
             'apropriacao-hist': 'historico-aprop',
@@ -1824,6 +1930,7 @@
         if (nomeAba === 'dashboard') carregarDashboard();
         else if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
         else if (nomeAba === 'dash-don') carregarDashDON();
+        else if (nomeAba === 'dcs') carregarDCCards();
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
         else if (nomeAba === 'medicao-gestor-hist') carregarMedicaoHist();
         else if (nomeAba === 'cad-medicao') carregarMedicoes();
@@ -1864,7 +1971,9 @@
         carregarSelectStatus('dc-status-dc', 'status_dc');
         carregarSelectStatus('dc-status-nf', 'status_nf');
         carregarSelectStatus('med-status', 'status_medicao');
+        carregarSelectStatus('filt-dcs-status', 'status_dc');
         carregarFiltros();
+        carregarDCCards();
     }
 
     // ===================== CARREGAR STATUS =====================
@@ -1885,7 +1994,6 @@
         const dataNf = document.getElementById('dc-data-nf');
         const extras = document.getElementById('campos-extras-consumo');
         
-        // Verificar se o status é "Nota emitida" ou "Emissão Solicitada"
         const isEmitida = status === 'Nota emitida' || status === 'Emissão Solicitada';
         
         if (isEmitida) {
@@ -1927,7 +2035,9 @@
             { id: 'filt-don-projeto', values: projetos },
             { id: 'filt-don-gestor', values: gestores },
             { id: 'filt-don-mes', values: new Set(meses) },
-            { id: 'filt-don-ano', values: anos }
+            { id: 'filt-don-ano', values: anos },
+            { id: 'filt-dcs-projeto', values: projetos },
+            { id: 'filt-dcs-gestor', values: gestores }
         ];
         filtrosConfig.forEach(({ id, values }) => {
             const select = document.getElementById(id);
@@ -1939,6 +2049,87 @@
                 if (currentValue) select.value = currentValue;
             }
         });
+    }
+
+    // ===================== DC CARDS (TRELLO STYLE) =====================
+    async function carregarDCCards() {
+        const container = document.getElementById('dc-cards-container');
+        container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Carregando DC\'s...</div>';
+
+        const filtroDC = document.getElementById('filt-dcs-dc')?.value?.toLowerCase() || '';
+        const filtroStatus = document.getElementById('filt-dcs-status')?.value || '';
+        const filtroProjeto = document.getElementById('filt-dcs-projeto')?.value || '';
+        const filtroGestor = document.getElementById('filt-dcs-gestor')?.value || '';
+
+        let query = supabaseClient.from('consumo_dc').select('*');
+        if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
+        if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        const { data: consumos } = await query.order('criado_em', { ascending: false });
+
+        if (!consumos || consumos.length === 0) {
+            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma DC cadastrada.</div>';
+            return;
+        }
+
+        // Agrupar por DC (última ocorrência de cada DC)
+        const dcMap = new Map();
+        consumos.forEach(c => {
+            const dcNum = c.dc;
+            if (!dcMap.has(dcNum) || new Date(c.criado_em) > new Date(dcMap.get(dcNum).criado_em)) {
+                dcMap.set(dcNum, c);
+            }
+        });
+
+        const dcs = Array.from(dcMap.values());
+        
+        // Filtrar por DC e Status
+        const filtrados = dcs.filter(c => {
+            if (filtroDC && !c.dc.toLowerCase().includes(filtroDC)) return false;
+            if (filtroStatus && c.status_dc !== filtroStatus) return false;
+            return true;
+        });
+
+        if (filtrados.length === 0) {
+            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma DC encontrada com os filtros aplicados.</div>';
+            return;
+        }
+
+        const hoje = new Date();
+        container.innerHTML = '';
+        
+        filtrados.forEach(c => {
+            const ultimaAtualizacao = c.ultima_atualizacao || c.criado_em;
+            const dataAtualizacao = new Date(ultimaAtualizacao);
+            const diffTime = Math.abs(hoje - dataAtualizacao);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let agingClass = 'verde';
+            let agingText = `${diffDays} dia(s)`;
+            if (diffDays >= 4 && diffDays <= 6) { agingClass = 'amarelo'; }
+            else if (diffDays > 6) { agingClass = 'vermelho'; }
+
+            const statusClass = c.status_dc === 'Ativo' || c.status_dc === 'Aprovado' ? 'verde' : 
+                               c.status_dc === 'Pendente' || c.status_dc === 'Em análise' ? 'amarelo' : 'vermelho';
+
+            container.innerHTML += `
+                <div class="dc-card" onclick="irParaConsumo('${c.dc}')">
+                    <div class="dc-badge">#${c.id}</div>
+                    <div class="dc-number">DC ${c.dc}</div>
+                    <div class="dc-status ${statusClass}">${c.status_dc || 'Sem status'}</div>
+                    <div class="dc-aging ${agingClass}">⏱️ Aging: ${agingText}</div>
+                    <div class="dc-updated">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</div>
+                    <div style="font-size:11px;color:var(--text-soft);margin-top:4px;">${c.projeto || 'N/A'} • ${c.gestor || 'N/A'}</div>
+                </div>
+            `;
+        });
+    }
+
+    function irParaConsumo(dc) {
+        // Navegar para a aba de Consumo DC e filtrar pela DC
+        mudarAba('cad-consumo');
+        document.getElementById('dc-numero').value = dc;
+        // Disparar evento de busca
+        carregarConsumos();
     }
 
     // ===================== DASHBOARD PRINCIPAL =====================
@@ -1999,15 +2190,39 @@
             });
         });
 
-        linhas.sort((a, b) => { if (a.gestor !== b.gestor) return a.gestor.localeCompare(b.gestor); return a.projeto.localeCompare(b.projeto); });
+        // Agrupar por gestor e projeto
+        const grupos = {};
+        linhas.forEach(row => {
+            const key = `${row.gestor}|${row.projeto}|${row.empresa}`;
+            if (!grupos[key]) {
+                grupos[key] = { ...row, valor: 0, meses: {} };
+            }
+            grupos[key].valor += row.valor;
+            const mesKey = `${row.mes}/${row.ano}`;
+            grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + row.valor;
+        });
+
         tbody.innerHTML = '';
         let totalGeral = 0;
-        linhas.forEach(row => {
-            totalGeral += row.valor;
-            const valorClass = row.valor < 0 ? 'valor-negativo' : 'valor-positivo';
-            tbody.innerHTML += `<tr class="td-row"><td class="font-medium" style="color:var(--text)">${row.gestor}</td><td>${row.projeto}</td><td>${row.descricao}</td><td>${row.empresa}</td><td class="text-right">${row.mes}</td><td class="text-right">${row.ano}</td><td class="text-right mono font-bold ${valorClass}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
+        Object.values(grupos).forEach(g => {
+            totalGeral += g.valor;
+            const valorClass = g.valor < 0 ? 'valor-negativo' : 'valor-positivo';
+            const mesesHtml = Object.entries(g.meses).sort().map(([mes, val]) => {
+                const cls = val < 0 ? 'valor-negativo' : 'valor-positivo';
+                return `<span class="mono ${cls}" style="margin-right:8px;">${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</span>`;
+            }).join('');
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
+                    <td>${g.projeto}</td>
+                    <td>${g.descricao}</td>
+                    <td>${g.empresa}</td>
+                    <td colspan="2">${mesesHtml || 'Sem meses'}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${g.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
         });
-        if (linhas.length > 0) {
+        if (Object.values(grupos).length > 0) {
             tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
         }
 
@@ -2041,12 +2256,15 @@
             return;
         }
 
-        let grupos = {};
+        // Agrupar por gestor, projeto, mês e ano
+        const grupos = {};
         consumos.forEach(c => {
             const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
             if (!grupos[key]) {
-                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, mes: c.mes_apropriacao || 'N/A', ano: c.ano || 'N/A' };
+                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, meses: {} };
             }
+            const mesKey = `${c.mes_apropriacao}/${c.ano}`;
+            grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + Number(c.valor || 0);
             grupos[key].total += Number(c.valor || 0);
         });
 
@@ -2055,7 +2273,20 @@
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
             const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-            tbody.innerHTML += `<tr class="td-row"><td class="font-medium" style="color:var(--text)">${g.gestor}</td><td>${g.projeto}</td><td>${g.descricao}</td><td>${g.empresa}</td><td class="text-right">${g.mes}</td><td class="text-right">${g.ano}</td><td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
+            const mesesHtml = Object.entries(g.meses).sort().map(([mes, val]) => {
+                const cls = val < 0 ? 'valor-negativo' : 'valor-positivo';
+                return `<span class="mono ${cls}" style="margin-right:8px;">${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</span>`;
+            }).join('');
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
+                    <td>${g.projeto}</td>
+                    <td>${g.descricao}</td>
+                    <td>${g.empresa}</td>
+                    <td colspan="2">${mesesHtml || 'Sem meses'}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
         });
         if (Object.values(grupos).length > 0) {
             tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
@@ -2084,12 +2315,14 @@
             return;
         }
 
-        let grupos = {};
+        const grupos = {};
         consumos.forEach(c => {
             const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
             if (!grupos[key]) {
-                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, mes: c.mes_medido || 'N/A', ano: c.ano || 'N/A' };
+                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, meses: {} };
             }
+            const mesKey = `${c.mes_medido}/${c.ano}`;
+            grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + Number(c.valor || 0);
             grupos[key].total += Number(c.valor || 0);
         });
 
@@ -2098,7 +2331,20 @@
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
             const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-            tbody.innerHTML += `<tr class="td-row"><td class="font-medium" style="color:var(--text)">${g.gestor}</td><td>${g.projeto}</td><td>${g.descricao}</td><td>${g.empresa}</td><td class="text-right">${g.mes}</td><td class="text-right">${g.ano}</td><td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
+            const mesesHtml = Object.entries(g.meses).sort().map(([mes, val]) => {
+                const cls = val < 0 ? 'valor-negativo' : 'valor-positivo';
+                return `<span class="mono ${cls}" style="margin-right:8px;">${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</span>`;
+            }).join('');
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
+                    <td>${g.projeto}</td>
+                    <td>${g.descricao}</td>
+                    <td>${g.empresa}</td>
+                    <td colspan="2">${mesesHtml || 'Sem meses'}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
         });
         if (Object.values(grupos).length > 0) {
             tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
@@ -2234,7 +2480,7 @@
                         <div class="table-actions" style="justify-content:flex-end;">
                             <button onclick="editarConsumo(${c.id})" class="btn-edit">Editar</button>
                             <button onclick="excluirConsumo(${c.id})" class="btn-danger">Excluir</button>
-                            ${c.status_nf === 'Emissão Solicitada' || c.status_nf === 'Nota emitida' ? `<button onclick="exportarExcel(${c.id})" class="btn-excel">📊 Excel</button>` : ''}
+                            ${(c.status_nf === 'Emissão Solicitada' || c.status_nf === 'Nota emitida') ? `<button onclick="exportarExcel(${c.id})" class="btn-excel">📊 Excel</button>` : ''}
                         </div>
                     </td>
                 </tr>`;
@@ -2244,6 +2490,7 @@
     document.getElementById('form-consumo').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('consumo-edit-id').value;
+        const agora = new Date().toISOString();
         const dados = {
             dc: document.getElementById('dc-numero').value,
             empresa: document.getElementById('dc-empresa').value,
@@ -2262,7 +2509,8 @@
             centro_custo: document.getElementById('dc-centro-custo').value || null,
             item: document.getElementById('dc-item').value || null,
             folha_registro: document.getElementById('dc-folha-registro').value || null,
-            po: document.getElementById('dc-po').value || null
+            po: document.getElementById('dc-po').value || null,
+            ultima_atualizacao: agora
         };
         let result;
         if (editId) {
@@ -2271,7 +2519,7 @@
             result = await supabaseClient.from('consumo_dc').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); e.target.reset(); document.getElementById('consumo-edit-id').value = ''; document.getElementById('consumo-cancel-btn').style.display = 'none'; document.getElementById('campos-extras-consumo').classList.remove('visible'); controlarCamposNF(); carregarConsumos(); carregarFiltros(); }
+        else { alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); e.target.reset(); document.getElementById('consumo-edit-id').value = ''; document.getElementById('consumo-cancel-btn').style.display = 'none'; document.getElementById('campos-extras-consumo').classList.remove('visible'); controlarCamposNF(); carregarConsumos(); carregarFiltros(); carregarDCCards(); }
         aplicarMascaras();
     });
 
@@ -2305,7 +2553,7 @@
         if (!confirm('Tem certeza que deseja excluir este consumo?')) return;
         const { error } = await supabaseClient.from('consumo_dc').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Consumo excluído!'); carregarConsumos(); carregarFiltros(); }
+        else { alert('Consumo excluído!'); carregarConsumos(); carregarFiltros(); carregarDCCards(); }
     }
 
     // ===================== EXPORTAR EXCEL =====================
@@ -2332,16 +2580,9 @@
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Consumo DC');
         
-        // Ajustar largura das colunas
         ws['!cols'] = [
-            { wch: 15 }, // Projeto
-            { wch: 15 }, // Contrato
-            { wch: 10 }, // Cent
-            { wch: 15 }, // PO
-            { wch: 10 }, // Item
-            { wch: 20 }, // Folha de Registro
-            { wch: 15 }, // Valor
-            { wch: 18 }  // mês/apropriação
+            { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 15 },
+            { wch: 10 }, { wch: 20 }, { wch: 15 }, { wch: 18 }
         ];
 
         XLSX.writeFile(wb, `Consumo_DC_${data.dc}_${mesAno}.xlsx`);
@@ -2750,7 +2991,7 @@
         if (editId) { result = await supabaseClient.from('status_dc').update(dados).eq('id', editId); } 
         else { result = await supabaseClient.from('status_dc').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Status DC atualizado!' : 'Status DC salvo!'); e.target.reset(); document.getElementById('statusdc-edit-id').value = ''; document.getElementById('statusdc-cancel-btn').style.display = 'none'; carregarStatusDC(); carregarSelectStatus('dc-status-dc', 'status_dc'); }
+        else { alert(editId ? 'Status DC atualizado!' : 'Status DC salvo!'); e.target.reset(); document.getElementById('statusdc-edit-id').value = ''; document.getElementById('statusdc-cancel-btn').style.display = 'none'; carregarStatusDC(); carregarSelectStatus('dc-status-dc', 'status_dc'); carregarSelectStatus('filt-dcs-status', 'status_dc'); }
     });
 
     async function editarStatusDC(id) {
@@ -2765,7 +3006,7 @@
         if (!confirm('Tem certeza que deseja excluir este status DC?')) return;
         const { error } = await supabaseClient.from('status_dc').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Status DC excluído!'); carregarStatusDC(); carregarSelectStatus('dc-status-dc', 'status_dc'); }
+        else { alert('Status DC excluído!'); carregarStatusDC(); carregarSelectStatus('dc-status-dc', 'status_dc'); carregarSelectStatus('filt-dcs-status', 'status_dc'); }
     }
 
     async function carregarStatusMed() {
