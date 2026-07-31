@@ -712,16 +712,31 @@
     z-index:10;
   }
 
-  /* Estilo para o subtítulo do menu */
-  .menu-subtitle {
-    font-size:10px;
-    color:#4A6A8E;
-    padding:4px 12px 8px 12px;
-    font-weight:500;
-    letter-spacing:0.05em;
-    border-bottom:1px solid rgba(255,255,255,0.04);
-    margin-bottom:4px;
+  .dash-table th, .dash-table td {
+    padding:10px 14px;
+    text-align:left;
+    font-size:13px;
   }
+  .dash-table th {
+    background:var(--paper);
+    font-weight:600;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    font-size:10px;
+    letter-spacing:0.06em;
+  }
+  .dash-table td {
+    border-bottom:1px solid var(--border);
+  }
+  .dash-table .total-row td {
+    background:var(--primary-100);
+    font-weight:700;
+  }
+  .dash-table .total-row td:last-child {
+    font-weight:700;
+  }
+  .dash-table .valor-positivo { color:var(--success); }
+  .dash-table .valor-negativo { color:var(--danger); }
 
   @media (max-width: 900px){
     .sidebar{ display:none; }
@@ -876,12 +891,60 @@
         </div>
       </div>
 
-      <!-- Tabela -->
+      <!-- Tabela estilo imagem -->
       <div class="card">
         <div class="table-scroll">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse dash-table">
             <thead>
-              <tr class="th-row">
+              <tr>
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dashboard-corpo">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== DASHBOARD APROPRIAÇÃO (dentro de Dashboard) ===================== -->
+    <div id="tab-dash-apropriacao" class="tab-content space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Apropriação</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação - saldo devedor por mês.</p>
+      </div>
+      
+      <div class="filters-bar">
+        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()">
+          <option value="">Todos os Projetos</option>
+        </select>
+        <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()">
+          <option value="">Todos os Gestores</option>
+        </select>
+        <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()">
+          <option value="">Todos os Meses</option>
+        </select>
+        <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()">
+          <option value="">Todos os Anos</option>
+        </select>
+        <div class="flex gap-2">
+          <button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button>
+          <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="table-scroll">
+          <table class="w-full text-left border-collapse dash-table">
+            <thead>
+              <tr>
                 <th>Gestor</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
@@ -891,8 +954,56 @@
                 <th class="text-right">Valor</th>
               </tr>
             </thead>
-            <tbody id="tabela-dashboard-corpo">
-              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
+            <tbody id="tabela-dash-apropriacao">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== DASHBOARD DON (Medição) ===================== -->
+    <div id="tab-dash-don" class="tab-content space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido - saldo devedor por mês.</p>
+      </div>
+      
+      <div class="filters-bar">
+        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()">
+          <option value="">Todos os Projetos</option>
+        </select>
+        <select id="filt-don-gestor" class="input" onchange="carregarDashDON()">
+          <option value="">Todos os Gestores</option>
+        </select>
+        <select id="filt-don-mes" class="input" onchange="carregarDashDON()">
+          <option value="">Todos os Meses</option>
+        </select>
+        <select id="filt-don-ano" class="input" onchange="carregarDashDON()">
+          <option value="">Todos os Anos</option>
+        </select>
+        <div class="flex gap-2">
+          <button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button>
+          <button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="table-scroll">
+          <table class="w-full text-left border-collapse dash-table">
+            <thead>
+              <tr>
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dash-don">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1062,103 +1173,6 @@
       </div>
     </div>
 
-    <!-- ===================== DASHBOARDS (Agrupados) ===================== -->
-    <!-- DASHBOARD APROPRIAÇÃO -->
-    <div id="tab-dash-apropriacao" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard - Medições Apropriação</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p>
-      </div>
-      
-      <div class="filters-bar">
-        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Projetos</option>
-        </select>
-        <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Gestores</option>
-        </select>
-        <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Meses</option>
-        </select>
-        <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Anos</option>
-        </select>
-        <div class="flex gap-2">
-          <button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button>
-          <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="table-scroll">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="th-row">
-                <th>Gestor</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th>Empresa</th>
-                <th class="text-right">Mês</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Valor</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dash-apropriacao">
-              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- DASHBOARD MEDIÇÃO -->
-    <div id="tab-dash-medicao" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard - Medição</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido (origem real da medição).</p>
-      </div>
-      
-      <div class="filters-bar">
-        <select id="filt-med-projeto" class="input" onchange="carregarDashMedicao()">
-          <option value="">Todos os Projetos</option>
-        </select>
-        <select id="filt-med-gestor" class="input" onchange="carregarDashMedicao()">
-          <option value="">Todos os Gestores</option>
-        </select>
-        <select id="filt-med-mes" class="input" onchange="carregarDashMedicao()">
-          <option value="">Todos os Meses</option>
-        </select>
-        <select id="filt-med-ano" class="input" onchange="carregarDashMedicao()">
-          <option value="">Todos os Anos</option>
-        </select>
-        <div class="flex gap-2">
-          <button onclick="carregarDashMedicao()" class="btn-primary flex-1">Filtrar</button>
-          <button onclick="limparFiltros('med')" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="table-scroll">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="th-row">
-                <th>Gestor</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th>Empresa</th>
-                <th class="text-right">Mês</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Valor</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dash-medicao">
-              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
     <!-- ===================== HISTÓRICO APROPRIAÇÃO ===================== -->
     <div id="tab-apropriacao-hist" class="tab-content space-y-6">
       <div>
@@ -1245,7 +1259,7 @@
               <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
               <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
               <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Apropriação</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="dash-medicao" class="permission-check"><span>Dash Medição</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
               <label class="checkbox-item"><input type="checkbox" value="historico-aprop" class="permission-check"><span>Hist. Apropriação</span></label>
               <label class="checkbox-item"><input type="checkbox" value="historico-gestor" class="permission-check"><span>Hist. Gestor</span></label>
               <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
@@ -1709,12 +1723,16 @@
         const mobileNav = document.getElementById('mobileNav');
         
         const menuItems = [
-            { id: 'dashboard', label: 'Visão Geral de Saldos', icon: 'dashboard', area: 'dashboard', type: 'link' },
+            { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', area: 'dashboard', type: 'flyout', children: [
+                { id: 'dashboard', label: 'Visão Geral de Saldos', area: 'dashboard' },
+                { id: 'dash-apropriacao', label: 'Dashboard Apropriação', area: 'dash-apropriacao' },
+                { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' }
+            ]},
             { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
                 { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
-                { id: 'cad-consumo', label: 'Consumo Medição DC', area: 'medicoes' },
-                { id: 'dash-apropriacao', label: 'Dashboard Apropriação', area: 'dash-apropriacao' },
-                { id: 'dash-medicao', label: 'Dashboard Medição', area: 'dash-medicao' },
+                { id: 'cad-consumo', label: 'Consumo Medição DC', area: 'medicoes' }
+            ]},
+            { id: 'historicos', label: 'Históricos', icon: 'historico', area: 'historico-aprop', type: 'flyout', children: [
                 { id: 'apropriacao-hist', label: 'Histórico Apropriação', area: 'historico-aprop' },
                 { id: 'medicao-gestor-hist', label: 'Histórico Gestor', area: 'historico-gestor' }
             ]},
@@ -1752,6 +1770,7 @@
             const icons = {
                 'dashboard': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
                 'medicoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l13-13 5 5-13 13H3v-5z"/><path d="M13.5 6.5l4 4"/><path d="M9 11l1.5 1.5"/><path d="M6 14l1.5 1.5"/></svg>',
+                'historico': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
                 'adm': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
                 'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
                 'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
@@ -1812,7 +1831,7 @@
             
             if (hasVisibleItems) {
                 container.innerHTML = `
-                    <div class="nav-section-label">Painel</div>
+                    <div class="nav-section-label">Menu</div>
                     ${html}
                 `;
             } else {
@@ -1898,7 +1917,7 @@
         const filtros = {
             'dash': ['filt-dash-projeto', 'filt-dash-gestor', 'filt-dash-mes', 'filt-dash-ano'],
             'aprop': ['filt-aprop-projeto', 'filt-aprop-gestor', 'filt-aprop-mes', 'filt-aprop-ano'],
-            'med': ['filt-med-projeto', 'filt-med-gestor', 'filt-med-mes', 'filt-med-ano']
+            'don': ['filt-don-projeto', 'filt-don-gestor', 'filt-don-mes', 'filt-don-ano']
         };
         
         const ids = filtros[tipo] || [];
@@ -1909,7 +1928,7 @@
         
         if (tipo === 'dash') carregarDashboard();
         else if (tipo === 'aprop') carregarDashApropriacao();
-        else if (tipo === 'med') carregarDashMedicao();
+        else if (tipo === 'don') carregarDashDON();
     }
 
     // ===================== PERMISSÕES =====================
@@ -2000,10 +2019,10 @@
     function mudarAba(nomeAba) {
         const areaMap = {
             'dashboard': 'dashboard',
+            'dash-apropriacao': 'dash-apropriacao',
+            'dash-don': 'dash-don',
             'cad-medicao': 'medicoes',
             'cad-consumo': 'medicoes',
-            'dash-apropriacao': 'dash-apropriacao',
-            'dash-medicao': 'dash-medicao',
             'apropriacao-hist': 'historico-aprop',
             'medicao-gestor-hist': 'historico-gestor',
             'adm-user': 'adm-user',
@@ -2037,7 +2056,7 @@
     function carregarDadosAba(nomeAba) {
         if (nomeAba === 'dashboard') carregarDashboard();
         else if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
-        else if (nomeAba === 'dash-medicao') carregarDashMedicao();
+        else if (nomeAba === 'dash-don') carregarDashDON();
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
         else if (nomeAba === 'medicao-gestor-hist') carregarMedicaoHist();
         else if (nomeAba === 'cad-medicao') carregarMedicoes();
@@ -2085,7 +2104,7 @@
         
         const projetos = new Set();
         const gestores = new Set();
-        const anos = new Set();
+        const anos = new Set([2025, 2026, 2027]);
         
         if (medicoes) {
             medicoes.forEach(m => {
@@ -2100,12 +2119,6 @@
             });
         }
         
-        // Adicionar anos (2025, 2026, 2027)
-        anos.add(2025);
-        anos.add(2026);
-        anos.add(2027);
-        
-        // Preencher meses
         const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         
         const filtrosConfig = [
@@ -2117,10 +2130,10 @@
             { id: 'filt-aprop-gestor', values: gestores },
             { id: 'filt-aprop-mes', values: new Set(meses) },
             { id: 'filt-aprop-ano', values: anos },
-            { id: 'filt-med-projeto', values: projetos },
-            { id: 'filt-med-gestor', values: gestores },
-            { id: 'filt-med-mes', values: new Set(meses) },
-            { id: 'filt-med-ano', values: anos }
+            { id: 'filt-don-projeto', values: projetos },
+            { id: 'filt-don-gestor', values: gestores },
+            { id: 'filt-don-mes', values: new Set(meses) },
+            { id: 'filt-don-ano', values: anos }
         ];
         
         filtrosConfig.forEach(({ id, values }) => {
@@ -2190,8 +2203,6 @@
             somaConsumido += totalConsumido;
 
             const saldo = valorMedicao - totalConsumido;
-
-            // Determinar mês e ano para exibição
             const mesExibicao = med.mes || 'N/A';
             const anoExibicao = med.ano || 'N/A';
 
@@ -2202,13 +2213,10 @@
                 empresa: med.empresa || 'N/A',
                 mes: mesExibicao,
                 ano: anoExibicao,
-                valor: saldo,
-                valorMedicao: valorMedicao,
-                totalConsumido: totalConsumido
+                valor: saldo
             });
         });
 
-        // Ordenar por gestor e projeto
         linhas.sort((a, b) => {
             if (a.gestor !== b.gestor) return a.gestor.localeCompare(b.gestor);
             return a.projeto.localeCompare(b.projeto);
@@ -2217,15 +2225,9 @@
         tbody.innerHTML = '';
         let totalGeral = 0;
 
-        // Mostrar apenas meses com valor (do mais antigo ao mais atual)
-        // Para simplificar, vamos mostrar todos os meses que têm dados
-        const mesesComDados = new Set();
-        linhas.forEach(row => {
-            if (row.mes !== 'N/A') mesesComDados.add(row.mes);
-        });
-
         linhas.forEach(row => {
             totalGeral += row.valor;
+            const valorClass = row.valor < 0 ? 'valor-negativo' : 'valor-positivo';
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${row.gestor}</td>
@@ -2234,18 +2236,19 @@
                     <td>${row.empresa}</td>
                     <td class="text-right">${row.mes}</td>
                     <td class="text-right">${row.ano}</td>
-                    <td class="text-right mono font-bold ${row.valor < 0 ? 'text-neg' : 'text-pos'}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
         });
 
-        // Linha de total
-        tbody.innerHTML += `
-            <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
-                <td class="text-right mono font-bold ${totalGeral < 0 ? 'text-neg' : 'text-pos'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-            </tr>
-        `;
+        if (linhas.length > 0) {
+            tbody.innerHTML += `
+                <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
+                    <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
+                    <td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+        }
 
         document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedido.toLocaleString('pt-BR', {minFractionDigits: 2});
         document.getElementById('stat-total-consumido').innerText = 'R$ ' + somaConsumido.toLocaleString('pt-BR', {minFractionDigits: 2});
@@ -2301,6 +2304,7 @@
 
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
+            const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
@@ -2309,28 +2313,30 @@
                     <td>${g.empresa}</td>
                     <td class="text-right">${g.mes}</td>
                     <td class="text-right">${g.ano}</td>
-                    <td class="text-right mono font-bold ${g.total < 0 ? 'text-neg' : 'text-pos'}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
         });
 
-        tbody.innerHTML += `
-            <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
-                <td class="text-right mono font-bold ${totalGeral < 0 ? 'text-neg' : 'text-pos'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-            </tr>
-        `;
+        if (Object.values(grupos).length > 0) {
+            tbody.innerHTML += `
+                <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
+                    <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
+                    <td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+        }
     }
 
-    // ===================== DASHBOARD MEDIÇÃO =====================
-    async function carregarDashMedicao() {
-        const tbody = document.getElementById('tabela-dash-medicao');
+    // ===================== DASHBOARD DON =====================
+    async function carregarDashDON() {
+        const tbody = document.getElementById('tabela-dash-don');
         tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
-        const filtroProjeto = document.getElementById('filt-med-projeto')?.value || '';
-        const filtroGestor = document.getElementById('filt-med-gestor')?.value || '';
-        const filtroMes = document.getElementById('filt-med-mes')?.value || '';
-        const filtroAno = document.getElementById('filt-med-ano')?.value || '';
+        const filtroProjeto = document.getElementById('filt-don-projeto')?.value || '';
+        const filtroGestor = document.getElementById('filt-don-gestor')?.value || '';
+        const filtroMes = document.getElementById('filt-don-mes')?.value || '';
+        const filtroAno = document.getElementById('filt-don-ano')?.value || '';
 
         let query = supabaseClient.from('consumo_dc').select('*');
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
@@ -2368,6 +2374,7 @@
 
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
+            const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
@@ -2376,17 +2383,19 @@
                     <td>${g.empresa}</td>
                     <td class="text-right">${g.mes}</td>
                     <td class="text-right">${g.ano}</td>
-                    <td class="text-right mono font-bold ${g.total < 0 ? 'text-neg' : 'text-pos'}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
         });
 
-        tbody.innerHTML += `
-            <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
-                <td class="text-right mono font-bold ${totalGeral < 0 ? 'text-neg' : 'text-pos'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-            </tr>
-        `;
+        if (Object.values(grupos).length > 0) {
+            tbody.innerHTML += `
+                <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
+                    <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
+                    <td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+        }
     }
 
     // ===================== FUNÇÕES AUXILIARES =====================
