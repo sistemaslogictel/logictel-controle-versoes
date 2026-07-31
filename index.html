@@ -91,24 +91,11 @@
     text-align:center;
     margin-bottom:32px;
   }
-  .login-logo .brand {
-    display:inline-block;
-    background:linear-gradient(135deg, #0A1F4A, #1A3A7A);
-    padding:12px 24px;
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,0.08);
-    box-shadow:0 0 40px rgba(26,58,122,0.3);
-  }
-  .login-logo .brand span {
-    color:#FFFFFF;
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700;
-    font-size:28px;
-    letter-spacing:0.08em;
-  }
-  .login-logo .brand span em {
-    font-style:normal;
-    color:#6AA8F0;
+  .login-logo img {
+    height:64px;
+    width:auto;
+    object-fit:contain;
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.2));
   }
   .login-title {
     font-size:20px;
@@ -227,6 +214,7 @@
     box-shadow:0 4px 16px rgba(26,58,122,0.4);
   }
   .sidebar-link.is-active svg{ opacity:1; }
+  .sidebar-link.hidden-link { display:none; }
 
   .flyout-wrap{ position:relative; }
   .flyout-trigger{
@@ -255,6 +243,7 @@
   .flyout-wrap:hover .flyout-trigger,
   .flyout-wrap.is-open .flyout-trigger{ background:rgba(255,255,255,0.05); color:#fff; }
   .flyout-wrap.is-open .flyout-trigger .chev{ transform:rotate(45deg); border-color:#6AA8F0; }
+  .flyout-trigger.hidden-link { display:none; }
 
   .flyout{
     position:absolute;
@@ -317,6 +306,7 @@
     border-left-color:var(--primary-light); 
     color:#fff;
   }
+  .flyout-link.hidden-link { display:none; }
 
   .sidebar-footer{
     padding:16px 16px;
@@ -479,6 +469,36 @@
     cursor:pointer;
   }
 
+  /* ===================== VALIDAÇÃO DE SENHA ===================== */
+  .password-strength {
+    display:flex;
+    gap:6px;
+    margin-top:6px;
+    flex-wrap:wrap;
+  }
+  .password-strength .criteria {
+    font-size:11px;
+    padding:3px 10px;
+    border-radius:12px;
+    background:var(--paper);
+    color:var(--text-muted);
+    border:1px solid var(--border);
+    transition:all .25s ease;
+  }
+  .password-strength .criteria.met {
+    background:var(--success-bg);
+    color:var(--success);
+    border-color:var(--success);
+  }
+  .password-strength .criteria.unmet {
+    background:var(--danger-bg);
+    color:var(--danger);
+    border-color:var(--danger);
+  }
+  .password-strength .criteria .check {
+    margin-right:4px;
+  }
+
   .btn-primary{
     background:linear-gradient(135deg, #1A3A7A, #2A4A8A);
     color:#fff;
@@ -494,6 +514,11 @@
     background:linear-gradient(135deg, #224A8A, #3A5A9A);
     box-shadow:0 6px 24px rgba(26,58,122,0.35);
     transform:translateY(-1px);
+  }
+  .btn-primary:disabled {
+    opacity:0.5;
+    cursor:not-allowed;
+    transform:none !important;
   }
 
   .btn-secondary{
@@ -680,7 +705,7 @@
     .table-actions{ flex-direction:column; }
     .checkbox-group{ grid-template-columns:1fr; }
     .login-card{ padding:20px 16px; }
-    .login-logo .brand span{ font-size:22px; }
+    .login-logo img{ height:48px; }
   }
 </style>
 </head>
@@ -690,9 +715,7 @@
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
     <div class="login-logo">
-      <div class="brand">
-        <span>LOGIC<em>TEL</em></span>
-      </div>
+      <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
     </div>
     <div class="login-title">Bem-vindo de volta</div>
     <div class="login-subtitle">Faça login para acessar o sistema</div>
@@ -716,69 +739,13 @@
     <div>
       <div class="brand-box flex justify-between items-center">
         <div class="brand-chip">
-          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
           <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
         </div>
         <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
       </div>
-      <nav class="sidenav">
-        <div class="nav-section-label">Painel</div>
-        <button onclick="mudarAba('dashboard'); toggleSidebar();" id="btn-dashboard-mobile" class="sidebar-link is-active">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-          <span>Visão Geral de Saldos</span>
-        </button>
-        <div class="nav-section-label">Módulos</div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l13-13 5 5-13 13H3v-5z"/><path d="M13.5 6.5l4 4"/><path d="M9 11l1.5 1.5"/><path d="M6 14l1.5 1.5"/></svg> Medições</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Módulos de medições</div>
-            <button onclick="mudarAba('cad-medicao'); toggleSidebar();" class="flyout-link">Cadastro de Medição</button>
-            <button onclick="mudarAba('cad-consumo'); toggleSidebar();" class="flyout-link">Consumo Medição DC</button>
-            <button onclick="mudarAba('apropriacao-dash'); toggleSidebar();" class="flyout-link">Medições Apropriação (Dash)</button>
-            <button onclick="mudarAba('apropriacao-hist'); toggleSidebar();" class="flyout-link">Histórico Apropriação</button>
-            <button onclick="mudarAba('medicao-dash'); toggleSidebar();" class="flyout-link">Medição (Dash)</button>
-            <button onclick="mudarAba('medicao-gestor-hist'); toggleSidebar();" class="flyout-link">Histórico Gestor</button>
-          </div>
-        </div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Cadastro ADM</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Administração</div>
-            <button onclick="mudarAba('adm-user'); toggleSidebar();" class="flyout-link">Usuário</button>
-          </div>
-        </div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Cadastro Cliente</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Clientes</div>
-            <button onclick="mudarAba('adm-empresa'); toggleSidebar();" class="flyout-link">Empresa</button>
-            <button onclick="mudarAba('adm-projeto'); toggleSidebar();" class="flyout-link">Projeto</button>
-            <button onclick="mudarAba('adm-gestor'); toggleSidebar();" class="flyout-link">Gestor</button>
-            <button onclick="mudarAba('adm-gerente'); toggleSidebar();" class="flyout-link">Gerente</button>
-            <button onclick="mudarAba('adm-contrato'); toggleSidebar();" class="flyout-link">Contrato</button>
-          </div>
-        </div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg> Cadastro Status</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Status</div>
-            <button onclick="mudarAba('adm-status-dc'); toggleSidebar();" class="flyout-link">Status DC</button>
-            <button onclick="mudarAba('adm-status-med'); toggleSidebar();" class="flyout-link">Status Medição</button>
-            <button onclick="mudarAba('adm-status-nf'); toggleSidebar();" class="flyout-link">Status NF</button>
-          </div>
-        </div>
+      <nav class="sidenav" id="mobileNav">
+        <!-- Itens serão gerados dinamicamente -->
       </nav>
     </div>
     <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
@@ -789,68 +756,12 @@
     <div>
       <div class="brand-box">
         <div class="brand-chip">
-          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
           <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
         </div>
       </div>
-      <nav class="sidenav">
-        <div class="nav-section-label">Painel</div>
-        <button onclick="mudarAba('dashboard')" id="btn-dashboard" class="sidebar-link js-nav is-active">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-          <span>Visão Geral de Saldos</span>
-        </button>
-        <div class="nav-section-label">Módulos</div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l13-13 5 5-13 13H3v-5z"/><path d="M13.5 6.5l4 4"/><path d="M9 11l1.5 1.5"/><path d="M6 14l1.5 1.5"/></svg> Medições</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Módulos de medições</div>
-            <button onclick="mudarAba('cad-medicao')" id="btn-cad-medicao" class="flyout-link js-nav">Cadastro de Medição</button>
-            <button onclick="mudarAba('cad-consumo')" id="btn-cad-consumo" class="flyout-link js-nav">Consumo Medição DC</button>
-            <button onclick="mudarAba('apropriacao-dash')" id="btn-apropriacao-dash" class="flyout-link js-nav">Medições Apropriação (Dash)</button>
-            <button onclick="mudarAba('apropriacao-hist')" id="btn-apropriacao-hist" class="flyout-link js-nav">Histórico Apropriação</button>
-            <button onclick="mudarAba('medicao-dash')" id="btn-medicao-dash" class="flyout-link js-nav">Medição (Dash)</button>
-            <button onclick="mudarAba('medicao-gestor-hist')" id="btn-medicao-gestor-hist" class="flyout-link js-nav">Histórico Gestor</button>
-          </div>
-        </div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Cadastro ADM</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Administração</div>
-            <button onclick="mudarAba('adm-user')" id="btn-adm-user" class="flyout-link js-nav">Usuário</button>
-          </div>
-        </div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Cadastro Cliente</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Clientes</div>
-            <button onclick="mudarAba('adm-empresa')" id="btn-adm-empresa" class="flyout-link js-nav">Empresa</button>
-            <button onclick="mudarAba('adm-projeto')" id="btn-adm-projeto" class="flyout-link js-nav">Projeto</button>
-            <button onclick="mudarAba('adm-gestor')" id="btn-adm-gestor" class="flyout-link js-nav">Gestor</button>
-            <button onclick="mudarAba('adm-gerente')" id="btn-adm-gerente" class="flyout-link js-nav">Gerente</button>
-            <button onclick="mudarAba('adm-contrato')" id="btn-adm-contrato" class="flyout-link js-nav">Contrato</button>
-          </div>
-        </div>
-        <div class="flyout-wrap" data-flyout>
-          <button class="flyout-trigger">
-            <span class="lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg> Cadastro Status</span>
-            <span class="chev"></span>
-          </button>
-          <div class="flyout" role="menu">
-            <div class="flyout-section-title">Status</div>
-            <button onclick="mudarAba('adm-status-dc')" id="btn-adm-status-dc" class="flyout-link js-nav">Status DC</button>
-            <button onclick="mudarAba('adm-status-med')" id="btn-adm-status-med" class="flyout-link js-nav">Status Medição</button>
-            <button onclick="mudarAba('adm-status-nf')" id="btn-adm-status-nf" class="flyout-link js-nav">Status NF</button>
-          </div>
-        </div>
+      <nav class="sidenav" id="desktopNav">
+        <!-- Itens serão gerados dinamicamente -->
       </nav>
     </div>
     <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
@@ -1168,14 +1079,34 @@
             </div>
             <div>
               <label class="label">Senha *</label>
-              <div class="flex gap-2">
-                <input type="text" id="user-senha" required placeholder="Senha" class="input">
-                <button type="button" onclick="gerarSenha()" class="btn-generate" style="white-space:nowrap;">Gerar</button>
+              <div class="flex flex-col gap-2">
+                <div class="flex gap-2">
+                  <input type="text" id="user-senha" required placeholder="Senha" class="input" oninput="validarSenha()">
+                  <button type="button" onclick="gerarSenhaForte()" class="btn-generate" style="white-space:nowrap;">Gerar</button>
+                </div>
+                <!-- Indicadores de força da senha -->
+                <div class="password-strength" id="senha-criterios">
+                  <span class="criteria unmet" id="criterio-tamanho">
+                    <span class="check">✕</span> Mínimo 8 caracteres
+                  </span>
+                  <span class="criteria unmet" id="criterio-maiuscula">
+                    <span class="check">✕</span> 1 maiúscula
+                  </span>
+                  <span class="criteria unmet" id="criterio-minuscula">
+                    <span class="check">✕</span> 1 minúscula
+                  </span>
+                  <span class="criteria unmet" id="criterio-numero">
+                    <span class="check">✕</span> 1 número
+                  </span>
+                  <span class="criteria unmet" id="criterio-especial">
+                    <span class="check">✕</span> 1 caractere especial
+                  </span>
+                </div>
               </div>
             </div>
             <div class="flex items-end gap-2">
               <button type="button" onclick="cancelarEdicao('user')" class="btn-cancel" style="display:none;" id="user-cancel-btn">Cancelar</button>
-              <button type="submit" class="btn-primary w-full">Salvar Usuário</button>
+              <button type="submit" class="btn-primary w-full" id="user-submit-btn" disabled>Salvar Usuário</button>
             </div>
           </div>
           <div class="mt-4 pt-4 border-t border-gray-200">
@@ -1460,8 +1391,8 @@
 </div>
 
 <script>
-const SUPABASE_URL = 'https://gqrktjlwiownfezkvtgh.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxcmt0amx3aW93bmZlemt2dGdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTUxNDgsImV4cCI6MjEwMTA3MTE0OH0.ntyHDf5fgBKzlslvcK5n1JleuRnjGu8xG2ZzSm2CKH8';
+    const SUPABASE_URL = 'https://gqrktjlwiownfezkvtgh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxcmt0amx3aW93bmZlemt2dGdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTUxNDgsImV4cCI6MjEwMTA3MTE0OH0.ntyHDf5fgBKzlslvcK5n1JleuRnjGu8xG2ZzSm2CKH8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ===================== SESSÃO DO USUÁRIO =====================
@@ -1494,9 +1425,76 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
 
     function temPermissao(area) {
-        // Se não houver permissões definidas, permite acesso (usuário admin)
         if (!usuarioPermissoes || usuarioPermissoes.length === 0) return true;
         return usuarioPermissoes.includes(area) || usuarioPermissoes.includes('*');
+    }
+
+    // ===================== VALIDAÇÃO DE SENHA FORTE =====================
+    function validarSenha() {
+        const senha = document.getElementById('user-senha').value;
+        const criterios = {
+            tamanho: senha.length >= 8,
+            maiuscula: /[A-Z]/.test(senha),
+            minuscula: /[a-z]/.test(senha),
+            numero: /[0-9]/.test(senha),
+            especial: /[!@#$%^&*(),.?":{}|<>]/.test(senha)
+        };
+
+        const ids = {
+            tamanho: 'criterio-tamanho',
+            maiuscula: 'criterio-maiuscula',
+            minuscula: 'criterio-minuscula',
+            numero: 'criterio-numero',
+            especial: 'criterio-especial'
+        };
+
+        let todosAtendidos = true;
+        for (const [key, value] of Object.entries(criterios)) {
+            const el = document.getElementById(ids[key]);
+            if (el) {
+                el.className = `criteria ${value ? 'met' : 'unmet'}`;
+                el.innerHTML = `<span class="check">${value ? '✓' : '✕'}</span> ${getCriterioLabel(key)}`;
+            }
+            if (!value) todosAtendidos = false;
+        }
+
+        document.getElementById('user-submit-btn').disabled = !todosAtendidos || !senha;
+        return todosAtendidos;
+    }
+
+    function getCriterioLabel(key) {
+        const labels = {
+            tamanho: 'Mínimo 8 caracteres',
+            maiuscula: '1 maiúscula',
+            minuscula: '1 minúscula',
+            numero: '1 número',
+            especial: '1 caractere especial'
+        };
+        return labels[key] || key;
+    }
+
+    function gerarSenhaForte() {
+        const maiusculas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const minusculas = 'abcdefghijklmnopqrstuvwxyz';
+        const numeros = '0123456789';
+        const especiais = '!@#$%^&*(),.?":{}|<>';
+        const todos = maiusculas + minusculas + numeros + especiais;
+        
+        let senha = '';
+        senha += maiusculas[Math.floor(Math.random() * maiusculas.length)];
+        senha += minusculas[Math.floor(Math.random() * minusculas.length)];
+        senha += numeros[Math.floor(Math.random() * numeros.length)];
+        senha += especiais[Math.floor(Math.random() * especiais.length)];
+        
+        for (let i = 4; i < 12; i++) {
+            senha += todos[Math.floor(Math.random() * todos.length)];
+        }
+        
+        // Embaralhar a senha
+        senha = senha.split('').sort(() => Math.random() - 0.5).join('');
+        
+        document.getElementById('user-senha').value = senha;
+        validarSenha();
     }
 
     // ===================== LOGIN =====================
@@ -1526,19 +1524,19 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
                 return false;
             }
 
-            // Login bem sucedido
             salvarUsuarioLogado(data);
             errorEl.classList.remove('show');
             document.getElementById('loginOverlay').classList.add('hidden');
             document.getElementById('appShell').style.display = 'flex';
             
-            // Atualizar informações do usuário no topo
             const avatar = document.getElementById('userAvatar');
             const nomeDisplay = document.getElementById('userNameDisplay');
             avatar.textContent = data.nome.charAt(0).toUpperCase();
             nomeDisplay.textContent = data.nome;
 
-            // Carregar dados iniciais
+            // Gerar menu com base nas permissões
+            gerarMenu(data.permissoes || []);
+            
             carregarDadosGerais();
             carregarTodasListas();
             aplicarMascaras();
@@ -1562,7 +1560,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         }
     }
 
-    // ===================== VERIFICAR SESSÃO =====================
     function verificarSessao() {
         const usuario = getUsuarioLogado();
         if (usuario) {
@@ -1572,9 +1569,144 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
             const nomeDisplay = document.getElementById('userNameDisplay');
             avatar.textContent = usuario.nome.charAt(0).toUpperCase();
             nomeDisplay.textContent = usuario.nome;
+            gerarMenu(usuario.permissoes || []);
             return true;
         }
         return false;
+    }
+
+    // ===================== GERAR MENU DINÂMICO =====================
+    function gerarMenu(permissoes) {
+        const desktopNav = document.getElementById('desktopNav');
+        const mobileNav = document.getElementById('mobileNav');
+        
+        // Definir estrutura do menu
+        const menuItems = [
+            { id: 'dashboard', label: 'Visão Geral de Saldos', icon: 'dashboard', area: 'dashboard', type: 'link' },
+            { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
+                { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
+                { id: 'cad-consumo', label: 'Consumo Medição DC', area: 'medicoes' },
+                { id: 'apropriacao-dash', label: 'Medições Apropriação (Dash)', area: 'apropriacoes' },
+                { id: 'apropriacao-hist', label: 'Histórico Apropriação', area: 'historico-aprop' },
+                { id: 'medicao-dash', label: 'Medição (Dash)', area: 'medicao-dash' },
+                { id: 'medicao-gestor-hist', label: 'Histórico Gestor', area: 'historico-gestor' }
+            ]},
+            { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
+                { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
+            ]},
+            { id: 'cadastros-cliente', label: 'Cadastro Cliente', icon: 'cliente', area: 'adm-cliente', type: 'flyout', children: [
+                { id: 'adm-empresa', label: 'Empresa', area: 'adm-cliente' },
+                { id: 'adm-projeto', label: 'Projeto', area: 'adm-cliente' },
+                { id: 'adm-gestor', label: 'Gestor', area: 'adm-cliente' },
+                { id: 'adm-gerente', label: 'Gerente', area: 'adm-cliente' },
+                { id: 'adm-contrato', label: 'Contrato', area: 'adm-cliente' }
+            ]},
+            { id: 'cadastros-status', label: 'Cadastro Status', icon: 'status', area: 'adm-status', type: 'flyout', children: [
+                { id: 'adm-status-dc', label: 'Status DC', area: 'adm-status' },
+                { id: 'adm-status-med', label: 'Status Medição', area: 'adm-status' },
+                { id: 'adm-status-nf', label: 'Status NF', area: 'adm-status' }
+            ]}
+        ];
+
+        // Função para verificar se o usuário tem acesso a um item
+        function temAcesso(item) {
+            if (item.area === 'dashboard') return true;
+            if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
+            
+            if (item.type === 'link') {
+                return permissoes.includes(item.area);
+            }
+            if (item.type === 'flyout') {
+                return item.children.some(child => permissoes.includes(child.area));
+            }
+            return false;
+        }
+
+        function getIcon(name) {
+            const icons = {
+                'dashboard': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
+                'medicoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l13-13 5 5-13 13H3v-5z"/><path d="M13.5 6.5l4 4"/><path d="M9 11l1.5 1.5"/><path d="M6 14l1.5 1.5"/></svg>',
+                'adm': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
+                'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+                'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
+            };
+            return icons[name] || '';
+        }
+
+        function buildMenuHTML(container, items, isMobile) {
+            let html = '';
+            let hasVisibleItems = false;
+            
+            items.forEach(item => {
+                if (!temAcesso(item)) return;
+                hasVisibleItems = true;
+                
+                if (item.type === 'link') {
+                    const activeClass = item.id === 'dashboard' ? ' is-active' : '';
+                    html += `
+                        <button onclick="mudarAba('${item.id}')" id="btn-${item.id}${isMobile ? '-mobile' : ''}" class="sidebar-link js-nav${activeClass}">
+                            ${getIcon(item.icon)}
+                            <span>${item.label}</span>
+                        </button>
+                    `;
+                } else if (item.type === 'flyout') {
+                    // Verificar se algum filho tem acesso
+                    const hasAccessibleChild = item.children.some(child => {
+                        if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
+                        return permissoes.includes(child.area);
+                    });
+                    if (!hasAccessibleChild) return;
+                    
+                    html += `
+                        <div class="flyout-wrap" data-flyout>
+                            <button class="flyout-trigger">
+                                <span class="lbl">
+                                    ${getIcon(item.icon)}
+                                    ${item.label}
+                                </span>
+                                <span class="chev"></span>
+                            </button>
+                            <div class="flyout" role="menu">
+                                <div class="flyout-section-title">${item.label}</div>
+                    `;
+                    
+                    item.children.forEach(child => {
+                        if (!permissoes || permissoes.length === 0 || permissoes.includes('*') || permissoes.includes(child.area)) {
+                            html += `
+                                <button onclick="mudarAba('${child.id}')" id="btn-${child.id}${isMobile ? '-mobile' : ''}" class="flyout-link js-nav">${child.label}</button>
+                            `;
+                        }
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Adicionar a seção "Painel" apenas se houver itens visíveis
+            if (hasVisibleItems) {
+                container.innerHTML = `
+                    <div class="nav-section-label">Painel</div>
+                    ${html}
+                `;
+            } else {
+                container.innerHTML = '<div class="nav-section-label">Sem acesso</div>';
+            }
+        }
+
+        // Renderizar menus
+        const desktopItems = menuItems.filter(item => {
+            if (item.area === 'dashboard') return true;
+            if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
+            if (item.type === 'link') return permissoes.includes(item.area);
+            if (item.type === 'flyout') return item.children.some(child => permissoes.includes(child.area));
+            return false;
+        });
+
+        buildMenuHTML(desktopNav, desktopItems, false);
+        buildMenuHTML(mobileNav, desktopItems, true);
     }
 
     // ===================== MÁSCARAS =====================
@@ -1621,16 +1753,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         document.querySelectorAll('.date-input').forEach(mascaraData);
     }
 
-    // ===================== GERAR SENHA =====================
-    function gerarSenha() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-        let senha = '';
-        for (let i = 0; i < 12; i++) {
-            senha += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        document.getElementById('user-senha').value = senha;
-    }
-
     // ===================== PERMISSÕES =====================
     function getPermissoes() {
         const checks = document.querySelectorAll('.permission-check:checked');
@@ -1666,6 +1788,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         if (cancelBtn) cancelBtn.style.display = 'none';
         if (tipo === 'user') {
             setPermissoes([]);
+            document.getElementById('user-submit-btn').disabled = true;
         }
         aplicarMascaras();
         carregarTodasListas();
@@ -1716,6 +1839,32 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
     // ===================== NAVEGAÇÃO =====================
     function mudarAba(nomeAba) {
+        // Verificar permissão
+        const areaMap = {
+            'dashboard': 'dashboard',
+            'cad-medicao': 'medicoes',
+            'cad-consumo': 'medicoes',
+            'apropriacao-dash': 'apropriacoes',
+            'apropriacao-hist': 'historico-aprop',
+            'medicao-dash': 'medicao-dash',
+            'medicao-gestor-hist': 'historico-gestor',
+            'adm-user': 'adm-user',
+            'adm-empresa': 'adm-cliente',
+            'adm-projeto': 'adm-cliente',
+            'adm-gestor': 'adm-cliente',
+            'adm-gerente': 'adm-cliente',
+            'adm-contrato': 'adm-cliente',
+            'adm-status-dc': 'adm-status',
+            'adm-status-med': 'adm-status',
+            'adm-status-nf': 'adm-status'
+        };
+        
+        const area = areaMap[nomeAba] || nomeAba;
+        if (area !== 'dashboard' && !temPermissao(area)) {
+            alert('Você não tem permissão para acessar esta área.');
+            return;
+        }
+        
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.js-nav').forEach(el => el.classList.remove('is-active'));
         const target = document.getElementById('tab-' + nomeAba);
@@ -1728,12 +1877,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
 
     function carregarDadosAba(nomeAba) {
-        if (!temPermissao(nomeAba) && nomeAba !== 'dashboard') {
-            // Se não tiver permissão, redireciona para dashboard
-            mudarAba('dashboard');
-            alert('Você não tem permissão para acessar esta área.');
-            return;
-        }
         if (nomeAba === 'dashboard') carregarDadosGerais();
         else if (nomeAba === 'apropriacao-dash') carregarApropriacaoDash();
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
@@ -2009,10 +2152,18 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     document.getElementById('form-usuario').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('user-edit-id').value;
+        const senha = document.getElementById('user-senha').value;
+        
+        // Validar senha forte antes de salvar
+        if (!validarSenha()) {
+            alert('A senha não atende aos critérios de segurança. Verifique os requisitos acima.');
+            return;
+        }
+        
         const permissoes = getPermissoes();
         const dados = { 
             nome: document.getElementById('user-nome').value, 
-            senha: document.getElementById('user-senha').value,
+            senha: senha,
             permissoes: permissoes
         };
         let result;
@@ -2022,7 +2173,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
             result = await supabaseClient.from('usuarios').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Usuário atualizado!' : 'Usuário salvo!'); e.target.reset(); document.getElementById('user-edit-id').value = ''; document.getElementById('user-cancel-btn').style.display = 'none'; setPermissoes([]); carregarUsuarios(); }
+        else { alert(editId ? 'Usuário atualizado!' : 'Usuário salvo!'); e.target.reset(); document.getElementById('user-edit-id').value = ''; document.getElementById('user-cancel-btn').style.display = 'none'; setPermissoes([]); document.getElementById('user-submit-btn').disabled = true; carregarUsuarios(); }
     });
 
     async function editarUsuario(id) {
@@ -2033,6 +2184,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         document.getElementById('user-senha').value = data.senha;
         setPermissoes(data.permissoes || []);
         document.getElementById('user-cancel-btn').style.display = 'inline-block';
+        validarSenha();
     }
 
     async function excluirUsuario(id) {
@@ -2794,7 +2946,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
     // ===================== INICIALIZAÇÃO =====================
     window.onload = function() {
-        // Verificar se o usuário já está logado
         if (verificarSessao()) {
             carregarDadosGerais();
             carregarTodasListas();
