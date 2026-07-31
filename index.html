@@ -6,6 +6,7 @@
 <title>Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -399,20 +400,21 @@
     background:var(--paper);
     border-bottom:1px solid var(--border);
     color:var(--text-muted);
-    font-size:11px;
+    font-size:10px;
     letter-spacing:0.06em;
     text-transform:uppercase;
     font-weight:600;
-    padding:12px 16px;
+    padding:10px 14px;
     text-align:left;
     position:sticky;
     top:0;
     z-index:5;
+    white-space:nowrap;
   }
   .td-row td{
-    padding:14px 16px;
+    padding:10px 14px;
     border-bottom:1px solid var(--border);
-    font-size:13.5px;
+    font-size:13px;
   }
   .td-row:last-child td{ border-bottom:none; }
   .td-row:hover{ background:var(--paper); }
@@ -456,7 +458,7 @@
     border:1px solid var(--border);
     border-radius:8px;
     padding:9px 11px;
-    font-size:13.5px;
+    font-size:13px;
     background:var(--surface);
     color:var(--text);
     transition:border-color .15s ease, box-shadow .15s ease;
@@ -539,7 +541,7 @@
     background:linear-gradient(135deg, #1A3A7A, #2A4A8A);
     color:#fff;
     font-weight:600;
-    font-size:13.5px;
+    font-size:13px;
     padding:10px 18px;
     border-radius:8px;
     border:1px solid var(--primary-dark);
@@ -635,6 +637,18 @@
   }
   .btn-clear-filters:hover{ background:var(--text-muted); transform:translateY(-1px); }
 
+  .btn-excel{
+    background:#217346;
+    color:#fff;
+    font-weight:600;
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:6px;
+    border:1px solid #1a5c38;
+    transition:all .15s ease;
+  }
+  .btn-excel:hover{ background:#1a5c38; transform:translateY(-1px); }
+
   .app-shell{ display:flex; height:100vh; overflow:hidden; }
   .content-area{ flex:1; padding:28px 32px; overflow-y:auto; background:var(--paper); }
 
@@ -724,6 +738,7 @@
     text-transform:uppercase;
     font-size:10px;
     letter-spacing:0.06em;
+    white-space:nowrap;
   }
   .dash-table td {
     border-bottom:1px solid var(--border);
@@ -737,6 +752,9 @@
   }
   .dash-table .valor-positivo { color:var(--success); }
   .dash-table .valor-negativo { color:var(--danger); }
+
+  .campos-extras { display:none; }
+  .campos-extras.visible { display:grid; }
 
   @media (max-width: 900px){
     .sidebar{ display:none; }
@@ -754,8 +772,8 @@
     .topbar .flex.items-center{ flex-wrap:wrap; }
     .stat-value{ font-size:18px; }
     .card-pad{ padding:16px; }
-    .td-row td{ padding:10px 12px; font-size:12.5px; }
-    .th-row th{ padding:10px 12px; font-size:10px; }
+    .td-row td{ padding:10px 12px; font-size:12px; }
+    .th-row th{ padding:10px 12px; font-size:9px; }
     .flyout{ left:0; top:100%; min-width:200px; margin-left:0; margin-top:2px; max-height:300px; min-height:auto; }
     .flyout-wrap{ position:static; }
     .checkbox-group{ grid-template-columns:1fr 1fr; }
@@ -807,9 +825,7 @@
         </div>
         <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
       </div>
-      <nav class="sidenav" id="mobileNav">
-        <!-- Itens serão gerados dinamicamente -->
-      </nav>
+      <nav class="sidenav" id="mobileNav"></nav>
     </div>
     <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
   </div>
@@ -823,9 +839,7 @@
           <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
         </div>
       </div>
-      <nav class="sidenav" id="desktopNav">
-        <!-- Itens serão gerados dinamicamente -->
-      </nav>
+      <nav class="sidenav" id="desktopNav"></nav>
     </div>
     <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
   </aside>
@@ -864,147 +878,68 @@
         </button>
       </div>
 
-      <!-- Cards de resumo -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 stats-grid">
         <div class="stat-card"><div class="stat-label">Total Medido</div><div class="stat-value" id="stat-total-medido" style="color:var(--text)">R$ 0,00</div></div>
         <div class="stat-card"><div class="stat-label">Total Consumido</div><div class="stat-value" id="stat-total-consumido" style="color:var(--gold)">R$ 0,00</div></div>
         <div class="stat-card"><div class="stat-label">Saldo Total</div><div class="stat-value" id="stat-saldo-total" style="color:var(--success)">R$ 0,00</div></div>
       </div>
 
-      <!-- Filtros -->
       <div class="filters-bar">
-        <select id="filt-dash-projeto" class="input" onchange="carregarDashboard()">
-          <option value="">Todos os Projetos</option>
-        </select>
-        <select id="filt-dash-gestor" class="input" onchange="carregarDashboard()">
-          <option value="">Todos os Gestores</option>
-        </select>
-        <select id="filt-dash-mes" class="input" onchange="carregarDashboard()">
-          <option value="">Todos os Meses</option>
-        </select>
-        <select id="filt-dash-ano" class="input" onchange="carregarDashboard()">
-          <option value="">Todos os Anos</option>
-        </select>
+        <select id="filt-dash-projeto" class="input" onchange="carregarDashboard()"><option value="">Todos os Projetos</option></select>
+        <select id="filt-dash-gestor" class="input" onchange="carregarDashboard()"><option value="">Todos os Gestores</option></select>
+        <select id="filt-dash-mes" class="input" onchange="carregarDashboard()"><option value="">Todos os Meses</option></select>
+        <select id="filt-dash-ano" class="input" onchange="carregarDashboard()"><option value="">Todos os Anos</option></select>
         <div class="flex gap-2">
           <button onclick="carregarDashboard()" class="btn-primary flex-1">Filtrar</button>
           <button onclick="limparFiltros('dash')" class="btn-clear-filters">Limpar</button>
         </div>
       </div>
 
-      <!-- Tabela estilo imagem -->
       <div class="card">
         <div class="table-scroll">
           <table class="w-full text-left border-collapse dash-table">
-            <thead>
-              <tr>
-                <th>Gestor</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th>Empresa</th>
-                <th class="text-right">Mês</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Saldo</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dashboard-corpo">
-              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
-            </tbody>
+            <thead><tr><th>Gestor</th><th>Projeto</th><th>Descrição</th><th>Empresa</th><th class="text-right">Mês</th><th class="text-right">Ano</th><th class="text-right">Saldo</th></tr></thead>
+            <tbody id="tabela-dashboard-corpo"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ===================== DASHBOARD APROPRIAÇÃO (dentro de Dashboard) ===================== -->
+    <!-- ===================== DASHBOARD APROPRIAÇÃO ===================== -->
     <div id="tab-dash-apropriacao" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Apropriação</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação - saldo devedor por mês.</p>
-      </div>
-      
+      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Apropriação</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p></div>
       <div class="filters-bar">
-        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Projetos</option>
-        </select>
-        <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Gestores</option>
-        </select>
-        <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Meses</option>
-        </select>
-        <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()">
-          <option value="">Todos os Anos</option>
-        </select>
-        <div class="flex gap-2">
-          <button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button>
-          <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
-        </div>
+        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
+        <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
+        <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Meses</option></select>
+        <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Anos</option></select>
+        <div class="flex gap-2"><button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button></div>
       </div>
-      
       <div class="card">
         <div class="table-scroll">
           <table class="w-full text-left border-collapse dash-table">
-            <thead>
-              <tr>
-                <th>Gestor</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th>Empresa</th>
-                <th class="text-right">Mês</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Valor</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dash-apropriacao">
-              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
+            <thead><tr><th>Gestor</th><th>Projeto</th><th>Descrição</th><th>Empresa</th><th class="text-right">Mês</th><th class="text-right">Ano</th><th class="text-right">Valor</th></tr></thead>
+            <tbody id="tabela-dash-apropriacao"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ===================== DASHBOARD DON (Medição) ===================== -->
+    <!-- ===================== DASHBOARD DON ===================== -->
     <div id="tab-dash-don" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido - saldo devedor por mês.</p>
-      </div>
-      
+      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido.</p></div>
       <div class="filters-bar">
-        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()">
-          <option value="">Todos os Projetos</option>
-        </select>
-        <select id="filt-don-gestor" class="input" onchange="carregarDashDON()">
-          <option value="">Todos os Gestores</option>
-        </select>
-        <select id="filt-don-mes" class="input" onchange="carregarDashDON()">
-          <option value="">Todos os Meses</option>
-        </select>
-        <select id="filt-don-ano" class="input" onchange="carregarDashDON()">
-          <option value="">Todos os Anos</option>
-        </select>
-        <div class="flex gap-2">
-          <button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button>
-          <button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button>
-        </div>
+        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
+        <select id="filt-don-gestor" class="input" onchange="carregarDashDON()"><option value="">Todos os Gestores</option></select>
+        <select id="filt-don-mes" class="input" onchange="carregarDashDON()"><option value="">Todos os Meses</option></select>
+        <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
+        <div class="flex gap-2"><button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button></div>
       </div>
-      
       <div class="card">
         <div class="table-scroll">
           <table class="w-full text-left border-collapse dash-table">
-            <thead>
-              <tr>
-                <th>Gestor</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th>Empresa</th>
-                <th class="text-right">Mês</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Valor</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dash-don">
-              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
+            <thead><tr><th>Gestor</th><th>Projeto</th><th>Descrição</th><th>Empresa</th><th class="text-right">Mês</th><th class="text-right">Ano</th><th class="text-right">Valor</th></tr></thead>
+            <tbody id="tabela-dash-don"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1016,52 +951,15 @@
       <div class="card card-pad">
         <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input type="hidden" id="med-edit-id" value="">
-          <div>
-            <label class="label">Empresa *</label>
-            <select id="med-empresa" required class="input">
-              <option value="V.Tal">V.Tal</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Projeto *</label>
-            <select id="med-projeto" required onchange="atualizarGestores()" class="input">
-              <option value="">Selecione...</option>
-              <option value="306">306</option>
-              <option value="340">340</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Gestor *</label>
-            <select id="med-gestor" required class="input">
-              <option value="">Selecione o projeto primeiro...</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Gerente</label>
-            <input type="text" id="med-gerente" placeholder="Opcional" class="input">
-          </div>
-          <div>
-            <label class="label">Mês *</label>
-            <select id="med-mes" required class="input">
-              <option value="">Selecione...</option>
-              <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-              <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-              <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-              <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Ano *</label>
-            <input type="number" id="med-ano" value="2026" required class="input">
-          </div>
-          <div>
-            <label class="label">Valor Total *</label>
-            <input type="text" id="med-valor" required placeholder="0,00" class="input money-input">
-          </div>
-          <div>
-            <label class="label">Data E-mail</label>
-            <input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input">
-          </div>
+          <div><label class="label">Empresa *</label><select id="med-empresa" required class="input"><option value="V.Tal">V.Tal</option></select></div>
+          <div><label class="label">Projeto *</label><select id="med-projeto" required onchange="atualizarGestores()" class="input"><option value="">Selecione...</option><option value="306">306</option><option value="340">340</option></select></div>
+          <div><label class="label">Gestor *</label><select id="med-gestor" required class="input"><option value="">Selecione o projeto primeiro...</option></select></div>
+          <div><label class="label">Gerente</label><input type="text" id="med-gerente" placeholder="Opcional" class="input"></div>
+          <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
+          <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
+          <div><label class="label">Valor Total *</label><input type="text" id="med-valor" required placeholder="0,00" class="input money-input"></div>
+          <div><label class="label">Data E-mail</label><input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input"></div>
+          <div><label class="label">Status Medição *</label><select id="med-status" required class="input"><option value="">Selecione...</option></select></div>
           <div class="md:col-span-3 flex justify-end pt-2 gap-2">
             <button type="button" onclick="cancelarEdicao('med')" class="btn-cancel" style="display:none;" id="med-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar Medição</button>
@@ -1071,92 +969,52 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês</th><th>Ano</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-medicoes"><tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês</th><th>Ano</th><th>Status</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-medicoes"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ===================== CONSUMO MEDIÇÃO DC ===================== -->
+    <!-- ===================== CONSUMO DC ===================== -->
     <div id="tab-cad-consumo" class="tab-content space-y-6">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Consumo Medição DC</h2>
+      <h2 class="text-2xl font-bold" style="color:var(--text)">Consumo DC</h2>
       <div class="card card-pad">
         <form id="form-consumo" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="hidden" id="consumo-edit-id" value="">
-          <div>
-            <label class="label">DC *</label>
-            <input type="text" id="dc-numero" required placeholder="Número da DC" class="input">
+          <div><label class="label">DC *</label><input type="text" id="dc-numero" required placeholder="Número da DC" class="input"></div>
+          <div><label class="label">Empresa *</label><select id="dc-empresa" required class="input"><option value="V.Tal">V.Tal</option></select></div>
+          <div><label class="label">Projeto *</label><select id="dc-projeto" required class="input"><option value="">Selecione...</option><option value="306">306</option><option value="340">340</option></select></div>
+          <div><label class="label">Gestor *</label><input type="text" id="dc-gestor" required placeholder="Nome do gestor" class="input"></div>
+          <div><label class="label">Gerente</label><input type="text" id="dc-gerente" placeholder="Nome do gerente" class="input"></div>
+          <div><label class="label">Mês Apropriação *</label><select id="dc-mes-apropriacao" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
+          <div><label class="label">Ano *</label><input type="number" id="dc-ano" value="2026" required class="input"></div>
+          <div><label class="label">Valor (R$) *</label><input type="text" id="dc-valor" required placeholder="0,00" class="input money-input"></div>
+          <div><label class="label">Mês Medido *</label><select id="dc-mes-medido" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
+          <div><label class="label">Data Solicitação *</label><input type="text" id="dc-data-solicitacao" required placeholder="dd/mm/aaaa" class="input date-input"></div>
+          
+          <!-- Status DC -->
+          <div><label class="label">Status DC *</label><select id="dc-status-dc" required class="input"><option value="">Selecione...</option></select></div>
+          
+          <!-- Status NF -->
+          <div><label class="label">Status NF *</label><select id="dc-status-nf" required onchange="controlarCamposNF()" class="input"><option value="">Selecione...</option></select></div>
+          
+          <!-- Nº da NF -->
+          <div><label class="label">Nº da NF</label><input type="text" id="dc-num-nf" disabled placeholder="Obrigatório se emitida" class="input"></div>
+          
+          <!-- Data Emissão NF -->
+          <div><label class="label">Data Emissão NF</label><input type="text" id="dc-data-nf" disabled placeholder="dd/mm/aaaa" class="input date-input"></div>
+          
+          <!-- Campos Extras (Centro de Custo, Item, Folha de Registro) -->
+          <div class="md:col-span-4 campos-extras" id="campos-extras-consumo">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div><label class="label">Centro de Custo</label><input type="text" id="dc-centro-custo" placeholder="Centro de Custo" class="input"></div>
+              <div><label class="label">Item</label><input type="text" id="dc-item" placeholder="Item" class="input"></div>
+              <div><label class="label">Folha de Registro</label><input type="text" id="dc-folha-registro" placeholder="Folha de Registro" class="input"></div>
+              <div><label class="label">PO</label><input type="text" id="dc-po" placeholder="PO" class="input"></div>
+            </div>
           </div>
-          <div>
-            <label class="label">Empresa *</label>
-            <select id="dc-empresa" required class="input">
-              <option value="V.Tal">V.Tal</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Projeto *</label>
-            <select id="dc-projeto" required class="input">
-              <option value="">Selecione...</option>
-              <option value="306">306</option>
-              <option value="340">340</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Gestor *</label>
-            <input type="text" id="dc-gestor" required placeholder="Nome do gestor" class="input">
-          </div>
-          <div>
-            <label class="label">Gerente</label>
-            <input type="text" id="dc-gerente" placeholder="Nome do gerente" class="input">
-          </div>
-          <div>
-            <label class="label">Mês Apropriação *</label>
-            <select id="dc-mes-apropriacao" required class="input">
-              <option value="">Selecione...</option>
-              <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-              <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-              <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-              <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Ano *</label>
-            <input type="number" id="dc-ano" value="2026" required class="input">
-          </div>
-          <div>
-            <label class="label">Valor (R$) *</label>
-            <input type="text" id="dc-valor" required placeholder="0,00" class="input money-input">
-          </div>
-          <div>
-            <label class="label">Mês Medido *</label>
-            <select id="dc-mes-medido" required class="input">
-              <option value="">Selecione...</option>
-              <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-              <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-              <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-              <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Data Solicitação *</label>
-            <input type="text" id="dc-data-solicitacao" required placeholder="dd/mm/aaaa" class="input date-input">
-          </div>
-          <div>
-            <label class="label">Status NF *</label>
-            <select id="dc-status-nf" required onchange="controlarCamposNF()" class="input">
-              <option value="Prevista">Prevista</option>
-              <option value="Nota emitida">Nota emitida</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Nº da NF</label>
-            <input type="text" id="dc-num-nf" disabled placeholder="Obrigatório se emitida" class="input">
-          </div>
-          <div>
-            <label class="label">Data Emissão NF</label>
-            <input type="text" id="dc-data-nf" disabled placeholder="dd/mm/aaaa" class="input date-input">
-          </div>
+          
           <div class="md:col-span-4 flex justify-end pt-2 gap-2">
             <button type="button" onclick="cancelarEdicao('consumo')" class="btn-cancel" style="display:none;" id="consumo-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar Consumo</button>
@@ -1166,8 +1024,8 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>DC</th><th>Empresa</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Apropriação</th><th>Ano</th><th>Mês Medido</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-consumos"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>ID</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Aprop.</th><th>Ano</th><th>Mês Medido</th><th>Status DC</th><th>Status NF</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-consumos"><tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1175,10 +1033,7 @@
 
     <!-- ===================== HISTÓRICO APROPRIAÇÃO ===================== -->
     <div id="tab-apropriacao-hist" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Histórico de Apropriações</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem detalhada ordenada do mais recente para o mais antigo.</p>
-      </div>
+      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Histórico de Apropriações</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem detalhada ordenada do mais recente para o mais antigo.</p></div>
       <div class="filters-bar">
         <input type="text" id="filt-hist-aprop-proj" placeholder="Filtrar Projeto..." oninput="carregarApropriacaoHist()" class="input">
         <input type="text" id="filt-hist-aprop-gest" placeholder="Filtrar Gestor..." oninput="carregarApropriacaoHist()" class="input">
@@ -1189,8 +1044,8 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Apropriação</th><th>Ano</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-apropriacao-hist"><tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Aprop.</th><th>Ano</th><th>Status NF</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-apropriacao-hist"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1198,10 +1053,7 @@
 
     <!-- ===================== HISTÓRICO GESTOR ===================== -->
     <div id="tab-medicao-gestor-hist" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Histórico do Gestor</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem detalhada por mês medido, do mais recente para o mais antigo.</p>
-      </div>
+      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Histórico do Gestor</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem detalhada por mês medido.</p></div>
       <div class="filters-bar">
         <input type="text" id="filt-hist-med-proj" placeholder="Filtrar Projeto..." oninput="carregarMedicaoHist()" class="input">
         <input type="text" id="filt-hist-med-gest" placeholder="Filtrar Gestor..." oninput="carregarMedicaoHist()" class="input">
@@ -1212,8 +1064,8 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Medido</th><th>Ano</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-medicao-hist"><tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Medido</th><th>Ano</th><th>Status DC</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-medicao-hist"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1226,10 +1078,7 @@
         <form id="form-usuario" class="space-y-4">
           <input type="hidden" id="user-edit-id" value="">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="label">Usuário *</label>
-              <input type="text" id="user-nome" required placeholder="Nome do usuário" class="input">
-            </div>
+            <div><label class="label">Usuário *</label><input type="text" id="user-nome" required placeholder="Nome do usuário" class="input"></div>
             <div>
               <label class="label">Senha *</label>
               <div class="flex flex-col gap-2">
@@ -1256,10 +1105,10 @@
             <p class="text-xs text-muted mb-2" style="color:var(--text-soft);">Selecione as áreas que este usuário terá acesso</p>
             <div class="checkbox-group">
               <label class="checkbox-item"><input type="checkbox" value="dashboard" class="permission-check"><span>Dashboard</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
               <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Apropriação</span></label>
               <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
               <label class="checkbox-item"><input type="checkbox" value="historico-aprop" class="permission-check"><span>Hist. Apropriação</span></label>
               <label class="checkbox-item"><input type="checkbox" value="historico-gestor" class="permission-check"><span>Hist. Gestor</span></label>
               <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
@@ -1281,16 +1130,13 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO EMPRESA ===================== -->
+    <!-- ===================== CADASTROS ADM ===================== -->
     <div id="tab-adm-empresa" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Empresa</h2>
       <div class="card card-pad">
         <form id="form-empresa" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="hidden" id="empresa-edit-id" value="">
-          <div>
-            <label class="label">Nome da Empresa *</label>
-            <input type="text" id="empresa-nome" required placeholder="Nome da empresa" class="input">
-          </div>
+          <div><label class="label">Nome da Empresa *</label><input type="text" id="empresa-nome" required placeholder="Nome da empresa" class="input"></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('empresa')" class="btn-cancel" style="display:none;" id="empresa-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Empresa</button>
@@ -1307,20 +1153,13 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO CONTRATO ===================== -->
     <div id="tab-adm-contrato" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Contrato</h2>
       <div class="card card-pad">
         <form id="form-contrato" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input type="hidden" id="contrato-edit-id" value="">
-          <div>
-            <label class="label">Número do Contrato *</label>
-            <input type="text" id="contrato-numero" required placeholder="Número do contrato" class="input">
-          </div>
-          <div>
-            <label class="label">Empresa *</label>
-            <select id="contrato-empresa" required class="input"><option value="">Selecione...</option></select>
-          </div>
+          <div><label class="label">Número do Contrato *</label><input type="text" id="contrato-numero" required placeholder="Número do contrato" class="input"></div>
+          <div><label class="label">Empresa *</label><select id="contrato-empresa" required class="input"><option value="">Selecione...</option></select></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('contrato')" class="btn-cancel" style="display:none;" id="contrato-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Contrato</button>
@@ -1337,24 +1176,14 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO PROJETO ===================== -->
     <div id="tab-adm-projeto" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
       <div class="card card-pad">
         <form id="form-projeto" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="hidden" id="projeto-edit-id" value="">
-          <div>
-            <label class="label">Nome do Projeto *</label>
-            <input type="text" id="projeto-nome" required placeholder="Nome do projeto" class="input">
-          </div>
-          <div>
-            <label class="label">Empresa *</label>
-            <select id="projeto-empresa" required class="input"><option value="">Selecione...</option></select>
-          </div>
-          <div>
-            <label class="label">Contrato *</label>
-            <select id="projeto-contrato" required class="input"><option value="">Selecione...</option></select>
-          </div>
+          <div><label class="label">Nome do Projeto *</label><input type="text" id="projeto-nome" required placeholder="Nome do projeto" class="input"></div>
+          <div><label class="label">Empresa *</label><select id="projeto-empresa" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Contrato *</label><select id="projeto-contrato" required class="input"><option value="">Selecione...</option></select></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('projeto')" class="btn-cancel" style="display:none;" id="projeto-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Projeto</button>
@@ -1371,28 +1200,15 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO GESTOR ===================== -->
     <div id="tab-adm-gestor" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor</h2>
       <div class="card card-pad">
         <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-5 gap-4">
           <input type="hidden" id="gestor-edit-id" value="">
-          <div>
-            <label class="label">Nome do Gestor *</label>
-            <input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input">
-          </div>
-          <div>
-            <label class="label">Empresa *</label>
-            <select id="gestor-empresa" required class="input"><option value="">Selecione...</option></select>
-          </div>
-          <div>
-            <label class="label">Contrato *</label>
-            <select id="gestor-contrato" required class="input"><option value="">Selecione...</option></select>
-          </div>
-          <div>
-            <label class="label">Projeto *</label>
-            <select id="gestor-projeto" required class="input"><option value="">Selecione...</option></select>
-          </div>
+          <div><label class="label">Nome do Gestor *</label><input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input"></div>
+          <div><label class="label">Empresa *</label><select id="gestor-empresa" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Contrato *</label><select id="gestor-contrato" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Projeto *</label><select id="gestor-projeto" required class="input"><option value="">Selecione...</option></select></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Gestor</button>
@@ -1409,32 +1225,16 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO GERENTE ===================== -->
     <div id="tab-adm-gerente" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gerente</h2>
       <div class="card card-pad">
         <form id="form-gerente" class="grid grid-cols-1 md:grid-cols-6 gap-4">
           <input type="hidden" id="gerente-edit-id" value="">
-          <div>
-            <label class="label">Nome do Gerente *</label>
-            <input type="text" id="gerente-nome" required placeholder="Nome do gerente" class="input">
-          </div>
-          <div>
-            <label class="label">Empresa *</label>
-            <select id="gerente-empresa" required class="input"><option value="">Selecione...</option></select>
-          </div>
-          <div>
-            <label class="label">Contrato *</label>
-            <select id="gerente-contrato" required class="input"><option value="">Selecione...</option></select>
-          </div>
-          <div>
-            <label class="label">Projeto *</label>
-            <select id="gerente-projeto" required class="input"><option value="">Selecione...</option></select>
-          </div>
-          <div>
-            <label class="label">Gestor *</label>
-            <select id="gerente-gestor" required class="input"><option value="">Selecione...</option></select>
-          </div>
+          <div><label class="label">Nome do Gerente *</label><input type="text" id="gerente-nome" required placeholder="Nome do gerente" class="input"></div>
+          <div><label class="label">Empresa *</label><select id="gerente-empresa" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Contrato *</label><select id="gerente-contrato" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Projeto *</label><select id="gerente-projeto" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Gestor *</label><select id="gerente-gestor" required class="input"><option value="">Selecione...</option></select></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('gerente')" class="btn-cancel" style="display:none;" id="gerente-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Gerente</button>
@@ -1451,16 +1251,13 @@
       </div>
     </div>
 
-    <!-- ===================== STATUS DC ===================== -->
+    <!-- ===================== STATUS ===================== -->
     <div id="tab-adm-status-dc" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status DC</h2>
       <div class="card card-pad">
         <form id="form-status-dc" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="hidden" id="statusdc-edit-id" value="">
-          <div>
-            <label class="label">Nome do Status *</label>
-            <input type="text" id="statusdc-nome" required placeholder="Ex: Ativo, Inativo, Pendente" class="input">
-          </div>
+          <div><label class="label">Nome do Status *</label><input type="text" id="statusdc-nome" required placeholder="Ex: Ativo, Inativo, Pendente" class="input"></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('statusdc')" class="btn-cancel" style="display:none;" id="statusdc-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Status DC</button>
@@ -1477,16 +1274,12 @@
       </div>
     </div>
 
-    <!-- ===================== STATUS MEDIÇÃO ===================== -->
     <div id="tab-adm-status-med" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status Medição</h2>
       <div class="card card-pad">
         <form id="form-status-med" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="hidden" id="statusmed-edit-id" value="">
-          <div>
-            <label class="label">Nome do Status *</label>
-            <input type="text" id="statusmed-nome" required placeholder="Ex: Pendente, Aprovada, Rejeitada" class="input">
-          </div>
+          <div><label class="label">Nome do Status *</label><input type="text" id="statusmed-nome" required placeholder="Ex: Pendente, Aprovada, Rejeitada" class="input"></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('statusmed')" class="btn-cancel" style="display:none;" id="statusmed-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Status Medição</button>
@@ -1503,16 +1296,12 @@
       </div>
     </div>
 
-    <!-- ===================== STATUS NF ===================== -->
     <div id="tab-adm-status-nf" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status NF</h2>
       <div class="card card-pad">
         <form id="form-status-nf" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="hidden" id="statusnf-edit-id" value="">
-          <div>
-            <label class="label">Nome do Status *</label>
-            <input type="text" id="statusnf-nome" required placeholder="Ex: Emitida, Cancelada, Pendente" class="input">
-          </div>
+          <div><label class="label">Nome do Status *</label><input type="text" id="statusnf-nome" required placeholder="Ex: Emitida, Cancelada, Pendente" class="input"></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('statusnf')" class="btn-cancel" style="display:none;" id="statusnf-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Status NF</button>
@@ -1730,7 +1519,7 @@
             ]},
             { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
                 { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
-                { id: 'cad-consumo', label: 'Consumo Medição DC', area: 'medicoes' }
+                { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' }
             ]},
             { id: 'historicos', label: 'Históricos', icon: 'historico', area: 'historico-aprop', type: 'flyout', children: [
                 { id: 'apropriacao-hist', label: 'Histórico Apropriação', area: 'historico-aprop' },
@@ -1756,13 +1545,8 @@
         function temAcesso(item) {
             if (item.area === 'dashboard') return true;
             if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
-            
-            if (item.type === 'link') {
-                return permissoes.includes(item.area);
-            }
-            if (item.type === 'flyout') {
-                return item.children.some(child => permissoes.includes(child.area));
-            }
+            if (item.type === 'link') return permissoes.includes(item.area);
+            if (item.type === 'flyout') return item.children.some(child => permissoes.includes(child.area));
             return false;
         }
 
@@ -1851,37 +1635,23 @@
         buildMenuHTML(mobileNav, desktopItems, true);
     }
 
-    // ===================== MÁSCARA DE VALOR CORRIGIDA =====================
+    // ===================== MÁSCARA DE VALOR =====================
     function mascaraMoeda(input) {
         input.addEventListener('input', function(e) {
             let valor = this.value.replace(/\D/g, '');
-            
-            if (valor === '') {
-                this.value = '0,00';
-                return;
-            }
-            
+            if (valor === '') { this.value = '0,00'; return; }
             valor = valor.replace(/^0+/, '');
             if (valor === '') valor = '0';
-            
-            while (valor.length < 3) {
-                valor = '0' + valor;
-            }
-            
+            while (valor.length < 3) { valor = '0' + valor; }
             let inteiro = valor.slice(0, -2);
             let centavos = valor.slice(-2);
             let inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            
             this.value = inteiroFormatado + ',' + centavos;
             this.setSelectionRange(this.value.length, this.value.length);
         });
-        
         input.addEventListener('blur', function() {
-            if (this.value === '' || this.value === '0,00') {
-                this.value = '0,00';
-            }
+            if (this.value === '' || this.value === '0,00') { this.value = '0,00'; }
         });
-        
         input.addEventListener('focus', function() {
             this.setSelectionRange(this.value.length, this.value.length);
         });
@@ -1919,13 +1689,11 @@
             'aprop': ['filt-aprop-projeto', 'filt-aprop-gestor', 'filt-aprop-mes', 'filt-aprop-ano'],
             'don': ['filt-don-projeto', 'filt-don-gestor', 'filt-don-mes', 'filt-don-ano']
         };
-        
         const ids = filtros[tipo] || [];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
-        
         if (tipo === 'dash') carregarDashboard();
         else if (tipo === 'aprop') carregarDashApropriacao();
         else if (tipo === 'don') carregarDashDON();
@@ -1968,6 +1736,7 @@
             setPermissoes([]);
             document.getElementById('user-submit-btn').disabled = true;
         }
+        document.getElementById('campos-extras-consumo').classList.remove('visible');
         aplicarMascaras();
         carregarTodasListas();
     }
@@ -2022,7 +1791,7 @@
             'dash-apropriacao': 'dash-apropriacao',
             'dash-don': 'dash-don',
             'cad-medicao': 'medicoes',
-            'cad-consumo': 'medicoes',
+            'cad-consumo': 'consumos',
             'apropriacao-hist': 'historico-aprop',
             'medicao-gestor-hist': 'historico-gestor',
             'adm-user': 'adm-user',
@@ -2035,13 +1804,11 @@
             'adm-status-med': 'adm-status',
             'adm-status-nf': 'adm-status'
         };
-        
         const area = areaMap[nomeAba] || nomeAba;
         if (area !== 'dashboard' && !temPermissao(area)) {
             alert('Você não tem permissão para acessar esta área.');
             return;
         }
-        
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.js-nav').forEach(el => el.classList.remove('is-active'));
         const target = document.getElementById('tab-' + nomeAba);
@@ -2060,7 +1827,7 @@
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
         else if (nomeAba === 'medicao-gestor-hist') carregarMedicaoHist();
         else if (nomeAba === 'cad-medicao') carregarMedicoes();
-        else if (nomeAba === 'cad-consumo') carregarConsumos();
+        else if (nomeAba === 'cad-consumo') { carregarConsumos(); carregarSelectStatus('dc-status-dc', 'status_dc'); carregarSelectStatus('dc-status-nf', 'status_nf'); }
         else if (nomeAba === 'adm-user') carregarUsuarios();
         else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
         else if (nomeAba === 'adm-contrato') { carregarContratos(); carregarSelectEmpresas('contrato-empresa'); }
@@ -2068,7 +1835,7 @@
         else if (nomeAba === 'adm-gestor') { carregarGestores(); carregarSelectEmpresas('gestor-empresa'); carregarSelectContratos('gestor-contrato'); carregarSelectProjetos('gestor-projeto'); }
         else if (nomeAba === 'adm-gerente') { carregarGerentes(); carregarSelectEmpresas('gerente-empresa'); carregarSelectContratos('gerente-contrato'); carregarSelectProjetos('gerente-projeto'); carregarSelectGestores('gerente-gestor'); }
         else if (nomeAba === 'adm-status-dc') carregarStatusDC();
-        else if (nomeAba === 'adm-status-med') carregarStatusMed();
+        else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
         else if (nomeAba === 'adm-status-nf') carregarStatusNF();
     }
 
@@ -2094,33 +1861,60 @@
         carregarSelectProjetos('gestor-projeto');
         carregarSelectProjetos('gerente-projeto');
         carregarSelectGestores('gerente-gestor');
+        carregarSelectStatus('dc-status-dc', 'status_dc');
+        carregarSelectStatus('dc-status-nf', 'status_nf');
+        carregarSelectStatus('med-status', 'status_medicao');
         carregarFiltros();
+    }
+
+    // ===================== CARREGAR STATUS =====================
+    async function carregarSelectStatus(id, tabela) {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const { data } = await supabaseClient.from(tabela).select('*').order('nome');
+        select.innerHTML = '<option value="">Selecione...</option>';
+        if (data) data.forEach(s => {
+            select.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
+        });
+    }
+
+    // ===================== CONTROLAR CAMPOS NF =====================
+    function controlarCamposNF() {
+        const status = document.getElementById('dc-status-nf').value;
+        const numNf = document.getElementById('dc-num-nf');
+        const dataNf = document.getElementById('dc-data-nf');
+        const extras = document.getElementById('campos-extras-consumo');
+        
+        // Verificar se o status é "Nota emitida" ou "Emissão Solicitada"
+        const isEmitida = status === 'Nota emitida' || status === 'Emissão Solicitada';
+        
+        if (isEmitida) {
+            numNf.disabled = false;
+            numNf.required = true;
+            dataNf.disabled = false;
+            dataNf.required = true;
+            extras.classList.add('visible');
+        } else {
+            numNf.disabled = true;
+            numNf.required = false;
+            numNf.value = '';
+            dataNf.disabled = true;
+            dataNf.required = false;
+            dataNf.value = '';
+            extras.classList.remove('visible');
+        }
     }
 
     // ===================== CARREGAR FILTROS =====================
     async function carregarFiltros() {
         const { data: medicoes } = await supabaseClient.from('medicoes').select('projeto, gestor');
         const { data: consumos } = await supabaseClient.from('consumo_dc').select('projeto, gestor');
-        
         const projetos = new Set();
         const gestores = new Set();
         const anos = new Set([2025, 2026, 2027]);
-        
-        if (medicoes) {
-            medicoes.forEach(m => {
-                if (m.projeto) projetos.add(m.projeto);
-                if (m.gestor) gestores.add(m.gestor);
-            });
-        }
-        if (consumos) {
-            consumos.forEach(c => {
-                if (c.projeto) projetos.add(c.projeto);
-                if (c.gestor) gestores.add(c.gestor);
-            });
-        }
-        
+        if (medicoes) { medicoes.forEach(m => { if (m.projeto) projetos.add(m.projeto); if (m.gestor) gestores.add(m.gestor); }); }
+        if (consumos) { consumos.forEach(c => { if (c.projeto) projetos.add(c.projeto); if (c.gestor) gestores.add(c.gestor); }); }
         const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        
         const filtrosConfig = [
             { id: 'filt-dash-projeto', values: projetos },
             { id: 'filt-dash-gestor', values: gestores },
@@ -2135,16 +1929,13 @@
             { id: 'filt-don-mes', values: new Set(meses) },
             { id: 'filt-don-ano', values: anos }
         ];
-        
         filtrosConfig.forEach(({ id, values }) => {
             const select = document.getElementById(id);
             if (select) {
                 const currentValue = select.value;
                 select.innerHTML = '<option value="">Todos</option>';
                 const sorted = Array.from(values).sort();
-                sorted.forEach(v => {
-                    if (v) select.innerHTML += `<option value="${v}">${v}</option>`;
-                });
+                sorted.forEach(v => { if (v) select.innerHTML += `<option value="${v}">${v}</option>`; });
                 if (currentValue) select.value = currentValue;
             }
         });
@@ -2154,7 +1945,6 @@
     async function carregarDashboard() {
         const tbody = document.getElementById('tabela-dashboard-corpo');
         tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
-
         const filtroProjeto = document.getElementById('filt-dash-projeto')?.value || '';
         const filtroGestor = document.getElementById('filt-dash-gestor')?.value || '';
         const filtroMes = document.getElementById('filt-dash-mes')?.value || '';
@@ -2184,14 +1974,10 @@
             return;
         }
 
-        let somaMedido = 0;
-        let somaConsumido = 0;
-        let linhas = [];
-
+        let somaMedido = 0, somaConsumido = 0, linhas = [];
         medicoes.forEach(med => {
             const valorMedicao = Number(med.valor || 0);
             somaMedido += valorMedicao;
-
             let totalConsumido = 0;
             if (consumos) {
                 consumos.forEach(c => {
@@ -2201,53 +1987,28 @@
                 });
             }
             somaConsumido += totalConsumido;
-
             const saldo = valorMedicao - totalConsumido;
-            const mesExibicao = med.mes || 'N/A';
-            const anoExibicao = med.ano || 'N/A';
-
             linhas.push({
                 gestor: med.gestor || 'N/A',
                 projeto: med.projeto || 'N/A',
                 descricao: med.projeto || '',
                 empresa: med.empresa || 'N/A',
-                mes: mesExibicao,
-                ano: anoExibicao,
+                mes: med.mes || 'N/A',
+                ano: med.ano || 'N/A',
                 valor: saldo
             });
         });
 
-        linhas.sort((a, b) => {
-            if (a.gestor !== b.gestor) return a.gestor.localeCompare(b.gestor);
-            return a.projeto.localeCompare(b.projeto);
-        });
-
+        linhas.sort((a, b) => { if (a.gestor !== b.gestor) return a.gestor.localeCompare(b.gestor); return a.projeto.localeCompare(b.projeto); });
         tbody.innerHTML = '';
         let totalGeral = 0;
-
         linhas.forEach(row => {
             totalGeral += row.valor;
             const valorClass = row.valor < 0 ? 'valor-negativo' : 'valor-positivo';
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td class="font-medium" style="color:var(--text)">${row.gestor}</td>
-                    <td>${row.projeto}</td>
-                    <td>${row.descricao}</td>
-                    <td>${row.empresa}</td>
-                    <td class="text-right">${row.mes}</td>
-                    <td class="text-right">${row.ano}</td>
-                    <td class="text-right mono font-bold ${valorClass}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="td-row"><td class="font-medium" style="color:var(--text)">${row.gestor}</td><td>${row.projeto}</td><td>${row.descricao}</td><td>${row.empresa}</td><td class="text-right">${row.mes}</td><td class="text-right">${row.ano}</td><td class="text-right mono font-bold ${valorClass}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
         });
-
         if (linhas.length > 0) {
-            tbody.innerHTML += `
-                <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                    <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
-                    <td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
         }
 
         document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedido.toLocaleString('pt-BR', {minFractionDigits: 2});
@@ -2262,7 +2023,6 @@
     async function carregarDashApropriacao() {
         const tbody = document.getElementById('tabela-dash-apropriacao');
         tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-
         const filtroProjeto = document.getElementById('filt-aprop-projeto')?.value || '';
         const filtroGestor = document.getElementById('filt-aprop-gestor')?.value || '';
         const filtroMes = document.getElementById('filt-aprop-mes')?.value || '';
@@ -2276,7 +2036,6 @@
         const { data: consumos } = await query;
 
         registrarUltimaAtualizacao();
-
         if (!consumos || consumos.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
             return;
@@ -2286,45 +2045,20 @@
         consumos.forEach(c => {
             const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
             if (!grupos[key]) {
-                grupos[key] = {
-                    gestor: c.gestor || 'N/A',
-                    projeto: c.projeto || 'N/A',
-                    descricao: c.projeto || '',
-                    empresa: c.empresa || 'N/A',
-                    total: 0,
-                    mes: c.mes_apropriacao || 'N/A',
-                    ano: c.ano || 'N/A'
-                };
+                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, mes: c.mes_apropriacao || 'N/A', ano: c.ano || 'N/A' };
             }
             grupos[key].total += Number(c.valor || 0);
         });
 
         tbody.innerHTML = '';
         let totalGeral = 0;
-
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
             const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
-                    <td>${g.projeto}</td>
-                    <td>${g.descricao}</td>
-                    <td>${g.empresa}</td>
-                    <td class="text-right">${g.mes}</td>
-                    <td class="text-right">${g.ano}</td>
-                    <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="td-row"><td class="font-medium" style="color:var(--text)">${g.gestor}</td><td>${g.projeto}</td><td>${g.descricao}</td><td>${g.empresa}</td><td class="text-right">${g.mes}</td><td class="text-right">${g.ano}</td><td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
         });
-
         if (Object.values(grupos).length > 0) {
-            tbody.innerHTML += `
-                <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                    <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
-                    <td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
         }
     }
 
@@ -2332,7 +2066,6 @@
     async function carregarDashDON() {
         const tbody = document.getElementById('tabela-dash-don');
         tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-
         const filtroProjeto = document.getElementById('filt-don-projeto')?.value || '';
         const filtroGestor = document.getElementById('filt-don-gestor')?.value || '';
         const filtroMes = document.getElementById('filt-don-mes')?.value || '';
@@ -2346,7 +2079,6 @@
         const { data: consumos } = await query;
 
         registrarUltimaAtualizacao();
-
         if (!consumos || consumos.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
             return;
@@ -2356,45 +2088,20 @@
         consumos.forEach(c => {
             const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
             if (!grupos[key]) {
-                grupos[key] = {
-                    gestor: c.gestor || 'N/A',
-                    projeto: c.projeto || 'N/A',
-                    descricao: c.projeto || '',
-                    empresa: c.empresa || 'N/A',
-                    total: 0,
-                    mes: c.mes_medido || 'N/A',
-                    ano: c.ano || 'N/A'
-                };
+                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, mes: c.mes_medido || 'N/A', ano: c.ano || 'N/A' };
             }
             grupos[key].total += Number(c.valor || 0);
         });
 
         tbody.innerHTML = '';
         let totalGeral = 0;
-
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
             const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
-                    <td>${g.projeto}</td>
-                    <td>${g.descricao}</td>
-                    <td>${g.empresa}</td>
-                    <td class="text-right">${g.mes}</td>
-                    <td class="text-right">${g.ano}</td>
-                    <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="td-row"><td class="font-medium" style="color:var(--text)">${g.gestor}</td><td>${g.projeto}</td><td>${g.descricao}</td><td>${g.empresa}</td><td class="text-right">${g.mes}</td><td class="text-right">${g.ano}</td><td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
         });
-
         if (Object.values(grupos).length > 0) {
-            tbody.innerHTML += `
-                <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                    <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
-                    <td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
         }
     }
 
@@ -2412,19 +2119,6 @@
         else if (projeto === '340') selectGestor.innerHTML += '<option value="Rodrigo Pimentel">Rodrigo Pimentel</option>';
     }
 
-    function controlarCamposNF() {
-        const status = document.getElementById('dc-status-nf').value;
-        const numNf = document.getElementById('dc-num-nf');
-        const dataNf = document.getElementById('dc-data-nf');
-        if (status === 'Nota emitida') {
-            numNf.disabled = false; numNf.required = true;
-            dataNf.disabled = false; dataNf.required = true;
-        } else {
-            numNf.disabled = true; numNf.required = false; numNf.value = '';
-            dataNf.disabled = true; dataNf.required = false; dataNf.value = '';
-        }
-    }
-
     function valorParaNumero(valorFormatado) {
         return parseFloat(valorFormatado.replace(/\./g, '').replace(',', '.'));
     }
@@ -2432,11 +2126,11 @@
     // ===================== CRUD MEDIÇÕES =====================
     async function carregarMedicoes() {
         const tbody = document.getElementById('tabela-medicoes');
-        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('medicoes').select('*').order('id', { ascending: false });
-        if (error) { tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        if (error) { tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>';
             return;
         }
         tbody.innerHTML = '';
@@ -2450,6 +2144,7 @@
                     <td>${m.gerente || '-'}</td>
                     <td>${m.mes}</td>
                     <td>${m.ano}</td>
+                    <td>${m.status_medicao || '-'}</td>
                     <td class="text-right mono">R$ ${Number(m.valor).toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
@@ -2472,7 +2167,8 @@
             mes: document.getElementById('med-mes').value,
             ano: document.getElementById('med-ano').value,
             valor: valorParaNumero(document.getElementById('med-valor').value),
-            data_email_medicao: document.getElementById('med-data-email').value || null
+            data_email_medicao: document.getElementById('med-data-email').value || null,
+            status_medicao: document.getElementById('med-status').value
         };
         let result;
         if (editId) {
@@ -2498,6 +2194,7 @@
         document.getElementById('med-ano').value = data.ano;
         document.getElementById('med-valor').value = Number(data.valor).toLocaleString('pt-BR', {minFractionDigits: 2});
         document.getElementById('med-data-email').value = data.data_email_medicao || '';
+        document.getElementById('med-status').value = data.status_medicao || '';
         document.getElementById('med-cancel-btn').style.display = 'inline-block';
     }
 
@@ -2511,11 +2208,11 @@
     // ===================== CRUD CONSUMOS =====================
     async function carregarConsumos() {
         const tbody = document.getElementById('tabela-consumos');
-        tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('consumo_dc').select('*').order('id', { ascending: false });
-        if (error) { tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        if (error) { tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>';
             return;
         }
         tbody.innerHTML = '';
@@ -2524,18 +2221,20 @@
                 <tr class="td-row">
                     <td>${c.id}</td>
                     <td>${c.dc}</td>
-                    <td>${c.empresa}</td>
                     <td>${c.projeto}</td>
                     <td>${c.gestor}</td>
                     <td>${c.gerente || '-'}</td>
                     <td>${c.mes_apropriacao}</td>
                     <td>${c.ano}</td>
                     <td>${c.mes_medido}</td>
+                    <td>${c.status_dc || '-'}</td>
+                    <td>${c.status_nf || '-'}</td>
                     <td class="text-right mono">R$ ${Number(c.valor).toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
                             <button onclick="editarConsumo(${c.id})" class="btn-edit">Editar</button>
                             <button onclick="excluirConsumo(${c.id})" class="btn-danger">Excluir</button>
+                            ${c.status_nf === 'Emissão Solicitada' || c.status_nf === 'Nota emitida' ? `<button onclick="exportarExcel(${c.id})" class="btn-excel">📊 Excel</button>` : ''}
                         </div>
                     </td>
                 </tr>`;
@@ -2556,9 +2255,14 @@
             valor: valorParaNumero(document.getElementById('dc-valor').value),
             mes_medido: document.getElementById('dc-mes-medido').value,
             data_solicitacao_faturamento: document.getElementById('dc-data-solicitacao').value,
+            status_dc: document.getElementById('dc-status-dc').value,
             status_nf: document.getElementById('dc-status-nf').value,
             num_nf: document.getElementById('dc-num-nf').value || null,
-            data_emissao_nf: document.getElementById('dc-data-nf').value || null
+            data_emissao_nf: document.getElementById('dc-data-nf').value || null,
+            centro_custo: document.getElementById('dc-centro-custo').value || null,
+            item: document.getElementById('dc-item').value || null,
+            folha_registro: document.getElementById('dc-folha-registro').value || null,
+            po: document.getElementById('dc-po').value || null
         };
         let result;
         if (editId) {
@@ -2567,7 +2271,7 @@
             result = await supabaseClient.from('consumo_dc').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); e.target.reset(); document.getElementById('consumo-edit-id').value = ''; document.getElementById('consumo-cancel-btn').style.display = 'none'; controlarCamposNF(); carregarConsumos(); carregarFiltros(); }
+        else { alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); e.target.reset(); document.getElementById('consumo-edit-id').value = ''; document.getElementById('consumo-cancel-btn').style.display = 'none'; document.getElementById('campos-extras-consumo').classList.remove('visible'); controlarCamposNF(); carregarConsumos(); carregarFiltros(); }
         aplicarMascaras();
     });
 
@@ -2585,9 +2289,14 @@
         document.getElementById('dc-valor').value = Number(data.valor).toLocaleString('pt-BR', {minFractionDigits: 2});
         document.getElementById('dc-mes-medido').value = data.mes_medido;
         document.getElementById('dc-data-solicitacao').value = data.data_solicitacao_faturamento || '';
-        document.getElementById('dc-status-nf').value = data.status_nf || 'Prevista';
+        document.getElementById('dc-status-dc').value = data.status_dc || '';
+        document.getElementById('dc-status-nf').value = data.status_nf || '';
         document.getElementById('dc-num-nf').value = data.num_nf || '';
         document.getElementById('dc-data-nf').value = data.data_emissao_nf || '';
+        document.getElementById('dc-centro-custo').value = data.centro_custo || '';
+        document.getElementById('dc-item').value = data.item || '';
+        document.getElementById('dc-folha-registro').value = data.folha_registro || '';
+        document.getElementById('dc-po').value = data.po || '';
         controlarCamposNF();
         document.getElementById('consumo-cancel-btn').style.display = 'inline-block';
     }
@@ -2597,6 +2306,45 @@
         const { error } = await supabaseClient.from('consumo_dc').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
         else { alert('Consumo excluído!'); carregarConsumos(); carregarFiltros(); }
+    }
+
+    // ===================== EXPORTAR EXCEL =====================
+    async function exportarExcel(id) {
+        const { data } = await supabaseClient.from('consumo_dc').select('*').eq('id', id).single();
+        if (!data) { alert('Dados não encontrados!'); return; }
+
+        const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const mesIndex = meses.indexOf(data.mes_apropriacao.toLowerCase().slice(0, 3)) + 1;
+        const mesAno = `${String(mesIndex).padStart(2, '0')}-${String(data.ano).slice(2)}`;
+
+        const dadosExcel = {
+            'Projeto': data.projeto || '',
+            'Contrato': data.num_nf || '',
+            'Cent': '',
+            'PO': data.po || '',
+            'Item': data.item || '',
+            'Folha de Registro': data.folha_registro || '',
+            'Valor': Number(data.valor).toLocaleString('pt-BR', {minFractionDigits: 2}).replace('.', ','),
+            'mês/apropriação': mesAno
+        };
+
+        const ws = XLSX.utils.json_to_sheet([dadosExcel]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Consumo DC');
+        
+        // Ajustar largura das colunas
+        ws['!cols'] = [
+            { wch: 15 }, // Projeto
+            { wch: 15 }, // Contrato
+            { wch: 10 }, // Cent
+            { wch: 15 }, // PO
+            { wch: 10 }, // Item
+            { wch: 20 }, // Folha de Registro
+            { wch: 15 }, // Valor
+            { wch: 18 }  // mês/apropriação
+        ];
+
+        XLSX.writeFile(wb, `Consumo_DC_${data.dc}_${mesAno}.xlsx`);
     }
 
     // ===================== CRUD USUÁRIOS =====================
@@ -2633,24 +2381,12 @@
         e.preventDefault();
         const editId = document.getElementById('user-edit-id').value;
         const senha = document.getElementById('user-senha').value;
-        
-        if (!validarSenha()) {
-            alert('A senha não atende aos critérios de segurança. Verifique os requisitos acima.');
-            return;
-        }
-        
+        if (!validarSenha()) { alert('A senha não atende aos critérios de segurança.'); return; }
         const permissoes = getPermissoes();
-        const dados = { 
-            nome: document.getElementById('user-nome').value, 
-            senha: senha,
-            permissoes: permissoes
-        };
+        const dados = { nome: document.getElementById('user-nome').value, senha: senha, permissoes: permissoes };
         let result;
-        if (editId) {
-            result = await supabaseClient.from('usuarios').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('usuarios').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('usuarios').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('usuarios').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Usuário atualizado!' : 'Usuário salvo!'); e.target.reset(); document.getElementById('user-edit-id').value = ''; document.getElementById('user-cancel-btn').style.display = 'none'; setPermissoes([]); document.getElementById('user-submit-btn').disabled = true; carregarUsuarios(); }
     });
@@ -2679,10 +2415,7 @@
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('empresas').select('*').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma empresa cadastrada.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma empresa cadastrada.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(e => {
             tbody.innerHTML += `
@@ -2704,9 +2437,7 @@
         if (!select) return;
         const { data } = await supabaseClient.from('empresas').select('*').order('nome');
         select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(e => {
-            select.innerHTML += `<option value="${e.id}">${e.nome}</option>`;
-        });
+        if (data) data.forEach(e => { select.innerHTML += `<option value="${e.id}">${e.nome}</option>`; });
     }
 
     document.getElementById('form-empresa').addEventListener('submit', async (e) => {
@@ -2714,11 +2445,8 @@
         const editId = document.getElementById('empresa-edit-id').value;
         const dados = { nome: document.getElementById('empresa-nome').value };
         let result;
-        if (editId) {
-            result = await supabaseClient.from('empresas').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('empresas').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('empresas').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('empresas').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Empresa atualizada!' : 'Empresa salva!'); e.target.reset(); document.getElementById('empresa-edit-id').value = ''; document.getElementById('empresa-cancel-btn').style.display = 'none'; carregarEmpresas(); carregarSelectEmpresas('contrato-empresa'); carregarSelectEmpresas('projeto-empresa'); carregarSelectEmpresas('gestor-empresa'); carregarSelectEmpresas('gerente-empresa'); }
     });
@@ -2744,10 +2472,7 @@
         tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('contratos').select('*, empresas(nome)').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Nenhum contrato cadastrado.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Nenhum contrato cadastrado.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(c => {
             tbody.innerHTML += `
@@ -2772,25 +2497,17 @@
         if (empresaId) query = query.eq('empresa_id', empresaId);
         const { data } = await query;
         select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(c => {
-            select.innerHTML += `<option value="${c.id}">${c.numero}</option>`;
-        });
+        if (data) data.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.numero}</option>`; });
     }
 
     document.getElementById('form-contrato').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('contrato-edit-id').value;
-        const dados = {
-            numero: document.getElementById('contrato-numero').value,
-            empresa_id: document.getElementById('contrato-empresa').value
-        };
+        const dados = { numero: document.getElementById('contrato-numero').value, empresa_id: document.getElementById('contrato-empresa').value };
         if (!dados.empresa_id) { alert('Selecione uma empresa!'); return; }
         let result;
-        if (editId) {
-            result = await supabaseClient.from('contratos').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('contratos').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('contratos').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('contratos').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Contrato atualizado!' : 'Contrato salvo!'); e.target.reset(); document.getElementById('contrato-edit-id').value = ''; document.getElementById('contrato-cancel-btn').style.display = 'none'; carregarContratos(); carregarSelectContratos('projeto-contrato'); carregarSelectContratos('gestor-contrato'); carregarSelectContratos('gerente-contrato'); }
     });
@@ -2817,10 +2534,7 @@
         tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('projetos').select('*, empresas(nome), contratos(numero)').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Nenhum projeto cadastrado.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Nenhum projeto cadastrado.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(p => {
             tbody.innerHTML += `
@@ -2847,26 +2561,17 @@
         if (contratoId) query = query.eq('contrato_id', contratoId);
         const { data } = await query;
         select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(p => {
-            select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
-        });
+        if (data) data.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.nome}</option>`; });
     }
 
     document.getElementById('form-projeto').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('projeto-edit-id').value;
-        const dados = {
-            nome: document.getElementById('projeto-nome').value,
-            empresa_id: document.getElementById('projeto-empresa').value,
-            contrato_id: document.getElementById('projeto-contrato').value
-        };
+        const dados = { nome: document.getElementById('projeto-nome').value, empresa_id: document.getElementById('projeto-empresa').value, contrato_id: document.getElementById('projeto-contrato').value };
         if (!dados.empresa_id || !dados.contrato_id) { alert('Selecione empresa e contrato!'); return; }
         let result;
-        if (editId) {
-            result = await supabaseClient.from('projetos').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('projetos').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('projetos').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('projetos').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('gerente-projeto'); carregarFiltros(); }
     });
@@ -2894,10 +2599,7 @@
         tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('gestores').select('*, empresas(nome), contratos(numero), projetos(nome)').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(g => {
             tbody.innerHTML += `
@@ -2926,27 +2628,17 @@
         if (projetoId) query = query.eq('projeto_id', projetoId);
         const { data } = await query;
         select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(g => {
-            select.innerHTML += `<option value="${g.id}">${g.nome}</option>`;
-        });
+        if (data) data.forEach(g => { select.innerHTML += `<option value="${g.id}">${g.nome}</option>`; });
     }
 
     document.getElementById('form-gestor').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('gestor-edit-id').value;
-        const dados = {
-            nome: document.getElementById('gestor-nome').value,
-            empresa_id: document.getElementById('gestor-empresa').value,
-            contrato_id: document.getElementById('gestor-contrato').value,
-            projeto_id: document.getElementById('gestor-projeto').value
-        };
+        const dados = { nome: document.getElementById('gestor-nome').value, empresa_id: document.getElementById('gestor-empresa').value, contrato_id: document.getElementById('gestor-contrato').value, projeto_id: document.getElementById('gestor-projeto').value };
         if (!dados.empresa_id || !dados.contrato_id || !dados.projeto_id) { alert('Selecione empresa, contrato e projeto!'); return; }
         let result;
-        if (editId) {
-            result = await supabaseClient.from('gestores').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('gestores').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('gestores').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('gestores').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestores(); carregarSelectGestores('gerente-gestor'); carregarFiltros(); }
     });
@@ -2975,10 +2667,7 @@
         tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('gerentes').select('*, empresas(nome), contratos(numero), projetos(nome), gestores(nome)').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gerente cadastrado.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gerente cadastrado.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(g => {
             tbody.innerHTML += `
@@ -3002,23 +2691,11 @@
     document.getElementById('form-gerente').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('gerente-edit-id').value;
-        const dados = {
-            nome: document.getElementById('gerente-nome').value,
-            empresa_id: document.getElementById('gerente-empresa').value,
-            contrato_id: document.getElementById('gerente-contrato').value,
-            projeto_id: document.getElementById('gerente-projeto').value,
-            gestor_id: document.getElementById('gerente-gestor').value
-        };
-        if (!dados.empresa_id || !dados.contrato_id || !dados.projeto_id || !dados.gestor_id) {
-            alert('Selecione empresa, contrato, projeto e gestor!');
-            return;
-        }
+        const dados = { nome: document.getElementById('gerente-nome').value, empresa_id: document.getElementById('gerente-empresa').value, contrato_id: document.getElementById('gerente-contrato').value, projeto_id: document.getElementById('gerente-projeto').value, gestor_id: document.getElementById('gerente-gestor').value };
+        if (!dados.empresa_id || !dados.contrato_id || !dados.projeto_id || !dados.gestor_id) { alert('Selecione todos os campos!'); return; }
         let result;
-        if (editId) {
-            result = await supabaseClient.from('gerentes').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('gerentes').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('gerentes').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('gerentes').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Gerente atualizado!' : 'Gerente salvo!'); e.target.reset(); document.getElementById('gerente-edit-id').value = ''; document.getElementById('gerente-cancel-btn').style.display = 'none'; carregarGerentes(); carregarFiltros(); }
     });
@@ -3042,16 +2719,13 @@
         else { alert('Gerente excluído!'); carregarGerentes(); carregarFiltros(); }
     }
 
-    // ===================== CRUD STATUS (resumido) =====================
+    // ===================== CRUD STATUS =====================
     async function carregarStatusDC() {
         const tbody = document.getElementById('tabela-statusdc');
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('status_dc').select('*').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status DC cadastrado.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status DC cadastrado.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(s => {
             tbody.innerHTML += `
@@ -3073,13 +2747,10 @@
         const editId = document.getElementById('statusdc-edit-id').value;
         const dados = { nome: document.getElementById('statusdc-nome').value };
         let result;
-        if (editId) {
-            result = await supabaseClient.from('status_dc').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('status_dc').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('status_dc').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('status_dc').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Status DC atualizado!' : 'Status DC salvo!'); e.target.reset(); document.getElementById('statusdc-edit-id').value = ''; document.getElementById('statusdc-cancel-btn').style.display = 'none'; carregarStatusDC(); }
+        else { alert(editId ? 'Status DC atualizado!' : 'Status DC salvo!'); e.target.reset(); document.getElementById('statusdc-edit-id').value = ''; document.getElementById('statusdc-cancel-btn').style.display = 'none'; carregarStatusDC(); carregarSelectStatus('dc-status-dc', 'status_dc'); }
     });
 
     async function editarStatusDC(id) {
@@ -3094,7 +2765,7 @@
         if (!confirm('Tem certeza que deseja excluir este status DC?')) return;
         const { error } = await supabaseClient.from('status_dc').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Status DC excluído!'); carregarStatusDC(); }
+        else { alert('Status DC excluído!'); carregarStatusDC(); carregarSelectStatus('dc-status-dc', 'status_dc'); }
     }
 
     async function carregarStatusMed() {
@@ -3102,10 +2773,7 @@
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('status_medicao').select('*').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status medição cadastrado.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status medição cadastrado.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(s => {
             tbody.innerHTML += `
@@ -3127,13 +2795,10 @@
         const editId = document.getElementById('statusmed-edit-id').value;
         const dados = { nome: document.getElementById('statusmed-nome').value };
         let result;
-        if (editId) {
-            result = await supabaseClient.from('status_medicao').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('status_medicao').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('status_medicao').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('status_medicao').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Status Medição atualizado!' : 'Status Medição salvo!'); e.target.reset(); document.getElementById('statusmed-edit-id').value = ''; document.getElementById('statusmed-cancel-btn').style.display = 'none'; carregarStatusMed(); }
+        else { alert(editId ? 'Status Medição atualizado!' : 'Status Medição salvo!'); e.target.reset(); document.getElementById('statusmed-edit-id').value = ''; document.getElementById('statusmed-cancel-btn').style.display = 'none'; carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
     });
 
     async function editarStatusMed(id) {
@@ -3148,7 +2813,7 @@
         if (!confirm('Tem certeza que deseja excluir este status medição?')) return;
         const { error } = await supabaseClient.from('status_medicao').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Status Medição excluído!'); carregarStatusMed(); }
+        else { alert('Status Medição excluído!'); carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
     }
 
     async function carregarStatusNF() {
@@ -3156,10 +2821,7 @@
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('status_nf').select('*').order('id', { ascending: true });
         if (error) { tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status NF cadastrado.</td></tr>';
-            return;
-        }
+        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status NF cadastrado.</td></tr>'; return; }
         tbody.innerHTML = '';
         data.forEach(s => {
             tbody.innerHTML += `
@@ -3181,13 +2843,10 @@
         const editId = document.getElementById('statusnf-edit-id').value;
         const dados = { nome: document.getElementById('statusnf-nome').value };
         let result;
-        if (editId) {
-            result = await supabaseClient.from('status_nf').update(dados).eq('id', editId);
-        } else {
-            result = await supabaseClient.from('status_nf').insert([dados]);
-        }
+        if (editId) { result = await supabaseClient.from('status_nf').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('status_nf').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Status NF atualizado!' : 'Status NF salvo!'); e.target.reset(); document.getElementById('statusnf-edit-id').value = ''; document.getElementById('statusnf-cancel-btn').style.display = 'none'; carregarStatusNF(); }
+        else { alert(editId ? 'Status NF atualizado!' : 'Status NF salvo!'); e.target.reset(); document.getElementById('statusnf-edit-id').value = ''; document.getElementById('statusnf-cancel-btn').style.display = 'none'; carregarStatusNF(); carregarSelectStatus('dc-status-nf', 'status_nf'); }
     });
 
     async function editarStatusNF(id) {
@@ -3202,16 +2861,16 @@
         if (!confirm('Tem certeza que deseja excluir este status NF?')) return;
         const { error } = await supabaseClient.from('status_nf').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Status NF excluído!'); carregarStatusNF(); }
+        else { alert('Status NF excluído!'); carregarStatusNF(); carregarSelectStatus('dc-status-nf', 'status_nf'); }
     }
 
     // ===================== HISTÓRICO APROPRIAÇÃO =====================
     async function carregarApropriacaoHist() {
         const tbody = document.getElementById('tabela-apropriacao-hist');
-        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
         const { data: consumos } = await supabaseClient.from('consumo_dc').select('*').order('criado_em', { ascending: false });
         registrarUltimaAtualizacao();
-        if (!consumos) { tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
+        if (!consumos) { tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
         const fProj = document.getElementById('filt-hist-aprop-proj').value.toLowerCase();
         const fGest = document.getElementById('filt-hist-aprop-gest').value.toLowerCase();
         const fGer = document.getElementById('filt-hist-aprop-ger').value.toLowerCase();
@@ -3224,10 +2883,7 @@
             if (fData && (!c.criado_em || !c.criado_em.startsWith(fData))) return false;
             return true;
         });
-        if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
-            return;
-        }
+        if (filtrados.length === 0) { tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`; return; }
         filtrados.forEach(c => {
             let dataFormatada = c.criado_em ? new Date(c.criado_em).toLocaleString('pt-BR') : '-';
             tbody.innerHTML += `
@@ -3239,6 +2895,7 @@
                     <td>${c.gerente || '-'}</td>
                     <td>${c.mes_apropriacao}</td>
                     <td>${c.ano}</td>
+                    <td>${c.status_nf || '-'}</td>
                     <td class="text-right mono font-semibold">R$ ${Number(c.valor).toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
@@ -3253,10 +2910,10 @@
     // ===================== HISTÓRICO MEDIÇÃO =====================
     async function carregarMedicaoHist() {
         const tbody = document.getElementById('tabela-medicao-hist');
-        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
         const { data: consumos } = await supabaseClient.from('consumo_dc').select('*').order('criado_em', { ascending: false });
         registrarUltimaAtualizacao();
-        if (!consumos) { tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
+        if (!consumos) { tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
         const fProj = document.getElementById('filt-hist-med-proj').value.toLowerCase();
         const fGest = document.getElementById('filt-hist-med-gest').value.toLowerCase();
         const fGer = document.getElementById('filt-hist-med-ger').value.toLowerCase();
@@ -3269,10 +2926,7 @@
             if (fData && (!c.criado_em || !c.criado_em.startsWith(fData))) return false;
             return true;
         });
-        if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
-            return;
-        }
+        if (filtrados.length === 0) { tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`; return; }
         filtrados.forEach(c => {
             let dataFormatada = c.criado_em ? new Date(c.criado_em).toLocaleString('pt-BR') : '-';
             tbody.innerHTML += `
@@ -3284,6 +2938,7 @@
                     <td>${c.gerente || '-'}</td>
                     <td class="font-medium" style="color:var(--gold)">${c.mes_medido}</td>
                     <td>${c.ano}</td>
+                    <td>${c.status_dc || '-'}</td>
                     <td class="text-right mono font-semibold">R$ ${Number(c.valor).toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
