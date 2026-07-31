@@ -229,7 +229,11 @@
   .sidebar-link.is-active svg{ opacity:1; }
   .sidebar-link.hidden-link { display:none; }
 
-  .flyout-wrap{ position:relative; }
+  .flyout-wrap{ 
+    position:relative; 
+    z-index:5;
+  }
+
   .flyout-trigger{
     width:100%;
     display:flex;
@@ -340,6 +344,8 @@
     align-items:center;
     justify-content:space-between;
     box-shadow:0 2px 8px rgba(8,16,32,0.06);
+    position:relative;
+    z-index:5;
   }
   .status-dot{
     width:9px; height:9px; border-radius:50%;
@@ -385,6 +391,8 @@
     border-radius:12px;
     overflow:hidden;
     box-shadow:0 2px 8px rgba(8,16,32,0.06);
+    position:relative;
+    z-index:1;
   }
   .card-pad{ padding:24px; }
   .th-row th{
@@ -397,6 +405,9 @@
     font-weight:600;
     padding:12px 16px;
     text-align:left;
+    position:sticky;
+    top:0;
+    z-index:5;
   }
   .td-row td{
     padding:14px 16px;
@@ -459,13 +470,15 @@
 
   .filters-bar{
     display:grid;
-    grid-template-columns:repeat(4,1fr);
+    grid-template-columns:repeat(5,1fr);
     gap:12px;
     background:var(--surface);
     border:1px solid var(--border);
     border-radius:12px;
     padding:16px;
     box-shadow:0 2px 8px rgba(8,16,32,0.04);
+    position:relative;
+    z-index:2;
   }
 
   .checkbox-group{
@@ -610,6 +623,18 @@
   }
   .btn-cancel:hover{ background:var(--text-muted); transform:translateY(-1px); }
 
+  .btn-clear-filters{
+    background:var(--text-soft);
+    color:#fff;
+    font-weight:600;
+    font-size:13px;
+    padding:8px 16px;
+    border-radius:8px;
+    border:1px solid var(--text-muted);
+    transition:all .15s ease;
+  }
+  .btn-clear-filters:hover{ background:var(--text-muted); transform:translateY(-1px); }
+
   .app-shell{ display:flex; height:100vh; overflow:hidden; }
   .content-area{ flex:1; padding:28px 32px; overflow-y:auto; background:var(--paper); }
 
@@ -685,6 +710,17 @@
     position:sticky;
     top:0;
     z-index:10;
+  }
+
+  /* Estilo para o subtítulo do menu */
+  .menu-subtitle {
+    font-size:10px;
+    color:#4A6A8E;
+    padding:4px 12px 8px 12px;
+    font-weight:500;
+    letter-spacing:0.05em;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    margin-bottom:4px;
   }
 
   @media (max-width: 900px){
@@ -830,20 +866,14 @@
         </select>
         <select id="filt-dash-mes" class="input" onchange="carregarDashboard()">
           <option value="">Todos os Meses</option>
-          <option value="Janeiro">Janeiro</option>
-          <option value="Fevereiro">Fevereiro</option>
-          <option value="Março">Março</option>
-          <option value="Abril">Abril</option>
-          <option value="Maio">Maio</option>
-          <option value="Junho">Junho</option>
-          <option value="Julho">Julho</option>
-          <option value="Agosto">Agosto</option>
-          <option value="Setembro">Setembro</option>
-          <option value="Outubro">Outubro</option>
-          <option value="Novembro">Novembro</option>
-          <option value="Dezembro">Dezembro</option>
         </select>
-        <button onclick="carregarDashboard()" class="btn-primary">Filtrar</button>
+        <select id="filt-dash-ano" class="input" onchange="carregarDashboard()">
+          <option value="">Todos os Anos</option>
+        </select>
+        <div class="flex gap-2">
+          <button onclick="carregarDashboard()" class="btn-primary flex-1">Filtrar</button>
+          <button onclick="limparFiltros('dash')" class="btn-clear-filters">Limpar</button>
+        </div>
       </div>
 
       <!-- Tabela -->
@@ -856,19 +886,13 @@
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th class="text-right">Mai</th>
-                <th class="text-right">Jun</th>
-                <th class="text-right">Jul</th>
-                <th class="text-right">Ago</th>
-                <th class="text-right">Set</th>
-                <th class="text-right">Out</th>
-                <th class="text-right">Nov</th>
-                <th class="text-right">Dez</th>
-                <th class="text-right">Total Geral</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Valor</th>
               </tr>
             </thead>
             <tbody id="tabela-dashboard-corpo">
-              <tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1038,36 +1062,31 @@
       </div>
     </div>
 
-    <!-- ===================== MEDIÇÕES APROPRIAÇÃO (DASH) ===================== -->
-    <div id="tab-apropriacao-dash" class="tab-content space-y-6">
+    <!-- ===================== DASHBOARDS (Agrupados) ===================== -->
+    <!-- DASHBOARD APROPRIAÇÃO -->
+    <div id="tab-dash-apropriacao" class="tab-content space-y-6">
       <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Medições Apropriação</h2>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard - Medições Apropriação</h2>
         <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p>
       </div>
       
       <div class="filters-bar">
-        <select id="filt-aprop-projeto" class="input" onchange="carregarApropriacaoDash()">
+        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()">
           <option value="">Todos os Projetos</option>
         </select>
-        <select id="filt-aprop-gestor" class="input" onchange="carregarApropriacaoDash()">
+        <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()">
           <option value="">Todos os Gestores</option>
         </select>
-        <select id="filt-aprop-mes" class="input" onchange="carregarApropriacaoDash()">
+        <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()">
           <option value="">Todos os Meses</option>
-          <option value="Janeiro">Janeiro</option>
-          <option value="Fevereiro">Fevereiro</option>
-          <option value="Março">Março</option>
-          <option value="Abril">Abril</option>
-          <option value="Maio">Maio</option>
-          <option value="Junho">Junho</option>
-          <option value="Julho">Julho</option>
-          <option value="Agosto">Agosto</option>
-          <option value="Setembro">Setembro</option>
-          <option value="Outubro">Outubro</option>
-          <option value="Novembro">Novembro</option>
-          <option value="Dezembro">Dezembro</option>
         </select>
-        <button onclick="carregarApropriacaoDash()" class="btn-primary">Filtrar</button>
+        <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()">
+          <option value="">Todos os Anos</option>
+        </select>
+        <div class="flex gap-2">
+          <button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button>
+          <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
+        </div>
       </div>
       
       <div class="card">
@@ -1079,19 +1098,61 @@
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th class="text-right">Mai</th>
-                <th class="text-right">Jun</th>
-                <th class="text-right">Jul</th>
-                <th class="text-right">Ago</th>
-                <th class="text-right">Set</th>
-                <th class="text-right">Out</th>
-                <th class="text-right">Nov</th>
-                <th class="text-right">Dez</th>
-                <th class="text-right">Total Geral</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Valor</th>
               </tr>
             </thead>
-            <tbody id="tabela-apropriacao-dash">
-              <tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            <tbody id="tabela-dash-apropriacao">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD MEDIÇÃO -->
+    <div id="tab-dash-medicao" class="tab-content space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard - Medição</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido (origem real da medição).</p>
+      </div>
+      
+      <div class="filters-bar">
+        <select id="filt-med-projeto" class="input" onchange="carregarDashMedicao()">
+          <option value="">Todos os Projetos</option>
+        </select>
+        <select id="filt-med-gestor" class="input" onchange="carregarDashMedicao()">
+          <option value="">Todos os Gestores</option>
+        </select>
+        <select id="filt-med-mes" class="input" onchange="carregarDashMedicao()">
+          <option value="">Todos os Meses</option>
+        </select>
+        <select id="filt-med-ano" class="input" onchange="carregarDashMedicao()">
+          <option value="">Todos os Anos</option>
+        </select>
+        <div class="flex gap-2">
+          <button onclick="carregarDashMedicao()" class="btn-primary flex-1">Filtrar</button>
+          <button onclick="limparFiltros('med')" class="btn-clear-filters">Limpar</button>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="table-scroll">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="th-row">
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mês</th>
+                <th class="text-right">Ano</th>
+                <th class="text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dash-medicao">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1109,72 +1170,13 @@
         <input type="text" id="filt-hist-aprop-gest" placeholder="Filtrar Gestor..." oninput="carregarApropriacaoHist()" class="input">
         <input type="text" id="filt-hist-aprop-ger" placeholder="Filtrar Gerente..." oninput="carregarApropriacaoHist()" class="input">
         <input type="date" id="filt-hist-aprop-data" onchange="carregarApropriacaoHist()" class="input">
+        <button onclick="carregarApropriacaoHist()" class="btn-primary">Filtrar</button>
       </div>
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Apropriação</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-apropriacao-hist"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== MEDIÇÃO DASH ===================== -->
-    <div id="tab-medicao-dash" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Medição - Dashboard</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido (origem real da medição).</p>
-      </div>
-      
-      <div class="filters-bar">
-        <select id="filt-med-projeto" class="input" onchange="carregarMedicaoDash()">
-          <option value="">Todos os Projetos</option>
-        </select>
-        <select id="filt-med-gestor" class="input" onchange="carregarMedicaoDash()">
-          <option value="">Todos os Gestores</option>
-        </select>
-        <select id="filt-med-mes" class="input" onchange="carregarMedicaoDash()">
-          <option value="">Todos os Meses</option>
-          <option value="Janeiro">Janeiro</option>
-          <option value="Fevereiro">Fevereiro</option>
-          <option value="Março">Março</option>
-          <option value="Abril">Abril</option>
-          <option value="Maio">Maio</option>
-          <option value="Junho">Junho</option>
-          <option value="Julho">Julho</option>
-          <option value="Agosto">Agosto</option>
-          <option value="Setembro">Setembro</option>
-          <option value="Outubro">Outubro</option>
-          <option value="Novembro">Novembro</option>
-          <option value="Dezembro">Dezembro</option>
-        </select>
-        <button onclick="carregarMedicaoDash()" class="btn-primary">Filtrar</button>
-      </div>
-      
-      <div class="card">
-        <div class="table-scroll">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="th-row">
-                <th>Gestor</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th>Empresa</th>
-                <th class="text-right">Mai</th>
-                <th class="text-right">Jun</th>
-                <th class="text-right">Jul</th>
-                <th class="text-right">Ago</th>
-                <th class="text-right">Set</th>
-                <th class="text-right">Out</th>
-                <th class="text-right">Nov</th>
-                <th class="text-right">Dez</th>
-                <th class="text-right">Total Geral</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-medicao-dash">
-              <tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
+            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Apropriação</th><th>Ano</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-apropriacao-hist"><tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1191,12 +1193,13 @@
         <input type="text" id="filt-hist-med-gest" placeholder="Filtrar Gestor..." oninput="carregarMedicaoHist()" class="input">
         <input type="text" id="filt-hist-med-ger" placeholder="Filtrar Gerente..." oninput="carregarMedicaoHist()" class="input">
         <input type="date" id="filt-hist-med-data" onchange="carregarMedicaoHist()" class="input">
+        <button onclick="carregarMedicaoHist()" class="btn-primary">Filtrar</button>
       </div>
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Medido</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-medicao-hist"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Medido</th><th>Ano</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-medicao-hist"><tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1241,9 +1244,9 @@
               <label class="checkbox-item"><input type="checkbox" value="dashboard" class="permission-check"><span>Dashboard</span></label>
               <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
               <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="apropriacoes" class="permission-check"><span>Apropriações</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Apropriação</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="dash-medicao" class="permission-check"><span>Dash Medição</span></label>
               <label class="checkbox-item"><input type="checkbox" value="historico-aprop" class="permission-check"><span>Hist. Apropriação</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="medicao-dash" class="permission-check"><span>Medição Dash</span></label>
               <label class="checkbox-item"><input type="checkbox" value="historico-gestor" class="permission-check"><span>Hist. Gestor</span></label>
               <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
               <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
@@ -1554,7 +1557,7 @@
         return usuarioPermissoes.includes(area) || usuarioPermissoes.includes('*');
     }
 
-    // ===================== VALIDAÇÃO DE SENHA FORTE =====================
+    // ===================== VALIDAÇÃO DE SENHA =====================
     function validarSenha() {
         const senha = document.getElementById('user-senha').value;
         const criterios = {
@@ -1660,7 +1663,6 @@
 
             gerarMenu(data.permissoes || []);
             
-            // Força abrir o Dashboard
             mudarAba('dashboard');
             
             carregarDashboard();
@@ -1711,9 +1713,9 @@
             { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
                 { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
                 { id: 'cad-consumo', label: 'Consumo Medição DC', area: 'medicoes' },
-                { id: 'apropriacao-dash', label: 'Medições Apropriação (Dash)', area: 'apropriacoes' },
+                { id: 'dash-apropriacao', label: 'Dashboard Apropriação', area: 'dash-apropriacao' },
+                { id: 'dash-medicao', label: 'Dashboard Medição', area: 'dash-medicao' },
                 { id: 'apropriacao-hist', label: 'Histórico Apropriação', area: 'historico-aprop' },
-                { id: 'medicao-dash', label: 'Medição (Dash)', area: 'medicao-dash' },
                 { id: 'medicao-gestor-hist', label: 'Histórico Gestor', area: 'historico-gestor' }
             ]},
             { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
@@ -1830,10 +1832,9 @@
         buildMenuHTML(mobileNav, desktopItems, true);
     }
 
-    // ===================== MÁSCARA DE VALOR MONETÁRIO CORRIGIDA =====================
+    // ===================== MÁSCARA DE VALOR CORRIGIDA =====================
     function mascaraMoeda(input) {
         input.addEventListener('input', function(e) {
-            // Remove tudo que não é número
             let valor = this.value.replace(/\D/g, '');
             
             if (valor === '') {
@@ -1841,25 +1842,18 @@
                 return;
             }
             
-            // Remove zeros à esquerda, mas mantém pelo menos 1 dígito
             valor = valor.replace(/^0+/, '');
             if (valor === '') valor = '0';
             
-            // Se tem menos de 3 dígitos, completa com zeros à esquerda
             while (valor.length < 3) {
                 valor = '0' + valor;
             }
             
-            // Separa inteiro e centavos (os 2 últimos são centavos)
             let inteiro = valor.slice(0, -2);
             let centavos = valor.slice(-2);
-            
-            // Formata inteiro com pontos a cada 3 dígitos
             let inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             
             this.value = inteiroFormatado + ',' + centavos;
-            
-            // Mantém o cursor no final
             this.setSelectionRange(this.value.length, this.value.length);
         });
         
@@ -1870,7 +1864,6 @@
         });
         
         input.addEventListener('focus', function() {
-            // Posiciona o cursor no final do texto
             this.setSelectionRange(this.value.length, this.value.length);
         });
     }
@@ -1898,6 +1891,25 @@
         });
         document.querySelectorAll('.money-input').forEach(mascaraMoeda);
         document.querySelectorAll('.date-input').forEach(mascaraData);
+    }
+
+    // ===================== LIMPAR FILTROS =====================
+    function limparFiltros(tipo) {
+        const filtros = {
+            'dash': ['filt-dash-projeto', 'filt-dash-gestor', 'filt-dash-mes', 'filt-dash-ano'],
+            'aprop': ['filt-aprop-projeto', 'filt-aprop-gestor', 'filt-aprop-mes', 'filt-aprop-ano'],
+            'med': ['filt-med-projeto', 'filt-med-gestor', 'filt-med-mes', 'filt-med-ano']
+        };
+        
+        const ids = filtros[tipo] || [];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        if (tipo === 'dash') carregarDashboard();
+        else if (tipo === 'aprop') carregarDashApropriacao();
+        else if (tipo === 'med') carregarDashMedicao();
     }
 
     // ===================== PERMISSÕES =====================
@@ -1990,9 +2002,9 @@
             'dashboard': 'dashboard',
             'cad-medicao': 'medicoes',
             'cad-consumo': 'medicoes',
-            'apropriacao-dash': 'apropriacoes',
+            'dash-apropriacao': 'dash-apropriacao',
+            'dash-medicao': 'dash-medicao',
             'apropriacao-hist': 'historico-aprop',
-            'medicao-dash': 'medicao-dash',
             'medicao-gestor-hist': 'historico-gestor',
             'adm-user': 'adm-user',
             'adm-empresa': 'adm-cliente',
@@ -2024,9 +2036,9 @@
 
     function carregarDadosAba(nomeAba) {
         if (nomeAba === 'dashboard') carregarDashboard();
-        else if (nomeAba === 'apropriacao-dash') carregarApropriacaoDash();
+        else if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
+        else if (nomeAba === 'dash-medicao') carregarDashMedicao();
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
-        else if (nomeAba === 'medicao-dash') carregarMedicaoDash();
         else if (nomeAba === 'medicao-gestor-hist') carregarMedicaoHist();
         else if (nomeAba === 'cad-medicao') carregarMedicoes();
         else if (nomeAba === 'cad-consumo') carregarConsumos();
@@ -2068,11 +2080,12 @@
 
     // ===================== CARREGAR FILTROS =====================
     async function carregarFiltros() {
-        // Buscar projetos e gestores únicos das medições
         const { data: medicoes } = await supabaseClient.from('medicoes').select('projeto, gestor');
+        const { data: consumos } = await supabaseClient.from('consumo_dc').select('projeto, gestor');
         
         const projetos = new Set();
         const gestores = new Set();
+        const anos = new Set();
         
         if (medicoes) {
             medicoes.forEach(m => {
@@ -2080,23 +2093,43 @@
                 if (m.gestor) gestores.add(m.gestor);
             });
         }
+        if (consumos) {
+            consumos.forEach(c => {
+                if (c.projeto) projetos.add(c.projeto);
+                if (c.gestor) gestores.add(c.gestor);
+            });
+        }
         
-        // Preencher filtros do Dashboard
-        const filtros = [
+        // Adicionar anos (2025, 2026, 2027)
+        anos.add(2025);
+        anos.add(2026);
+        anos.add(2027);
+        
+        // Preencher meses
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        
+        const filtrosConfig = [
             { id: 'filt-dash-projeto', values: projetos },
             { id: 'filt-dash-gestor', values: gestores },
+            { id: 'filt-dash-mes', values: new Set(meses) },
+            { id: 'filt-dash-ano', values: anos },
             { id: 'filt-aprop-projeto', values: projetos },
             { id: 'filt-aprop-gestor', values: gestores },
+            { id: 'filt-aprop-mes', values: new Set(meses) },
+            { id: 'filt-aprop-ano', values: anos },
             { id: 'filt-med-projeto', values: projetos },
-            { id: 'filt-med-gestor', values: gestores }
+            { id: 'filt-med-gestor', values: gestores },
+            { id: 'filt-med-mes', values: new Set(meses) },
+            { id: 'filt-med-ano', values: anos }
         ];
         
-        filtros.forEach(({ id, values }) => {
+        filtrosConfig.forEach(({ id, values }) => {
             const select = document.getElementById(id);
             if (select) {
                 const currentValue = select.value;
                 select.innerHTML = '<option value="">Todos</option>';
-                values.forEach(v => {
+                const sorted = Array.from(values).sort();
+                sorted.forEach(v => {
                     if (v) select.innerHTML += `<option value="${v}">${v}</option>`;
                 });
                 if (currentValue) select.value = currentValue;
@@ -2104,100 +2137,74 @@
         });
     }
 
-    // ===================== DASHBOARD =====================
+    // ===================== DASHBOARD PRINCIPAL =====================
     async function carregarDashboard() {
         const tbody = document.getElementById('tabela-dashboard-corpo');
-        tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
 
         const filtroProjeto = document.getElementById('filt-dash-projeto')?.value || '';
         const filtroGestor = document.getElementById('filt-dash-gestor')?.value || '';
         const filtroMes = document.getElementById('filt-dash-mes')?.value || '';
+        const filtroAno = document.getElementById('filt-dash-ano')?.value || '';
 
-        // Buscar medições
         let query = supabaseClient.from('medicoes').select('*');
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
         if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        if (filtroMes) query = query.eq('mes', filtroMes);
+        if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: medicoes } = await query;
 
-        // Buscar consumos
         let queryConsumo = supabaseClient.from('consumo_dc').select('*');
         if (filtroProjeto) queryConsumo = queryConsumo.eq('projeto', filtroProjeto);
         if (filtroGestor) queryConsumo = queryConsumo.eq('gestor', filtroGestor);
+        if (filtroMes) queryConsumo = queryConsumo.eq('mes_medido', filtroMes);
+        if (filtroAno) queryConsumo = queryConsumo.eq('ano', parseInt(filtroAno));
         const { data: consumos } = await queryConsumo;
 
         registrarUltimaAtualizacao();
 
         if (!medicoes || medicoes.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
             document.getElementById('stat-total-medido').innerText = 'R$ 0,00';
             document.getElementById('stat-total-consumido').innerText = 'R$ 0,00';
             document.getElementById('stat-saldo-total').innerText = 'R$ 0,00';
             return;
         }
 
-        const meses = ['Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        const mesesMap = {
-            'Janeiro': 0, 'Fevereiro': 1, 'Março': 2, 'Abril': 3, 'Maio': 4, 'Junho': 5,
-            'Julho': 6, 'Agosto': 7, 'Setembro': 8, 'Outubro': 9, 'Novembro': 10, 'Dezembro': 11
-        };
-
-        let somaMedidoTotal = 0;
-        let somaConsumidoTotal = 0;
+        let somaMedido = 0;
+        let somaConsumido = 0;
         let linhas = [];
 
         medicoes.forEach(med => {
-            const mesIndex = mesesMap[med.mes] || 0;
             const valorMedicao = Number(med.valor || 0);
-            somaMedidoTotal += valorMedicao;
+            somaMedido += valorMedicao;
 
-            // Calcular consumos para esta medição
-            let consumosPorMes = {};
             let totalConsumido = 0;
-            let descricao = med.projeto || '';
-
-            // Buscar consumos relacionados
             if (consumos) {
                 consumos.forEach(c => {
                     if (c.empresa === med.empresa && c.gestor === med.gestor && c.mes_medido === med.mes && c.ano === med.ano) {
-                        const valorConsumo = Number(c.valor || 0);
-                        totalConsumido += valorConsumo;
-                        somaConsumidoTotal += valorConsumo;
-                        
-                        // Agrupar por mês de apropriação
-                        const mesAprop = c.mes_apropriacao || 'Indefinido';
-                        consumosPorMes[mesAprop] = (consumosPorMes[mesAprop] || 0) + valorConsumo;
+                        totalConsumido += Number(c.valor || 0);
                     }
                 });
             }
+            somaConsumido += totalConsumido;
 
-            // Calcular saldo por mês (consumo - medição)
-            let saldoPorMes = {};
-            meses.forEach(m => {
-                const consumoMes = consumosPorMes[m] || 0;
-                // Distribuir a medição pelos meses que têm consumo
-                if (totalConsumido > 0) {
-                    const proporcao = consumoMes / totalConsumido;
-                    saldoPorMes[m] = (consumoMes - (valorMedicao * proporcao));
-                } else {
-                    saldoPorMes[m] = 0;
-                }
-            });
+            const saldo = valorMedicao - totalConsumido;
 
-            // Aplicar filtro de mês
-            if (filtroMes && saldoPorMes[filtroMes] === 0 && !consumosPorMes[filtroMes]) {
-                // Se o mês filtrado não tem dados, podemos pular ou mostrar 0
-            }
+            // Determinar mês e ano para exibição
+            const mesExibicao = med.mes || 'N/A';
+            const anoExibicao = med.ano || 'N/A';
 
             linhas.push({
                 gestor: med.gestor || 'N/A',
                 projeto: med.projeto || 'N/A',
-                descricao: descricao,
+                descricao: med.projeto || '',
                 empresa: med.empresa || 'N/A',
-                saldos: saldoPorMes,
-                totalConsumido: totalConsumido,
+                mes: mesExibicao,
+                ano: anoExibicao,
+                valor: saldo,
                 valorMedicao: valorMedicao,
-                mesIndex: mesIndex,
-                med: med
+                totalConsumido: totalConsumido
             });
         });
 
@@ -2209,84 +2216,69 @@
 
         tbody.innerHTML = '';
         let totalGeral = 0;
-        let totaisMeses = {};
-        meses.forEach(m => totaisMeses[m] = 0);
+
+        // Mostrar apenas meses com valor (do mais antigo ao mais atual)
+        // Para simplificar, vamos mostrar todos os meses que têm dados
+        const mesesComDados = new Set();
+        linhas.forEach(row => {
+            if (row.mes !== 'N/A') mesesComDados.add(row.mes);
+        });
 
         linhas.forEach(row => {
-            const saldoTotal = row.valorMedicao - row.totalConsumido;
-            totalGeral += saldoTotal;
-
-            let rowHtml = `
+            totalGeral += row.valor;
+            tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${row.gestor}</td>
                     <td>${row.projeto}</td>
                     <td>${row.descricao}</td>
                     <td>${row.empresa}</td>
-            `;
-
-            meses.forEach(m => {
-                const valor = row.saldos[m] || 0;
-                totaisMeses[m] = (totaisMeses[m] || 0) + valor;
-                rowHtml += `<td class="text-right mono ${valor < 0 ? 'text-neg' : 'text-pos'}">${valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
-            });
-
-            rowHtml += `
-                    <td class="text-right mono font-bold ${saldoTotal < 0 ? 'text-neg' : 'text-pos'}">${saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right">${row.mes}</td>
+                    <td class="text-right">${row.ano}</td>
+                    <td class="text-right mono font-bold ${row.valor < 0 ? 'text-neg' : 'text-pos'}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
-            tbody.innerHTML += rowHtml;
         });
 
         // Linha de total
-        let totalRow = `
+        tbody.innerHTML += `
             <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                <td colspan="4" class="font-bold" style="color:var(--text)">TOTAL GERAL</td>
-        `;
-        let totalGeralAll = 0;
-        meses.forEach(m => {
-            const val = totaisMeses[m] || 0;
-            totalGeralAll += val;
-            totalRow += `<td class="text-right mono font-bold ${val < 0 ? 'text-neg' : 'text-pos'}">${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
-        });
-        totalRow += `
-                <td class="text-right mono font-bold ${totalGeralAll < 0 ? 'text-neg' : 'text-pos'}">${totalGeralAll.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
+                <td class="text-right mono font-bold ${totalGeral < 0 ? 'text-neg' : 'text-pos'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
             </tr>
         `;
-        tbody.innerHTML += totalRow;
 
-        // Atualizar cards
-        document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedidoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
-        document.getElementById('stat-total-consumido').innerText = 'R$ ' + somaConsumidoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
-        const saldoTotal = somaMedidoTotal - somaConsumidoTotal;
+        document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedido.toLocaleString('pt-BR', {minFractionDigits: 2});
+        document.getElementById('stat-total-consumido').innerText = 'R$ ' + somaConsumido.toLocaleString('pt-BR', {minFractionDigits: 2});
+        const saldoTotal = somaMedido - somaConsumido;
         const statSaldo = document.getElementById('stat-saldo-total');
         statSaldo.innerText = 'R$ ' + saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
         statSaldo.style.color = saldoTotal < 0 ? 'var(--danger)' : 'var(--success)';
     }
 
-    // ===================== MEDIÇÕES APROPRIAÇÃO DASH =====================
-    async function carregarApropriacaoDash() {
-        const tbody = document.getElementById('tabela-apropriacao-dash');
-        tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+    // ===================== DASHBOARD APROPRIAÇÃO =====================
+    async function carregarDashApropriacao() {
+        const tbody = document.getElementById('tabela-dash-apropriacao');
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
         const filtroProjeto = document.getElementById('filt-aprop-projeto')?.value || '';
         const filtroGestor = document.getElementById('filt-aprop-gestor')?.value || '';
         const filtroMes = document.getElementById('filt-aprop-mes')?.value || '';
+        const filtroAno = document.getElementById('filt-aprop-ano')?.value || '';
 
         let query = supabaseClient.from('consumo_dc').select('*');
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
         if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        if (filtroMes) query = query.eq('mes_apropriacao', filtroMes);
+        if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: consumos } = await query;
 
         registrarUltimaAtualizacao();
 
         if (!consumos || consumos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
             return;
         }
 
-        const meses = ['Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-        // Agrupar por gestor e projeto
         let grupos = {};
         consumos.forEach(c => {
             const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
@@ -2296,86 +2288,64 @@
                     projeto: c.projeto || 'N/A',
                     descricao: c.projeto || '',
                     empresa: c.empresa || 'N/A',
-                    meses: {}
+                    total: 0,
+                    mes: c.mes_apropriacao || 'N/A',
+                    ano: c.ano || 'N/A'
                 };
             }
-            const mesAprop = c.mes_apropriacao || 'Indefinido';
-            if (filtroMes && mesAprop !== filtroMes) return;
-            grupos[key].meses[mesAprop] = (grupos[key].meses[mesAprop] || 0) + Number(c.valor || 0);
+            grupos[key].total += Number(c.valor || 0);
         });
 
         tbody.innerHTML = '';
-        let totaisMeses = {};
-        meses.forEach(m => totaisMeses[m] = 0);
         let totalGeral = 0;
 
         Object.values(grupos).forEach(g => {
-            let rowHtml = `
+            totalGeral += g.total;
+            tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
                     <td>${g.projeto}</td>
                     <td>${g.descricao}</td>
                     <td>${g.empresa}</td>
-            `;
-
-            let totalLinha = 0;
-            meses.forEach(m => {
-                const valor = g.meses[m] || 0;
-                totalLinha += valor;
-                totaisMeses[m] = (totaisMeses[m] || 0) + valor;
-                rowHtml += `<td class="text-right mono ${valor < 0 ? 'text-neg' : 'text-pos'}">${valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
-            });
-
-            totalGeral += totalLinha;
-            rowHtml += `
-                    <td class="text-right mono font-bold ${totalLinha < 0 ? 'text-neg' : 'text-pos'}">${totalLinha.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right">${g.mes}</td>
+                    <td class="text-right">${g.ano}</td>
+                    <td class="text-right mono font-bold ${g.total < 0 ? 'text-neg' : 'text-pos'}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
-            tbody.innerHTML += rowHtml;
         });
 
-        // Total
-        let totalRow = `
+        tbody.innerHTML += `
             <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                <td colspan="4" class="font-bold" style="color:var(--text)">TOTAL GERAL</td>
-        `;
-        let totalGeralAll = 0;
-        meses.forEach(m => {
-            const val = totaisMeses[m] || 0;
-            totalGeralAll += val;
-            totalRow += `<td class="text-right mono font-bold ${val < 0 ? 'text-neg' : 'text-pos'}">${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
-        });
-        totalRow += `
-                <td class="text-right mono font-bold ${totalGeralAll < 0 ? 'text-neg' : 'text-pos'}">${totalGeralAll.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
+                <td class="text-right mono font-bold ${totalGeral < 0 ? 'text-neg' : 'text-pos'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
             </tr>
         `;
-        tbody.innerHTML += totalRow;
     }
 
-    // ===================== MEDIÇÃO DASH =====================
-    async function carregarMedicaoDash() {
-        const tbody = document.getElementById('tabela-medicao-dash');
-        tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+    // ===================== DASHBOARD MEDIÇÃO =====================
+    async function carregarDashMedicao() {
+        const tbody = document.getElementById('tabela-dash-medicao');
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
         const filtroProjeto = document.getElementById('filt-med-projeto')?.value || '';
         const filtroGestor = document.getElementById('filt-med-gestor')?.value || '';
         const filtroMes = document.getElementById('filt-med-mes')?.value || '';
+        const filtroAno = document.getElementById('filt-med-ano')?.value || '';
 
         let query = supabaseClient.from('consumo_dc').select('*');
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
         if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        if (filtroMes) query = query.eq('mes_medido', filtroMes);
+        if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: consumos } = await query;
 
         registrarUltimaAtualizacao();
 
         if (!consumos || consumos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
             return;
         }
 
-        const meses = ['Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-        // Agrupar por gestor e projeto
         let grupos = {};
         consumos.forEach(c => {
             const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
@@ -2385,63 +2355,41 @@
                     projeto: c.projeto || 'N/A',
                     descricao: c.projeto || '',
                     empresa: c.empresa || 'N/A',
-                    meses: {}
+                    total: 0,
+                    mes: c.mes_medido || 'N/A',
+                    ano: c.ano || 'N/A'
                 };
             }
-            const mesMedido = c.mes_medido || 'Indefinido';
-            if (filtroMes && mesMedido !== filtroMes) return;
-            grupos[key].meses[mesMedido] = (grupos[key].meses[mesMedido] || 0) + Number(c.valor || 0);
+            grupos[key].total += Number(c.valor || 0);
         });
 
         tbody.innerHTML = '';
-        let totaisMeses = {};
-        meses.forEach(m => totaisMeses[m] = 0);
         let totalGeral = 0;
 
         Object.values(grupos).forEach(g => {
-            let rowHtml = `
+            totalGeral += g.total;
+            tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
                     <td>${g.projeto}</td>
                     <td>${g.descricao}</td>
                     <td>${g.empresa}</td>
-            `;
-
-            let totalLinha = 0;
-            meses.forEach(m => {
-                const valor = g.meses[m] || 0;
-                totalLinha += valor;
-                totaisMeses[m] = (totaisMeses[m] || 0) + valor;
-                rowHtml += `<td class="text-right mono ${valor < 0 ? 'text-neg' : 'text-pos'}">${valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
-            });
-
-            totalGeral += totalLinha;
-            rowHtml += `
-                    <td class="text-right mono font-bold ${totalLinha < 0 ? 'text-neg' : 'text-pos'}">${totalLinha.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right">${g.mes}</td>
+                    <td class="text-right">${g.ano}</td>
+                    <td class="text-right mono font-bold ${g.total < 0 ? 'text-neg' : 'text-pos'}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
-            tbody.innerHTML += rowHtml;
         });
 
-        // Total
-        let totalRow = `
+        tbody.innerHTML += `
             <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
-                <td colspan="4" class="font-bold" style="color:var(--text)">TOTAL GERAL</td>
-        `;
-        let totalGeralAll = 0;
-        meses.forEach(m => {
-            const val = totaisMeses[m] || 0;
-            totalGeralAll += val;
-            totalRow += `<td class="text-right mono font-bold ${val < 0 ? 'text-neg' : 'text-pos'}">${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
-        });
-        totalRow += `
-                <td class="text-right mono font-bold ${totalGeralAll < 0 ? 'text-neg' : 'text-pos'}">${totalGeralAll.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                <td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td>
+                <td class="text-right mono font-bold ${totalGeral < 0 ? 'text-neg' : 'text-pos'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
             </tr>
         `;
-        tbody.innerHTML += totalRow;
     }
 
-    // ===================== FUNÇÕES AUXILIARES (mantidas do código original) =====================
+    // ===================== FUNÇÕES AUXILIARES =====================
     function registrarUltimaAtualizacao() {
         const agora = new Date().toLocaleString('pt-BR');
         document.getElementById('badge-ultima-atualizacao').innerText = `Última atualização: ${agora}`;
@@ -2716,7 +2664,7 @@
         else { alert('Usuário excluído!'); carregarUsuarios(); }
     }
 
-    // ===================== CRUD EMPRESAS (resumido para espaço) =====================
+    // ===================== CRUD EMPRESAS =====================
     async function carregarEmpresas() {
         const tbody = document.getElementById('tabela-empresas');
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
@@ -3251,10 +3199,10 @@
     // ===================== HISTÓRICO APROPRIAÇÃO =====================
     async function carregarApropriacaoHist() {
         const tbody = document.getElementById('tabela-apropriacao-hist');
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
         const { data: consumos } = await supabaseClient.from('consumo_dc').select('*').order('criado_em', { ascending: false });
         registrarUltimaAtualizacao();
-        if (!consumos) { tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
+        if (!consumos) { tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
         const fProj = document.getElementById('filt-hist-aprop-proj').value.toLowerCase();
         const fGest = document.getElementById('filt-hist-aprop-gest').value.toLowerCase();
         const fGer = document.getElementById('filt-hist-aprop-ger').value.toLowerCase();
@@ -3268,7 +3216,7 @@
             return true;
         });
         if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
             return;
         }
         filtrados.forEach(c => {
@@ -3281,6 +3229,7 @@
                     <td>${c.gestor}</td>
                     <td>${c.gerente || '-'}</td>
                     <td>${c.mes_apropriacao}</td>
+                    <td>${c.ano}</td>
                     <td class="text-right mono font-semibold">R$ ${Number(c.valor).toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
@@ -3295,10 +3244,10 @@
     // ===================== HISTÓRICO MEDIÇÃO =====================
     async function carregarMedicaoHist() {
         const tbody = document.getElementById('tabela-medicao-hist');
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
         const { data: consumos } = await supabaseClient.from('consumo_dc').select('*').order('criado_em', { ascending: false });
         registrarUltimaAtualizacao();
-        if (!consumos) { tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
+        if (!consumos) { tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
         const fProj = document.getElementById('filt-hist-med-proj').value.toLowerCase();
         const fGest = document.getElementById('filt-hist-med-gest').value.toLowerCase();
         const fGer = document.getElementById('filt-hist-med-ger').value.toLowerCase();
@@ -3312,7 +3261,7 @@
             return true;
         });
         if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
             return;
         }
         filtrados.forEach(c => {
@@ -3325,6 +3274,7 @@
                     <td>${c.gestor}</td>
                     <td>${c.gerente || '-'}</td>
                     <td class="font-medium" style="color:var(--gold)">${c.mes_medido}</td>
+                    <td>${c.ano}</td>
                     <td class="text-right mono font-semibold">R$ ${Number(c.valor).toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
