@@ -457,6 +457,17 @@
   }
   .input:disabled{ background:var(--paper); color:var(--text-soft); }
 
+  .filters-bar{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    box-shadow:0 2px 8px rgba(8,16,32,0.04);
+  }
+
   .checkbox-group{
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
@@ -575,18 +586,6 @@
   }
   .btn-edit:hover{ background:var(--primary-dark); transform:translateY(-1px); }
 
-  .btn-success{
-    background:var(--success);
-    color:#fff;
-    font-weight:600;
-    font-size:12px;
-    padding:6px 12px;
-    border-radius:6px;
-    border:1px solid #0A5C2E;
-    transition:all .15s ease;
-  }
-  .btn-success:hover{ background:#0A5C2E; transform:translateY(-1px); }
-
   .btn-generate{
     background:var(--gold);
     color:#fff;
@@ -610,17 +609,6 @@
     transition:all .15s ease;
   }
   .btn-cancel:hover{ background:var(--text-muted); transform:translateY(-1px); }
-
-  .filters-bar{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:12px;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:16px;
-    box-shadow:0 2px 8px rgba(8,16,32,0.04);
-  }
 
   .app-shell{ display:flex; height:100vh; overflow:hidden; }
   .content-area{ flex:1; padding:28px 32px; overflow-y:auto; background:var(--paper); }
@@ -689,6 +677,16 @@
   }
   .close-sidebar-btn:hover { color:#fff; }
 
+  .table-scroll {
+    max-height:500px;
+    overflow-y:auto;
+  }
+  .table-scroll thead {
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+
   @media (max-width: 900px){
     .sidebar{ display:none; }
     .mobile-menu-toggle{ display:inline-flex; align-items:center; gap:8px; }
@@ -718,6 +716,7 @@
     .checkbox-group{ grid-template-columns:1fr; }
     .login-card{ padding:20px 16px; }
     .login-logo img{ height:56px; }
+    .filters-bar{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -801,34 +800,82 @@
       </div>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- ===================== DASHBOARD ===================== -->
     <div id="tab-dashboard" class="tab-content active space-y-6">
       <div class="flex justify-between items-center flex-wrap gap-3">
         <div>
           <h2 class="text-2xl font-bold" style="color:var(--text)">Visão Geral de Saldos</h2>
           <p class="text-sm mt-0.5" style="color:var(--text-muted)">Acompanhamento do valor total medido versus o valor consumido pelas DCs.</p>
         </div>
-        <button onclick="carregarDadosGerais()" class="btn-secondary">
+        <button onclick="carregarDashboard()" class="btn-secondary">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Atualizar
         </button>
       </div>
+
+      <!-- Cards de resumo -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 stats-grid">
         <div class="stat-card"><div class="stat-label">Total Medido</div><div class="stat-value" id="stat-total-medido" style="color:var(--text)">R$ 0,00</div></div>
         <div class="stat-card"><div class="stat-label">Total Consumido</div><div class="stat-value" id="stat-total-consumido" style="color:var(--gold)">R$ 0,00</div></div>
         <div class="stat-card"><div class="stat-label">Saldo Total</div><div class="stat-value" id="stat-saldo-total" style="color:var(--success)">R$ 0,00</div></div>
       </div>
+
+      <!-- Filtros -->
+      <div class="filters-bar">
+        <select id="filt-dash-projeto" class="input" onchange="carregarDashboard()">
+          <option value="">Todos os Projetos</option>
+        </select>
+        <select id="filt-dash-gestor" class="input" onchange="carregarDashboard()">
+          <option value="">Todos os Gestores</option>
+        </select>
+        <select id="filt-dash-mes" class="input" onchange="carregarDashboard()">
+          <option value="">Todos os Meses</option>
+          <option value="Janeiro">Janeiro</option>
+          <option value="Fevereiro">Fevereiro</option>
+          <option value="Março">Março</option>
+          <option value="Abril">Abril</option>
+          <option value="Maio">Maio</option>
+          <option value="Junho">Junho</option>
+          <option value="Julho">Julho</option>
+          <option value="Agosto">Agosto</option>
+          <option value="Setembro">Setembro</option>
+          <option value="Outubro">Outubro</option>
+          <option value="Novembro">Novembro</option>
+          <option value="Dezembro">Dezembro</option>
+        </select>
+        <button onclick="carregarDashboard()" class="btn-primary">Filtrar</button>
+      </div>
+
+      <!-- Tabela -->
       <div class="card">
-        <div class="overflow-x-auto">
+        <div class="table-scroll">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Empresa</th><th>Gestor</th><th>Gerente</th><th>Mês/Ano</th><th class="text-right">Valor Medição</th><th class="text-right">Consumido</th><th class="text-right">Saldo</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-dashboard-corpo"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr></tbody>
+            <thead>
+              <tr class="th-row">
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mai</th>
+                <th class="text-right">Jun</th>
+                <th class="text-right">Jul</th>
+                <th class="text-right">Ago</th>
+                <th class="text-right">Set</th>
+                <th class="text-right">Out</th>
+                <th class="text-right">Nov</th>
+                <th class="text-right">Dez</th>
+                <th class="text-right">Total Geral</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dashboard-corpo">
+              <tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- CADASTRO DE MEDIÇÃO -->
+    <!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
     <div id="tab-cad-medicao" class="tab-content space-y-6">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Medição</h2>
       <div class="card card-pad">
@@ -896,7 +943,7 @@
       </div>
     </div>
 
-    <!-- CONSUMO MEDIÇÃO DC -->
+    <!-- ===================== CONSUMO MEDIÇÃO DC ===================== -->
     <div id="tab-cad-consumo" class="tab-content space-y-6">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Consumo Medição DC</h2>
       <div class="card card-pad">
@@ -984,36 +1031,74 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>DC</th><th>Empresa</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Apropriação</th><th>Ano</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-consumos"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>ID</th><th>DC</th><th>Empresa</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Apropriação</th><th>Ano</th><th>Mês Medido</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-consumos"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- APROPRIAÇÃO DASH -->
+    <!-- ===================== MEDIÇÕES APROPRIAÇÃO (DASH) ===================== -->
     <div id="tab-apropriacao-dash" class="tab-content space-y-6">
       <div>
         <h2 class="text-2xl font-bold" style="color:var(--text)">Medições Apropriação</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores consumidos agrupados por mês de apropriação.</p>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p>
       </div>
+      
       <div class="filters-bar">
-        <input type="text" id="filt-aprop-proj" placeholder="Filtrar Projeto..." oninput="carregarApropriacaoDash()" class="input">
-        <input type="text" id="filt-aprop-gest" placeholder="Filtrar Gestor..." oninput="carregarApropriacaoDash()" class="input">
-        <input type="text" id="filt-aprop-ger" placeholder="Filtrar Gerente..." oninput="carregarApropriacaoDash()" class="input">
-        <input type="date" id="filt-aprop-data" onchange="carregarApropriacaoDash()" class="input">
+        <select id="filt-aprop-projeto" class="input" onchange="carregarApropriacaoDash()">
+          <option value="">Todos os Projetos</option>
+        </select>
+        <select id="filt-aprop-gestor" class="input" onchange="carregarApropriacaoDash()">
+          <option value="">Todos os Gestores</option>
+        </select>
+        <select id="filt-aprop-mes" class="input" onchange="carregarApropriacaoDash()">
+          <option value="">Todos os Meses</option>
+          <option value="Janeiro">Janeiro</option>
+          <option value="Fevereiro">Fevereiro</option>
+          <option value="Março">Março</option>
+          <option value="Abril">Abril</option>
+          <option value="Maio">Maio</option>
+          <option value="Junho">Junho</option>
+          <option value="Julho">Julho</option>
+          <option value="Agosto">Agosto</option>
+          <option value="Setembro">Setembro</option>
+          <option value="Outubro">Outubro</option>
+          <option value="Novembro">Novembro</option>
+          <option value="Dezembro">Dezembro</option>
+        </select>
+        <button onclick="carregarApropriacaoDash()" class="btn-primary">Filtrar</button>
       </div>
+      
       <div class="card">
-        <div class="overflow-x-auto">
+        <div class="table-scroll">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Mês de Apropriação</th><th class="text-right">Total Consumido (R$)</th></tr></thead>
-            <tbody id="tabela-apropriacao-dash"><tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead>
+              <tr class="th-row">
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mai</th>
+                <th class="text-right">Jun</th>
+                <th class="text-right">Jul</th>
+                <th class="text-right">Ago</th>
+                <th class="text-right">Set</th>
+                <th class="text-right">Out</th>
+                <th class="text-right">Nov</th>
+                <th class="text-right">Dez</th>
+                <th class="text-right">Total Geral</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-apropriacao-dash">
+              <tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- HISTÓRICO APROPRIAÇÃO -->
+    <!-- ===================== HISTÓRICO APROPRIAÇÃO ===================== -->
     <div id="tab-apropriacao-hist" class="tab-content space-y-6">
       <div>
         <h2 class="text-2xl font-bold" style="color:var(--text)">Histórico de Apropriações</h2>
@@ -1035,29 +1120,67 @@
       </div>
     </div>
 
-    <!-- MEDIÇÃO DASH -->
+    <!-- ===================== MEDIÇÃO DASH ===================== -->
     <div id="tab-medicao-dash" class="tab-content space-y-6">
       <div>
         <h2 class="text-2xl font-bold" style="color:var(--text)">Medição - Dashboard</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores agrupados por mês medido.</p>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido (origem real da medição).</p>
       </div>
+      
       <div class="filters-bar">
-        <input type="text" id="filt-med-proj" placeholder="Filtrar Projeto..." oninput="carregarMedicaoDash()" class="input">
-        <input type="text" id="filt-med-gest" placeholder="Filtrar Gestor..." oninput="carregarMedicaoDash()" class="input">
-        <input type="text" id="filt-med-ger" placeholder="Filtrar Gerente..." oninput="carregarMedicaoDash()" class="input">
-        <input type="date" id="filt-med-data" onchange="carregarMedicaoDash()" class="input">
+        <select id="filt-med-projeto" class="input" onchange="carregarMedicaoDash()">
+          <option value="">Todos os Projetos</option>
+        </select>
+        <select id="filt-med-gestor" class="input" onchange="carregarMedicaoDash()">
+          <option value="">Todos os Gestores</option>
+        </select>
+        <select id="filt-med-mes" class="input" onchange="carregarMedicaoDash()">
+          <option value="">Todos os Meses</option>
+          <option value="Janeiro">Janeiro</option>
+          <option value="Fevereiro">Fevereiro</option>
+          <option value="Março">Março</option>
+          <option value="Abril">Abril</option>
+          <option value="Maio">Maio</option>
+          <option value="Junho">Junho</option>
+          <option value="Julho">Julho</option>
+          <option value="Agosto">Agosto</option>
+          <option value="Setembro">Setembro</option>
+          <option value="Outubro">Outubro</option>
+          <option value="Novembro">Novembro</option>
+          <option value="Dezembro">Dezembro</option>
+        </select>
+        <button onclick="carregarMedicaoDash()" class="btn-primary">Filtrar</button>
       </div>
+      
       <div class="card">
-        <div class="overflow-x-auto">
+        <div class="table-scroll">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Mês Medido</th><th class="text-right">Total Consumido (R$)</th></tr></thead>
-            <tbody id="tabela-medicao-dash"><tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead>
+              <tr class="th-row">
+                <th>Gestor</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="text-right">Mai</th>
+                <th class="text-right">Jun</th>
+                <th class="text-right">Jul</th>
+                <th class="text-right">Ago</th>
+                <th class="text-right">Set</th>
+                <th class="text-right">Out</th>
+                <th class="text-right">Nov</th>
+                <th class="text-right">Dez</th>
+                <th class="text-right">Total Geral</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-medicao-dash">
+              <tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- HISTÓRICO GESTOR -->
+    <!-- ===================== HISTÓRICO GESTOR ===================== -->
     <div id="tab-medicao-gestor-hist" class="tab-content space-y-6">
       <div>
         <h2 class="text-2xl font-bold" style="color:var(--text)">Histórico do Gestor</h2>
@@ -1079,7 +1202,7 @@
       </div>
     </div>
 
-    <!-- CADASTRO USUÁRIO -->
+    <!-- ===================== CADASTRO USUÁRIO ===================== -->
     <div id="tab-adm-user" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Usuário</h2>
       <div class="card card-pad">
@@ -1098,21 +1221,11 @@
                   <button type="button" onclick="gerarSenhaForte()" class="btn-generate" style="white-space:nowrap;">Gerar</button>
                 </div>
                 <div class="password-strength" id="senha-criterios">
-                  <span class="criteria unmet" id="criterio-tamanho">
-                    <span class="check">✕</span> Mínimo 8 caracteres
-                  </span>
-                  <span class="criteria unmet" id="criterio-maiuscula">
-                    <span class="check">✕</span> 1 maiúscula
-                  </span>
-                  <span class="criteria unmet" id="criterio-minuscula">
-                    <span class="check">✕</span> 1 minúscula
-                  </span>
-                  <span class="criteria unmet" id="criterio-numero">
-                    <span class="check">✕</span> 1 número
-                  </span>
-                  <span class="criteria unmet" id="criterio-especial">
-                    <span class="check">✕</span> 1 caractere especial
-                  </span>
+                  <span class="criteria unmet" id="criterio-tamanho"><span class="check">✕</span> Mínimo 8 caracteres</span>
+                  <span class="criteria unmet" id="criterio-maiuscula"><span class="check">✕</span> 1 maiúscula</span>
+                  <span class="criteria unmet" id="criterio-minuscula"><span class="check">✕</span> 1 minúscula</span>
+                  <span class="criteria unmet" id="criterio-numero"><span class="check">✕</span> 1 número</span>
+                  <span class="criteria unmet" id="criterio-especial"><span class="check">✕</span> 1 caractere especial</span>
                 </div>
               </div>
             </div>
@@ -1151,7 +1264,7 @@
       </div>
     </div>
 
-    <!-- CADASTRO EMPRESA -->
+    <!-- ===================== CADASTRO EMPRESA ===================== -->
     <div id="tab-adm-empresa" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Empresa</h2>
       <div class="card card-pad">
@@ -1177,7 +1290,7 @@
       </div>
     </div>
 
-    <!-- CADASTRO CONTRATO -->
+    <!-- ===================== CADASTRO CONTRATO ===================== -->
     <div id="tab-adm-contrato" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Contrato</h2>
       <div class="card card-pad">
@@ -1207,7 +1320,7 @@
       </div>
     </div>
 
-    <!-- CADASTRO PROJETO -->
+    <!-- ===================== CADASTRO PROJETO ===================== -->
     <div id="tab-adm-projeto" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
       <div class="card card-pad">
@@ -1241,7 +1354,7 @@
       </div>
     </div>
 
-    <!-- CADASTRO GESTOR -->
+    <!-- ===================== CADASTRO GESTOR ===================== -->
     <div id="tab-adm-gestor" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor</h2>
       <div class="card card-pad">
@@ -1279,7 +1392,7 @@
       </div>
     </div>
 
-    <!-- CADASTRO GERENTE -->
+    <!-- ===================== CADASTRO GERENTE ===================== -->
     <div id="tab-adm-gerente" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gerente</h2>
       <div class="card card-pad">
@@ -1321,7 +1434,7 @@
       </div>
     </div>
 
-    <!-- STATUS DC -->
+    <!-- ===================== STATUS DC ===================== -->
     <div id="tab-adm-status-dc" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status DC</h2>
       <div class="card card-pad">
@@ -1347,7 +1460,7 @@
       </div>
     </div>
 
-    <!-- STATUS MEDIÇÃO -->
+    <!-- ===================== STATUS MEDIÇÃO ===================== -->
     <div id="tab-adm-status-med" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status Medição</h2>
       <div class="card card-pad">
@@ -1373,7 +1486,7 @@
       </div>
     </div>
 
-    <!-- STATUS NF -->
+    <!-- ===================== STATUS NF ===================== -->
     <div id="tab-adm-status-nf" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status NF</h2>
       <div class="card card-pad">
@@ -1547,8 +1660,10 @@
 
             gerarMenu(data.permissoes || []);
             
+            // Força abrir o Dashboard
             mudarAba('dashboard');
-            carregarDadosGerais();
+            
+            carregarDashboard();
             carregarTodasListas();
             aplicarMascaras();
 
@@ -1715,21 +1830,47 @@
         buildMenuHTML(mobileNav, desktopItems, true);
     }
 
-    // ===================== MÁSCARAS =====================
+    // ===================== MÁSCARA DE VALOR MONETÁRIO CORRIGIDA =====================
     function mascaraMoeda(input) {
         input.addEventListener('input', function(e) {
+            // Remove tudo que não é número
             let valor = this.value.replace(/\D/g, '');
-            if (valor === '') { this.value = '0,00'; return; }
-            while (valor.length < 3) { valor = '0' + valor; }
+            
+            if (valor === '') {
+                this.value = '0,00';
+                return;
+            }
+            
+            // Remove zeros à esquerda, mas mantém pelo menos 1 dígito
+            valor = valor.replace(/^0+/, '');
+            if (valor === '') valor = '0';
+            
+            // Se tem menos de 3 dígitos, completa com zeros à esquerda
+            while (valor.length < 3) {
+                valor = '0' + valor;
+            }
+            
+            // Separa inteiro e centavos (os 2 últimos são centavos)
             let inteiro = valor.slice(0, -2);
             let centavos = valor.slice(-2);
+            
+            // Formata inteiro com pontos a cada 3 dígitos
             let inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            
             this.value = inteiroFormatado + ',' + centavos;
+            
+            // Mantém o cursor no final
+            this.setSelectionRange(this.value.length, this.value.length);
         });
+        
         input.addEventListener('blur', function() {
-            if (this.value === '' || this.value === '0,00') { this.value = '0,00'; }
+            if (this.value === '' || this.value === '0,00') {
+                this.value = '0,00';
+            }
         });
+        
         input.addEventListener('focus', function() {
+            // Posiciona o cursor no final do texto
             this.setSelectionRange(this.value.length, this.value.length);
         });
     }
@@ -1882,7 +2023,7 @@
     }
 
     function carregarDadosAba(nomeAba) {
-        if (nomeAba === 'dashboard') carregarDadosGerais();
+        if (nomeAba === 'dashboard') carregarDashboard();
         else if (nomeAba === 'apropriacao-dash') carregarApropriacaoDash();
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
         else if (nomeAba === 'medicao-dash') carregarMedicaoDash();
@@ -1922,9 +2063,385 @@
         carregarSelectProjetos('gestor-projeto');
         carregarSelectProjetos('gerente-projeto');
         carregarSelectGestores('gerente-gestor');
+        carregarFiltros();
     }
 
-    // ===================== FUNÇÕES AUXILIARES =====================
+    // ===================== CARREGAR FILTROS =====================
+    async function carregarFiltros() {
+        // Buscar projetos e gestores únicos das medições
+        const { data: medicoes } = await supabaseClient.from('medicoes').select('projeto, gestor');
+        
+        const projetos = new Set();
+        const gestores = new Set();
+        
+        if (medicoes) {
+            medicoes.forEach(m => {
+                if (m.projeto) projetos.add(m.projeto);
+                if (m.gestor) gestores.add(m.gestor);
+            });
+        }
+        
+        // Preencher filtros do Dashboard
+        const filtros = [
+            { id: 'filt-dash-projeto', values: projetos },
+            { id: 'filt-dash-gestor', values: gestores },
+            { id: 'filt-aprop-projeto', values: projetos },
+            { id: 'filt-aprop-gestor', values: gestores },
+            { id: 'filt-med-projeto', values: projetos },
+            { id: 'filt-med-gestor', values: gestores }
+        ];
+        
+        filtros.forEach(({ id, values }) => {
+            const select = document.getElementById(id);
+            if (select) {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Todos</option>';
+                values.forEach(v => {
+                    if (v) select.innerHTML += `<option value="${v}">${v}</option>`;
+                });
+                if (currentValue) select.value = currentValue;
+            }
+        });
+    }
+
+    // ===================== DASHBOARD =====================
+    async function carregarDashboard() {
+        const tbody = document.getElementById('tabela-dashboard-corpo');
+        tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
+
+        const filtroProjeto = document.getElementById('filt-dash-projeto')?.value || '';
+        const filtroGestor = document.getElementById('filt-dash-gestor')?.value || '';
+        const filtroMes = document.getElementById('filt-dash-mes')?.value || '';
+
+        // Buscar medições
+        let query = supabaseClient.from('medicoes').select('*');
+        if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
+        if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        const { data: medicoes } = await query;
+
+        // Buscar consumos
+        let queryConsumo = supabaseClient.from('consumo_dc').select('*');
+        if (filtroProjeto) queryConsumo = queryConsumo.eq('projeto', filtroProjeto);
+        if (filtroGestor) queryConsumo = queryConsumo.eq('gestor', filtroGestor);
+        const { data: consumos } = await queryConsumo;
+
+        registrarUltimaAtualizacao();
+
+        if (!medicoes || medicoes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
+            document.getElementById('stat-total-medido').innerText = 'R$ 0,00';
+            document.getElementById('stat-total-consumido').innerText = 'R$ 0,00';
+            document.getElementById('stat-saldo-total').innerText = 'R$ 0,00';
+            return;
+        }
+
+        const meses = ['Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const mesesMap = {
+            'Janeiro': 0, 'Fevereiro': 1, 'Março': 2, 'Abril': 3, 'Maio': 4, 'Junho': 5,
+            'Julho': 6, 'Agosto': 7, 'Setembro': 8, 'Outubro': 9, 'Novembro': 10, 'Dezembro': 11
+        };
+
+        let somaMedidoTotal = 0;
+        let somaConsumidoTotal = 0;
+        let linhas = [];
+
+        medicoes.forEach(med => {
+            const mesIndex = mesesMap[med.mes] || 0;
+            const valorMedicao = Number(med.valor || 0);
+            somaMedidoTotal += valorMedicao;
+
+            // Calcular consumos para esta medição
+            let consumosPorMes = {};
+            let totalConsumido = 0;
+            let descricao = med.projeto || '';
+
+            // Buscar consumos relacionados
+            if (consumos) {
+                consumos.forEach(c => {
+                    if (c.empresa === med.empresa && c.gestor === med.gestor && c.mes_medido === med.mes && c.ano === med.ano) {
+                        const valorConsumo = Number(c.valor || 0);
+                        totalConsumido += valorConsumo;
+                        somaConsumidoTotal += valorConsumo;
+                        
+                        // Agrupar por mês de apropriação
+                        const mesAprop = c.mes_apropriacao || 'Indefinido';
+                        consumosPorMes[mesAprop] = (consumosPorMes[mesAprop] || 0) + valorConsumo;
+                    }
+                });
+            }
+
+            // Calcular saldo por mês (consumo - medição)
+            let saldoPorMes = {};
+            meses.forEach(m => {
+                const consumoMes = consumosPorMes[m] || 0;
+                // Distribuir a medição pelos meses que têm consumo
+                if (totalConsumido > 0) {
+                    const proporcao = consumoMes / totalConsumido;
+                    saldoPorMes[m] = (consumoMes - (valorMedicao * proporcao));
+                } else {
+                    saldoPorMes[m] = 0;
+                }
+            });
+
+            // Aplicar filtro de mês
+            if (filtroMes && saldoPorMes[filtroMes] === 0 && !consumosPorMes[filtroMes]) {
+                // Se o mês filtrado não tem dados, podemos pular ou mostrar 0
+            }
+
+            linhas.push({
+                gestor: med.gestor || 'N/A',
+                projeto: med.projeto || 'N/A',
+                descricao: descricao,
+                empresa: med.empresa || 'N/A',
+                saldos: saldoPorMes,
+                totalConsumido: totalConsumido,
+                valorMedicao: valorMedicao,
+                mesIndex: mesIndex,
+                med: med
+            });
+        });
+
+        // Ordenar por gestor e projeto
+        linhas.sort((a, b) => {
+            if (a.gestor !== b.gestor) return a.gestor.localeCompare(b.gestor);
+            return a.projeto.localeCompare(b.projeto);
+        });
+
+        tbody.innerHTML = '';
+        let totalGeral = 0;
+        let totaisMeses = {};
+        meses.forEach(m => totaisMeses[m] = 0);
+
+        linhas.forEach(row => {
+            const saldoTotal = row.valorMedicao - row.totalConsumido;
+            totalGeral += saldoTotal;
+
+            let rowHtml = `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${row.gestor}</td>
+                    <td>${row.projeto}</td>
+                    <td>${row.descricao}</td>
+                    <td>${row.empresa}</td>
+            `;
+
+            meses.forEach(m => {
+                const valor = row.saldos[m] || 0;
+                totaisMeses[m] = (totaisMeses[m] || 0) + valor;
+                rowHtml += `<td class="text-right mono ${valor < 0 ? 'text-neg' : 'text-pos'}">${valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
+            });
+
+            rowHtml += `
+                    <td class="text-right mono font-bold ${saldoTotal < 0 ? 'text-neg' : 'text-pos'}">${saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+            tbody.innerHTML += rowHtml;
+        });
+
+        // Linha de total
+        let totalRow = `
+            <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
+                <td colspan="4" class="font-bold" style="color:var(--text)">TOTAL GERAL</td>
+        `;
+        let totalGeralAll = 0;
+        meses.forEach(m => {
+            const val = totaisMeses[m] || 0;
+            totalGeralAll += val;
+            totalRow += `<td class="text-right mono font-bold ${val < 0 ? 'text-neg' : 'text-pos'}">${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
+        });
+        totalRow += `
+                <td class="text-right mono font-bold ${totalGeralAll < 0 ? 'text-neg' : 'text-pos'}">${totalGeralAll.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+            </tr>
+        `;
+        tbody.innerHTML += totalRow;
+
+        // Atualizar cards
+        document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedidoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
+        document.getElementById('stat-total-consumido').innerText = 'R$ ' + somaConsumidoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
+        const saldoTotal = somaMedidoTotal - somaConsumidoTotal;
+        const statSaldo = document.getElementById('stat-saldo-total');
+        statSaldo.innerText = 'R$ ' + saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
+        statSaldo.style.color = saldoTotal < 0 ? 'var(--danger)' : 'var(--success)';
+    }
+
+    // ===================== MEDIÇÕES APROPRIAÇÃO DASH =====================
+    async function carregarApropriacaoDash() {
+        const tbody = document.getElementById('tabela-apropriacao-dash');
+        tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+
+        const filtroProjeto = document.getElementById('filt-aprop-projeto')?.value || '';
+        const filtroGestor = document.getElementById('filt-aprop-gestor')?.value || '';
+        const filtroMes = document.getElementById('filt-aprop-mes')?.value || '';
+
+        let query = supabaseClient.from('consumo_dc').select('*');
+        if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
+        if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        const { data: consumos } = await query;
+
+        registrarUltimaAtualizacao();
+
+        if (!consumos || consumos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+            return;
+        }
+
+        const meses = ['Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        // Agrupar por gestor e projeto
+        let grupos = {};
+        consumos.forEach(c => {
+            const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
+            if (!grupos[key]) {
+                grupos[key] = {
+                    gestor: c.gestor || 'N/A',
+                    projeto: c.projeto || 'N/A',
+                    descricao: c.projeto || '',
+                    empresa: c.empresa || 'N/A',
+                    meses: {}
+                };
+            }
+            const mesAprop = c.mes_apropriacao || 'Indefinido';
+            if (filtroMes && mesAprop !== filtroMes) return;
+            grupos[key].meses[mesAprop] = (grupos[key].meses[mesAprop] || 0) + Number(c.valor || 0);
+        });
+
+        tbody.innerHTML = '';
+        let totaisMeses = {};
+        meses.forEach(m => totaisMeses[m] = 0);
+        let totalGeral = 0;
+
+        Object.values(grupos).forEach(g => {
+            let rowHtml = `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
+                    <td>${g.projeto}</td>
+                    <td>${g.descricao}</td>
+                    <td>${g.empresa}</td>
+            `;
+
+            let totalLinha = 0;
+            meses.forEach(m => {
+                const valor = g.meses[m] || 0;
+                totalLinha += valor;
+                totaisMeses[m] = (totaisMeses[m] || 0) + valor;
+                rowHtml += `<td class="text-right mono ${valor < 0 ? 'text-neg' : 'text-pos'}">${valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
+            });
+
+            totalGeral += totalLinha;
+            rowHtml += `
+                    <td class="text-right mono font-bold ${totalLinha < 0 ? 'text-neg' : 'text-pos'}">${totalLinha.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+            tbody.innerHTML += rowHtml;
+        });
+
+        // Total
+        let totalRow = `
+            <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
+                <td colspan="4" class="font-bold" style="color:var(--text)">TOTAL GERAL</td>
+        `;
+        let totalGeralAll = 0;
+        meses.forEach(m => {
+            const val = totaisMeses[m] || 0;
+            totalGeralAll += val;
+            totalRow += `<td class="text-right mono font-bold ${val < 0 ? 'text-neg' : 'text-pos'}">${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
+        });
+        totalRow += `
+                <td class="text-right mono font-bold ${totalGeralAll < 0 ? 'text-neg' : 'text-pos'}">${totalGeralAll.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+            </tr>
+        `;
+        tbody.innerHTML += totalRow;
+    }
+
+    // ===================== MEDIÇÃO DASH =====================
+    async function carregarMedicaoDash() {
+        const tbody = document.getElementById('tabela-medicao-dash');
+        tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+
+        const filtroProjeto = document.getElementById('filt-med-projeto')?.value || '';
+        const filtroGestor = document.getElementById('filt-med-gestor')?.value || '';
+        const filtroMes = document.getElementById('filt-med-mes')?.value || '';
+
+        let query = supabaseClient.from('consumo_dc').select('*');
+        if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
+        if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        const { data: consumos } = await query;
+
+        registrarUltimaAtualizacao();
+
+        if (!consumos || consumos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+            return;
+        }
+
+        const meses = ['Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        // Agrupar por gestor e projeto
+        let grupos = {};
+        consumos.forEach(c => {
+            const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
+            if (!grupos[key]) {
+                grupos[key] = {
+                    gestor: c.gestor || 'N/A',
+                    projeto: c.projeto || 'N/A',
+                    descricao: c.projeto || '',
+                    empresa: c.empresa || 'N/A',
+                    meses: {}
+                };
+            }
+            const mesMedido = c.mes_medido || 'Indefinido';
+            if (filtroMes && mesMedido !== filtroMes) return;
+            grupos[key].meses[mesMedido] = (grupos[key].meses[mesMedido] || 0) + Number(c.valor || 0);
+        });
+
+        tbody.innerHTML = '';
+        let totaisMeses = {};
+        meses.forEach(m => totaisMeses[m] = 0);
+        let totalGeral = 0;
+
+        Object.values(grupos).forEach(g => {
+            let rowHtml = `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
+                    <td>${g.projeto}</td>
+                    <td>${g.descricao}</td>
+                    <td>${g.empresa}</td>
+            `;
+
+            let totalLinha = 0;
+            meses.forEach(m => {
+                const valor = g.meses[m] || 0;
+                totalLinha += valor;
+                totaisMeses[m] = (totaisMeses[m] || 0) + valor;
+                rowHtml += `<td class="text-right mono ${valor < 0 ? 'text-neg' : 'text-pos'}">${valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
+            });
+
+            totalGeral += totalLinha;
+            rowHtml += `
+                    <td class="text-right mono font-bold ${totalLinha < 0 ? 'text-neg' : 'text-pos'}">${totalLinha.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+            tbody.innerHTML += rowHtml;
+        });
+
+        // Total
+        let totalRow = `
+            <tr class="td-row" style="background:var(--primary-100); font-weight:700;">
+                <td colspan="4" class="font-bold" style="color:var(--text)">TOTAL GERAL</td>
+        `;
+        let totalGeralAll = 0;
+        meses.forEach(m => {
+            const val = totaisMeses[m] || 0;
+            totalGeralAll += val;
+            totalRow += `<td class="text-right mono font-bold ${val < 0 ? 'text-neg' : 'text-pos'}">${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>`;
+        });
+        totalRow += `
+                <td class="text-right mono font-bold ${totalGeralAll < 0 ? 'text-neg' : 'text-pos'}">${totalGeralAll.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+            </tr>
+        `;
+        tbody.innerHTML += totalRow;
+    }
+
+    // ===================== FUNÇÕES AUXILIARES (mantidas do código original) =====================
     function registrarUltimaAtualizacao() {
         const agora = new Date().toLocaleString('pt-BR');
         document.getElementById('badge-ultima-atualizacao').innerText = `Última atualização: ${agora}`;
@@ -1971,8 +2488,8 @@
                 <tr class="td-row">
                     <td>${m.id}</td>
                     <td>${m.empresa}</td>
-                    <td>${m.projeto}</td>
-                    <td>${m.gestor}</td>
+                    <td>${m.projeto || '-'}</td>
+                    <td>${m.gestor || '-'}</td>
                     <td>${m.gerente || '-'}</td>
                     <td>${m.mes}</td>
                     <td>${m.ano}</td>
@@ -2007,7 +2524,7 @@
             result = await supabaseClient.from('medicoes').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Medição atualizada!' : 'Medição salva!'); e.target.reset(); document.getElementById('med-edit-id').value = ''; document.getElementById('med-cancel-btn').style.display = 'none'; carregarMedicoes(); }
+        else { alert(editId ? 'Medição atualizada!' : 'Medição salva!'); e.target.reset(); document.getElementById('med-edit-id').value = ''; document.getElementById('med-cancel-btn').style.display = 'none'; carregarMedicoes(); carregarFiltros(); }
         aplicarMascaras();
     });
 
@@ -2016,9 +2533,9 @@
         if (!data) return;
         document.getElementById('med-edit-id').value = id;
         document.getElementById('med-empresa').value = data.empresa;
-        document.getElementById('med-projeto').value = data.projeto;
+        document.getElementById('med-projeto').value = data.projeto || '';
         atualizarGestores();
-        document.getElementById('med-gestor').value = data.gestor;
+        document.getElementById('med-gestor').value = data.gestor || '';
         document.getElementById('med-gerente').value = data.gerente || '';
         document.getElementById('med-mes').value = data.mes;
         document.getElementById('med-ano').value = data.ano;
@@ -2031,17 +2548,17 @@
         if (!confirm('Tem certeza que deseja excluir esta medição?')) return;
         const { error } = await supabaseClient.from('medicoes').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Medição excluída!'); carregarMedicoes(); }
+        else { alert('Medição excluída!'); carregarMedicoes(); carregarFiltros(); }
     }
 
     // ===================== CRUD CONSUMOS =====================
     async function carregarConsumos() {
         const tbody = document.getElementById('tabela-consumos');
-        tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         const { data, error } = await supabaseClient.from('consumo_dc').select('*').order('id', { ascending: false });
-        if (error) { tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        if (error) { tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>';
             return;
         }
         tbody.innerHTML = '';
@@ -2056,6 +2573,7 @@
                     <td>${c.gerente || '-'}</td>
                     <td>${c.mes_apropriacao}</td>
                     <td>${c.ano}</td>
+                    <td>${c.mes_medido}</td>
                     <td class="text-right mono">R$ ${Number(c.valor).toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
@@ -2092,7 +2610,7 @@
             result = await supabaseClient.from('consumo_dc').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); e.target.reset(); document.getElementById('consumo-edit-id').value = ''; document.getElementById('consumo-cancel-btn').style.display = 'none'; controlarCamposNF(); carregarConsumos(); }
+        else { alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); e.target.reset(); document.getElementById('consumo-edit-id').value = ''; document.getElementById('consumo-cancel-btn').style.display = 'none'; controlarCamposNF(); carregarConsumos(); carregarFiltros(); }
         aplicarMascaras();
     });
 
@@ -2121,10 +2639,10 @@
         if (!confirm('Tem certeza que deseja excluir este consumo?')) return;
         const { error } = await supabaseClient.from('consumo_dc').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Consumo excluído!'); carregarConsumos(); }
+        else { alert('Consumo excluído!'); carregarConsumos(); carregarFiltros(); }
     }
 
-    // ===================== CRUD USUÁRIOS COM PERMISSÕES =====================
+    // ===================== CRUD USUÁRIOS =====================
     async function carregarUsuarios() {
         const tbody = document.getElementById('tabela-usuarios');
         tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
@@ -2198,7 +2716,7 @@
         else { alert('Usuário excluído!'); carregarUsuarios(); }
     }
 
-    // ===================== CRUD EMPRESAS =====================
+    // ===================== CRUD EMPRESAS (resumido para espaço) =====================
     async function carregarEmpresas() {
         const tbody = document.getElementById('tabela-empresas');
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
@@ -2393,7 +2911,7 @@
             result = await supabaseClient.from('projetos').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('gerente-projeto'); }
+        else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('gerente-projeto'); carregarFiltros(); }
     });
 
     async function editarProjeto(id) {
@@ -2410,7 +2928,7 @@
         if (!confirm('Tem certeza que deseja excluir este projeto?')) return;
         const { error } = await supabaseClient.from('projetos').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Projeto excluído!'); carregarProjetos(); }
+        else { alert('Projeto excluído!'); carregarProjetos(); carregarFiltros(); }
     }
 
     // ===================== CRUD GESTORES =====================
@@ -2473,7 +2991,7 @@
             result = await supabaseClient.from('gestores').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestores(); carregarSelectGestores('gerente-gestor'); }
+        else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestores(); carregarSelectGestores('gerente-gestor'); carregarFiltros(); }
     });
 
     async function editarGestor(id) {
@@ -2491,7 +3009,7 @@
         if (!confirm('Tem certeza que deseja excluir este gestor?')) return;
         const { error } = await supabaseClient.from('gestores').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Gestor excluído!'); carregarGestores(); }
+        else { alert('Gestor excluído!'); carregarGestores(); carregarFiltros(); }
     }
 
     // ===================== CRUD GERENTES =====================
@@ -2545,7 +3063,7 @@
             result = await supabaseClient.from('gerentes').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Gerente atualizado!' : 'Gerente salvo!'); e.target.reset(); document.getElementById('gerente-edit-id').value = ''; document.getElementById('gerente-cancel-btn').style.display = 'none'; carregarGerentes(); }
+        else { alert(editId ? 'Gerente atualizado!' : 'Gerente salvo!'); e.target.reset(); document.getElementById('gerente-edit-id').value = ''; document.getElementById('gerente-cancel-btn').style.display = 'none'; carregarGerentes(); carregarFiltros(); }
     });
 
     async function editarGerente(id) {
@@ -2564,10 +3082,10 @@
         if (!confirm('Tem certeza que deseja excluir este gerente?')) return;
         const { error } = await supabaseClient.from('gerentes').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Gerente excluído!'); carregarGerentes(); }
+        else { alert('Gerente excluído!'); carregarGerentes(); carregarFiltros(); }
     }
 
-    // ===================== CRUD STATUS DC =====================
+    // ===================== CRUD STATUS (resumido) =====================
     async function carregarStatusDC() {
         const tbody = document.getElementById('tabela-statusdc');
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
@@ -2622,7 +3140,6 @@
         else { alert('Status DC excluído!'); carregarStatusDC(); }
     }
 
-    // ===================== CRUD STATUS MEDIÇÃO =====================
     async function carregarStatusMed() {
         const tbody = document.getElementById('tabela-statusmed');
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
@@ -2677,7 +3194,6 @@
         else { alert('Status Medição excluído!'); carregarStatusMed(); }
     }
 
-    // ===================== CRUD STATUS NF =====================
     async function carregarStatusNF() {
         const tbody = document.getElementById('tabela-statusnf');
         tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
@@ -2732,98 +3248,7 @@
         else { alert('Status NF excluído!'); carregarStatusNF(); }
     }
 
-    // ===================== DASHBOARD =====================
-    async function carregarDadosGerais() {
-        const tbody = document.getElementById('tabela-dashboard-corpo');
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Calculando saldos...</td></tr>`;
-        const { data: medicoes } = await supabaseClient.from('medicoes').select('*');
-        const { data: consumos } = await supabaseClient.from('consumo_dc').select('*');
-        registrarUltimaAtualizacao();
-        if (!medicoes || medicoes.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
-            document.getElementById('stat-total-medido').innerText = 'R$ 0,00';
-            document.getElementById('stat-total-consumido').innerText = 'R$ 0,00';
-            document.getElementById('stat-saldo-total').innerText = 'R$ 0,00';
-            return;
-        }
-        tbody.innerHTML = '';
-        let somaMedido = 0, somaConsumido = 0;
-        medicoes.forEach(med => {
-            let totalConsumido = 0;
-            if (consumos) {
-                consumos.forEach(c => {
-                    if (c.empresa === med.empresa && c.gestor === med.gestor && c.mes_medido === med.mes && c.ano === med.ano) {
-                        totalConsumido += Number(c.valor || 0);
-                    }
-                });
-            }
-            let valorMedicao = Number(med.valor || 0);
-            let saldo = valorMedicao - totalConsumido;
-            somaMedido += valorMedicao;
-            somaConsumido += totalConsumido;
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td class="font-medium" style="color:var(--text)">${med.empresa}</td>
-                    <td>${med.gestor}</td>
-                    <td>${med.gerente || '-'}</td>
-                    <td>${med.mes}/${med.ano}</td>
-                    <td class="text-right mono">R$ ${valorMedicao.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                    <td class="text-right mono text-neutral">R$ ${totalConsumido.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                    <td class="text-right mono font-bold ${saldo < 0 ? 'text-neg' : 'text-pos'}">R$ ${saldo.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                    <td class="text-right">
-                        <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarMedicao(${med.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirMedicao(${med.id})" class="btn-danger">Excluir</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-        document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedido.toLocaleString('pt-BR', {minFractionDigits: 2});
-        document.getElementById('stat-total-consumido').innerText = 'R$ ' + somaConsumido.toLocaleString('pt-BR', {minFractionDigits: 2});
-        const saldoTotal = somaMedido - somaConsumido;
-        const statSaldo = document.getElementById('stat-saldo-total');
-        statSaldo.innerText = 'R$ ' + saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
-        statSaldo.style.color = saldoTotal < 0 ? 'var(--danger)' : 'var(--success)';
-    }
-
-    // ===================== APROPRIAÇÃO DASH =====================
-    async function carregarApropriacaoDash() {
-        const tbody = document.getElementById('tabela-apropriacao-dash');
-        tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-        const { data: consumos } = await supabaseClient.from('consumo_dc').select('*');
-        registrarUltimaAtualizacao();
-        if (!consumos) { tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
-        const fProj = document.getElementById('filt-aprop-proj').value.toLowerCase();
-        const fGest = document.getElementById('filt-aprop-gest').value.toLowerCase();
-        const fGer = document.getElementById('filt-aprop-ger').value.toLowerCase();
-        const fData = document.getElementById('filt-aprop-data').value;
-        let agrupado = {};
-        consumos.forEach(c => {
-            if (fProj && !c.projeto.toLowerCase().includes(fProj)) return;
-            if (fGest && !c.gestor.toLowerCase().includes(fGest)) return;
-            if (fGer && (!c.gerente || !c.gerente.toLowerCase().includes(fGer))) return;
-            if (fData && (!c.criado_em || !c.criado_em.startsWith(fData))) return;
-            let mesAprop = c.mes_apropriacao || 'Indefinido';
-            agrupado[mesAprop] = (agrupado[mesAprop] || 0) + Number(c.valor || 0);
-        });
-        tbody.innerHTML = '';
-        let chaves = Object.keys(agrupado);
-        if (chaves.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo encontrado.</td></tr>`;
-            return;
-        }
-        chaves.forEach(mes => {
-            if (agrupado[mes] > 0) {
-                tbody.innerHTML += `
-                    <tr class="td-row">
-                        <td class="font-semibold" style="color:var(--text)">${mes}</td>
-                        <td class="text-right mono font-bold text-pos">R$ ${agrupado[mes].toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                    </tr>`;
-            }
-        });
-    }
-
-    // ===================== APROPRIAÇÃO HIST =====================
+    // ===================== HISTÓRICO APROPRIAÇÃO =====================
     async function carregarApropriacaoHist() {
         const tbody = document.getElementById('tabela-apropriacao-hist');
         tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
@@ -2867,44 +3292,7 @@
         });
     }
 
-    // ===================== MEDIÇÃO DASH =====================
-    async function carregarMedicaoDash() {
-        const tbody = document.getElementById('tabela-medicao-dash');
-        tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-        const { data: consumos } = await supabaseClient.from('consumo_dc').select('*');
-        registrarUltimaAtualizacao();
-        if (!consumos) { tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro.</td></tr>`; return; }
-        const fProj = document.getElementById('filt-med-proj').value.toLowerCase();
-        const fGest = document.getElementById('filt-med-gest').value.toLowerCase();
-        const fGer = document.getElementById('filt-med-ger').value.toLowerCase();
-        const fData = document.getElementById('filt-med-data').value;
-        let agrupado = {};
-        consumos.forEach(c => {
-            if (fProj && !c.projeto.toLowerCase().includes(fProj)) return;
-            if (fGest && !c.gestor.toLowerCase().includes(fGest)) return;
-            if (fGer && (!c.gerente || !c.gerente.toLowerCase().includes(fGer))) return;
-            if (fData && (!c.criado_em || !c.criado_em.startsWith(fData))) return;
-            let mesMed = c.mes_medido || 'Indefinido';
-            agrupado[mesMed] = (agrupado[mesMed] || 0) + Number(c.valor || 0);
-        });
-        tbody.innerHTML = '';
-        let chaves = Object.keys(agrupado);
-        if (chaves.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo encontrado.</td></tr>`;
-            return;
-        }
-        chaves.forEach(mes => {
-            if (agrupado[mes] > 0) {
-                tbody.innerHTML += `
-                    <tr class="td-row">
-                        <td class="font-semibold" style="color:var(--text)">${mes}</td>
-                        <td class="text-right mono font-bold" style="color:var(--primary)">R$ ${agrupado[mes].toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                    </tr>`;
-            }
-        });
-    }
-
-    // ===================== MEDIÇÃO HIST =====================
+    // ===================== HISTÓRICO MEDIÇÃO =====================
     async function carregarMedicaoHist() {
         const tbody = document.getElementById('tabela-medicao-hist');
         tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
@@ -2951,7 +3339,8 @@
     // ===================== INICIALIZAÇÃO =====================
     window.onload = function() {
         if (verificarSessao()) {
-            carregarDadosGerais();
+            mudarAba('dashboard');
+            carregarDashboard();
             carregarTodasListas();
             aplicarMascaras();
         }
