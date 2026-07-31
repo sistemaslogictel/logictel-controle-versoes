@@ -950,9 +950,8 @@
       </div>
 
       <div class="filters-bar">
-        <select id="filt-dash-projeto" class="input" onchange="carregarDashboard()"><option value="">Todos os Projetos</option></select>
         <select id="filt-dash-gestor" class="input" onchange="carregarDashboard()"><option value="">Todos os Gestores</option></select>
-        <select id="filt-dash-mes" class="input" onchange="carregarDashboard()"><option value="">Todos os Meses</option></select>
+        <select id="filt-dash-projeto" class="input" onchange="carregarDashboard()"><option value="">Todos os Projetos</option></select>
         <select id="filt-dash-ano" class="input" onchange="carregarDashboard()"><option value="">Todos os Anos</option></select>
         <div class="flex gap-2">
           <button onclick="carregarDashboard()" class="btn-primary flex-1">Filtrar</button>
@@ -965,16 +964,17 @@
           <table class="w-full text-left border-collapse dash-table">
             <thead>
               <tr>
-                <th>Gestor</th>
+                <th>Gestor Logictel</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th class="text-right">Mês</th>
+                <th>Diretor Cliente</th>
                 <th class="text-right">Ano</th>
-                <th class="text-right">Saldo</th>
+                <th class="text-right">Saldo Total</th>
+                <th class="text-right">Meses com Saldo</th>
               </tr>
             </thead>
-            <tbody id="tabela-dashboard-corpo"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr></tbody>
+            <tbody id="tabela-dashboard-corpo"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -984,9 +984,8 @@
     <div id="tab-dash-apropriacao" class="tab-content space-y-6">
       <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Apropriação</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p></div>
       <div class="filters-bar">
-        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
         <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
-        <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Meses</option></select>
+        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
         <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Anos</option></select>
         <div class="flex gap-2"><button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button></div>
       </div>
@@ -995,16 +994,17 @@
           <table class="w-full text-left border-collapse dash-table">
             <thead>
               <tr>
-                <th>Gestor</th>
+                <th>Gestor Logictel</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th class="text-right">Mês</th>
+                <th>Diretor Cliente</th>
                 <th class="text-right">Ano</th>
-                <th class="text-right">Valor</th>
+                <th class="text-right">Valor Total</th>
+                <th class="text-right">Meses Apropriados</th>
               </tr>
             </thead>
-            <tbody id="tabela-dash-apropriacao"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <tbody id="tabela-dash-apropriacao"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1014,9 +1014,8 @@
     <div id="tab-dash-don" class="tab-content space-y-6">
       <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido.</p></div>
       <div class="filters-bar">
-        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
         <select id="filt-don-gestor" class="input" onchange="carregarDashDON()"><option value="">Todos os Gestores</option></select>
-        <select id="filt-don-mes" class="input" onchange="carregarDashDON()"><option value="">Todos os Meses</option></select>
+        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
         <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
         <div class="flex gap-2"><button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button></div>
       </div>
@@ -1025,27 +1024,25 @@
           <table class="w-full text-left border-collapse dash-table">
             <thead>
               <tr>
-                <th>Gestor</th>
+                <th>Gestor Logictel</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th class="text-right">Mês</th>
+                <th>Diretor Cliente</th>
                 <th class="text-right">Ano</th>
-                <th class="text-right">Valor</th>
+                <th class="text-right">Valor Total</th>
+                <th class="text-right">Meses Medidos</th>
               </tr>
             </thead>
-            <tbody id="tabela-dash-don"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <tbody id="tabela-dash-don"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ===================== DC CARDS (TRELLO STYLE) ===================== -->
+    <!-- ===================== DC CARDS ===================== -->
     <div id="tab-dcs" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p>
-      </div>
+      <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p></div>
       <div class="filters-bar">
         <input type="text" id="filt-dcs-dc" placeholder="Filtrar por DC..." oninput="carregarDCCards()" class="input">
         <select id="filt-dcs-status" class="input" onchange="carregarDCCards()"><option value="">Todos os Status</option></select>
@@ -1065,9 +1062,9 @@
         <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input type="hidden" id="med-edit-id" value="">
           <div><label class="label">Empresa *</label><select id="med-empresa" required class="input"><option value="V.Tal">V.Tal</option></select></div>
-          <div><label class="label">Projeto *</label><select id="med-projeto" required onchange="atualizarGestores()" class="input"><option value="">Selecione...</option><option value="306">306</option><option value="340">340</option></select></div>
-          <div><label class="label">Gestor *</label><select id="med-gestor" required class="input"><option value="">Selecione o projeto primeiro...</option></select></div>
-          <div><label class="label">Gerente</label><input type="text" id="med-gerente" placeholder="Opcional" class="input"></div>
+          <div><label class="label">Projeto *</label><select id="med-projeto" required class="input"><option value="">Selecione...</option><option value="306">306</option><option value="340">340</option></select></div>
+          <div><label class="label">Gestor Logictel *</label><select id="med-gestor" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
           <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
           <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
           <div><label class="label">Valor Total *</label><input type="text" id="med-valor" required placeholder="0,00" class="input money-input"></div>
@@ -1082,7 +1079,7 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês</th><th>Ano</th><th>Status</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
+            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th>Projeto</th><th>Gestor Logictel</th><th>Diretor Cliente</th><th>Mês</th><th>Ano</th><th>Status</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-medicoes"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -1098,8 +1095,8 @@
           <div><label class="label">DC *</label><input type="text" id="dc-numero" required placeholder="Número da DC" class="input"></div>
           <div><label class="label">Empresa *</label><select id="dc-empresa" required class="input"><option value="V.Tal">V.Tal</option></select></div>
           <div><label class="label">Projeto *</label><select id="dc-projeto" required class="input"><option value="">Selecione...</option><option value="306">306</option><option value="340">340</option></select></div>
-          <div><label class="label">Gestor *</label><input type="text" id="dc-gestor" required placeholder="Nome do gestor" class="input"></div>
-          <div><label class="label">Gerente</label><input type="text" id="dc-gerente" placeholder="Nome do gerente" class="input"></div>
+          <div><label class="label">Gestor Logictel *</label><select id="dc-gestor" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Diretor Cliente</label><select id="dc-diretor" class="input"><option value="">Selecione...</option></select></div>
           <div><label class="label">Mês Apropriação *</label><select id="dc-mes-apropriacao" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
           <div><label class="label">Ano *</label><input type="number" id="dc-ano" value="2026" required class="input"></div>
           <div><label class="label">Valor (R$) *</label><input type="text" id="dc-valor" required placeholder="0,00" class="input money-input"></div>
@@ -1126,7 +1123,7 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Aprop.</th><th>Ano</th><th>Mês Medido</th><th>Status DC</th><th>Status NF</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
+            <thead><tr class="th-row"><th>ID</th><th>DC</th><th>Projeto</th><th>Gestor Logictel</th><th>Diretor Cliente</th><th>Mês Aprop.</th><th>Ano</th><th>Mês Medido</th><th>Status DC</th><th>Status NF</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-consumos"><tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -1139,14 +1136,14 @@
       <div class="filters-bar">
         <input type="text" id="filt-hist-aprop-proj" placeholder="Filtrar Projeto..." oninput="carregarApropriacaoHist()" class="input">
         <input type="text" id="filt-hist-aprop-gest" placeholder="Filtrar Gestor..." oninput="carregarApropriacaoHist()" class="input">
-        <input type="text" id="filt-hist-aprop-ger" placeholder="Filtrar Gerente..." oninput="carregarApropriacaoHist()" class="input">
+        <input type="text" id="filt-hist-aprop-ger" placeholder="Filtrar Diretor..." oninput="carregarApropriacaoHist()" class="input">
         <input type="date" id="filt-hist-aprop-data" onchange="carregarApropriacaoHist()" class="input">
         <button onclick="carregarApropriacaoHist()" class="btn-primary">Filtrar</button>
       </div>
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Aprop.</th><th>Ano</th><th>Status NF</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
+            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Diretor</th><th>Mês Aprop.</th><th>Ano</th><th>Status NF</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-apropriacao-hist"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -1159,14 +1156,14 @@
       <div class="filters-bar">
         <input type="text" id="filt-hist-med-proj" placeholder="Filtrar Projeto..." oninput="carregarMedicaoHist()" class="input">
         <input type="text" id="filt-hist-med-gest" placeholder="Filtrar Gestor..." oninput="carregarMedicaoHist()" class="input">
-        <input type="text" id="filt-hist-med-ger" placeholder="Filtrar Gerente..." oninput="carregarMedicaoHist()" class="input">
+        <input type="text" id="filt-hist-med-ger" placeholder="Filtrar Diretor..." oninput="carregarMedicaoHist()" class="input">
         <input type="date" id="filt-hist-med-data" onchange="carregarMedicaoHist()" class="input">
         <button onclick="carregarMedicaoHist()" class="btn-primary">Filtrar</button>
       </div>
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Gerente</th><th>Mês Medido</th><th>Ano</th><th>Status DC</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
+            <thead><tr class="th-row"><th>Data/Hora</th><th>DC</th><th>Projeto</th><th>Gestor</th><th>Diretor</th><th>Mês Medido</th><th>Ano</th><th>Status DC</th><th class="text-right">Valor (R$)</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-medicao-hist"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -1233,7 +1230,53 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTROS ADM ===================== -->
+    <!-- ===================== CADASTRO DIRETOR CLIENTE ===================== -->
+    <div id="tab-adm-diretor" class="tab-content space-y-4">
+      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Diretor Cliente</h2>
+      <div class="card card-pad">
+        <form id="form-diretor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="diretor-edit-id" value="">
+          <div><label class="label">Nome do Diretor *</label><input type="text" id="diretor-nome" required placeholder="Nome do diretor" class="input"></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('diretor')" class="btn-cancel" style="display:none;" id="diretor-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary w-full">Salvar Diretor</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead><tr class="th-row"><th>ID</th><th>Diretor Cliente</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-diretores"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CADASTRO GESTOR LOGICTEL ===================== -->
+    <div id="tab-adm-gestor" class="tab-content space-y-4">
+      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor Logictel</h2>
+      <div class="card card-pad">
+        <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="gestor-edit-id" value="">
+          <div><label class="label">Nome do Gestor *</label><input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input"></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary w-full">Salvar Gestor</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead><tr class="th-row"><th>ID</th><th>Gestor Logictel</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-gestores"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CADASTRO EMPRESA ===================== -->
     <div id="tab-adm-empresa" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Empresa</h2>
       <div class="card card-pad">
@@ -1256,6 +1299,7 @@
       </div>
     </div>
 
+    <!-- ===================== CADASTRO CONTRATO ===================== -->
     <div id="tab-adm-contrato" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Contrato</h2>
       <div class="card card-pad">
@@ -1279,6 +1323,7 @@
       </div>
     </div>
 
+    <!-- ===================== CADASTRO PROJETO ===================== -->
     <div id="tab-adm-projeto" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
       <div class="card card-pad">
@@ -1298,57 +1343,6 @@
           <table class="w-full text-left border-collapse">
             <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th>Empresa</th><th>Contrato</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-projetos"><tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-adm-gestor" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor</h2>
-      <div class="card card-pad">
-        <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <input type="hidden" id="gestor-edit-id" value="">
-          <div><label class="label">Nome do Gestor *</label><input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input"></div>
-          <div><label class="label">Empresa *</label><select id="gestor-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Contrato *</label><select id="gestor-contrato" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Projeto *</label><select id="gestor-projeto" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Gestor</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Gestor</th><th>Empresa</th><th>Contrato</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-gestores"><tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-adm-gerente" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gerente</h2>
-      <div class="card card-pad">
-        <form id="form-gerente" class="grid grid-cols-1 md:grid-cols-6 gap-4">
-          <input type="hidden" id="gerente-edit-id" value="">
-          <div><label class="label">Nome do Gerente *</label><input type="text" id="gerente-nome" required placeholder="Nome do gerente" class="input"></div>
-          <div><label class="label">Empresa *</label><select id="gerente-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Contrato *</label><select id="gerente-contrato" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Projeto *</label><select id="gerente-projeto" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Gestor *</label><select id="gerente-gestor" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('gerente')" class="btn-cancel" style="display:none;" id="gerente-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Gerente</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Gerente</th><th>Empresa</th><th>Contrato</th><th>Projeto</th><th>Gestor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-gerentes"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1635,9 +1629,9 @@
             { id: 'cadastros-cliente', label: 'Cadastro Cliente', icon: 'cliente', area: 'adm-cliente', type: 'flyout', children: [
                 { id: 'adm-empresa', label: 'Empresa', area: 'adm-cliente' },
                 { id: 'adm-projeto', label: 'Projeto', area: 'adm-cliente' },
-                { id: 'adm-gestor', label: 'Gestor', area: 'adm-cliente' },
-                { id: 'adm-gerente', label: 'Gerente', area: 'adm-cliente' },
-                { id: 'adm-contrato', label: 'Contrato', area: 'adm-cliente' }
+                { id: 'adm-contrato', label: 'Contrato', area: 'adm-cliente' },
+                { id: 'adm-diretor', label: 'Diretor Cliente', area: 'adm-cliente' },
+                { id: 'adm-gestor', label: 'Gestor Logictel', area: 'adm-cliente' }
             ]},
             { id: 'cadastros-status', label: 'Cadastro Status', icon: 'status', area: 'adm-status', type: 'flyout', children: [
                 { id: 'adm-status-dc', label: 'Status DC', area: 'adm-status' },
@@ -1790,9 +1784,9 @@
     // ===================== LIMPAR FILTROS =====================
     function limparFiltros(tipo) {
         const filtros = {
-            'dash': ['filt-dash-projeto', 'filt-dash-gestor', 'filt-dash-mes', 'filt-dash-ano'],
-            'aprop': ['filt-aprop-projeto', 'filt-aprop-gestor', 'filt-aprop-mes', 'filt-aprop-ano'],
-            'don': ['filt-don-projeto', 'filt-don-gestor', 'filt-don-mes', 'filt-don-ano']
+            'dash': ['filt-dash-gestor', 'filt-dash-projeto', 'filt-dash-ano'],
+            'aprop': ['filt-aprop-gestor', 'filt-aprop-projeto', 'filt-aprop-ano'],
+            'don': ['filt-don-gestor', 'filt-don-projeto', 'filt-don-ano']
         };
         const ids = filtros[tipo] || [];
         ids.forEach(id => {
@@ -1825,8 +1819,8 @@
             'empresa': 'empresa',
             'contrato': 'contrato',
             'projeto': 'projeto',
+            'diretor': 'diretor',
             'gestor': 'gestor',
-            'gerente': 'gerente',
             'statusdc': 'statusdc',
             'statusmed': 'statusmed',
             'statusnf': 'statusnf'
@@ -1903,9 +1897,9 @@
             'adm-user': 'adm-user',
             'adm-empresa': 'adm-cliente',
             'adm-projeto': 'adm-cliente',
-            'adm-gestor': 'adm-cliente',
-            'adm-gerente': 'adm-cliente',
             'adm-contrato': 'adm-cliente',
+            'adm-diretor': 'adm-cliente',
+            'adm-gestor': 'adm-cliente',
             'adm-status-dc': 'adm-status',
             'adm-status-med': 'adm-status',
             'adm-status-nf': 'adm-status'
@@ -1934,13 +1928,13 @@
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
         else if (nomeAba === 'medicao-gestor-hist') carregarMedicaoHist();
         else if (nomeAba === 'cad-medicao') carregarMedicoes();
-        else if (nomeAba === 'cad-consumo') { carregarConsumos(); carregarSelectStatus('dc-status-dc', 'status_dc'); carregarSelectStatus('dc-status-nf', 'status_nf'); }
+        else if (nomeAba === 'cad-consumo') { carregarConsumos(); carregarSelectStatus('dc-status-dc', 'status_dc'); carregarSelectStatus('dc-status-nf', 'status_nf'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectDiretores('dc-diretor'); }
         else if (nomeAba === 'adm-user') carregarUsuarios();
         else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
         else if (nomeAba === 'adm-contrato') { carregarContratos(); carregarSelectEmpresas('contrato-empresa'); }
         else if (nomeAba === 'adm-projeto') { carregarProjetos(); carregarSelectEmpresas('projeto-empresa'); carregarSelectContratos('projeto-contrato'); }
-        else if (nomeAba === 'adm-gestor') { carregarGestores(); carregarSelectEmpresas('gestor-empresa'); carregarSelectContratos('gestor-contrato'); carregarSelectProjetos('gestor-projeto'); }
-        else if (nomeAba === 'adm-gerente') { carregarGerentes(); carregarSelectEmpresas('gerente-empresa'); carregarSelectContratos('gerente-contrato'); carregarSelectProjetos('gerente-projeto'); carregarSelectGestores('gerente-gestor'); }
+        else if (nomeAba === 'adm-diretor') { carregarDiretores(); }
+        else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); }
         else if (nomeAba === 'adm-status-dc') carregarStatusDC();
         else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
         else if (nomeAba === 'adm-status-nf') carregarStatusNF();
@@ -1953,34 +1947,51 @@
         carregarEmpresas();
         carregarContratos();
         carregarProjetos();
-        carregarGestores();
-        carregarGerentes();
+        carregarDiretores();
+        carregarGestoresLogictel();
         carregarStatusDC();
         carregarStatusMed();
         carregarStatusNF();
         carregarSelectEmpresas('contrato-empresa');
         carregarSelectEmpresas('projeto-empresa');
-        carregarSelectEmpresas('gestor-empresa');
-        carregarSelectEmpresas('gerente-empresa');
         carregarSelectContratos('projeto-contrato');
-        carregarSelectContratos('gestor-contrato');
-        carregarSelectContratos('gerente-contrato');
-        carregarSelectProjetos('gestor-projeto');
-        carregarSelectProjetos('gerente-projeto');
-        carregarSelectGestores('gerente-gestor');
         carregarSelectStatus('dc-status-dc', 'status_dc');
         carregarSelectStatus('dc-status-nf', 'status_nf');
         carregarSelectStatus('med-status', 'status_medicao');
         carregarSelectStatus('filt-dcs-status', 'status_dc');
+        carregarSelectGestores('dc-gestor', 'gestores_logictel');
+        carregarSelectGestores('med-gestor', 'gestores_logictel');
+        carregarSelectDiretores('dc-diretor');
+        carregarSelectDiretores('med-diretor');
         carregarFiltros();
         carregarDCCards();
     }
 
-    // ===================== CARREGAR STATUS =====================
+    // ===================== CARREGAR SELECTS =====================
     async function carregarSelectStatus(id, tabela) {
         const select = document.getElementById(id);
         if (!select) return;
         const { data } = await supabaseClient.from(tabela).select('*').order('nome');
+        select.innerHTML = '<option value="">Selecione...</option>';
+        if (data) data.forEach(s => {
+            select.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
+        });
+    }
+
+    async function carregarSelectGestores(id, tabela) {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const { data } = await supabaseClient.from(tabela).select('*').order('nome');
+        select.innerHTML = '<option value="">Selecione...</option>';
+        if (data) data.forEach(s => {
+            select.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
+        });
+    }
+
+    async function carregarSelectDiretores(id) {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const { data } = await supabaseClient.from('diretores').select('*').order('nome');
         select.innerHTML = '<option value="">Selecione...</option>';
         if (data) data.forEach(s => {
             select.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
@@ -2015,26 +2026,23 @@
 
     // ===================== CARREGAR FILTROS =====================
     async function carregarFiltros() {
-        const { data: medicoes } = await supabaseClient.from('medicoes').select('projeto, gestor');
-        const { data: consumos } = await supabaseClient.from('consumo_dc').select('projeto, gestor');
+        const { data: medicoes } = await supabaseClient.from('medicoes').select('projeto, gestor_logictel, gestor');
+        const { data: consumos } = await supabaseClient.from('consumo_dc').select('projeto, gestor_logictel, gestor');
         const projetos = new Set();
         const gestores = new Set();
         const anos = new Set([2025, 2026, 2027]);
-        if (medicoes) { medicoes.forEach(m => { if (m.projeto) projetos.add(m.projeto); if (m.gestor) gestores.add(m.gestor); }); }
-        if (consumos) { consumos.forEach(c => { if (c.projeto) projetos.add(c.projeto); if (c.gestor) gestores.add(c.gestor); }); }
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        if (medicoes) { medicoes.forEach(m => { if (m.projeto) projetos.add(m.projeto); if (m.gestor_logictel) gestores.add(m.gestor_logictel); }); }
+        if (consumos) { consumos.forEach(c => { if (c.projeto) projetos.add(c.projeto); if (c.gestor_logictel) gestores.add(c.gestor_logictel); }); }
+        
         const filtrosConfig = [
-            { id: 'filt-dash-projeto', values: projetos },
             { id: 'filt-dash-gestor', values: gestores },
-            { id: 'filt-dash-mes', values: new Set(meses) },
+            { id: 'filt-dash-projeto', values: projetos },
             { id: 'filt-dash-ano', values: anos },
-            { id: 'filt-aprop-projeto', values: projetos },
             { id: 'filt-aprop-gestor', values: gestores },
-            { id: 'filt-aprop-mes', values: new Set(meses) },
+            { id: 'filt-aprop-projeto', values: projetos },
             { id: 'filt-aprop-ano', values: anos },
-            { id: 'filt-don-projeto', values: projetos },
             { id: 'filt-don-gestor', values: gestores },
-            { id: 'filt-don-mes', values: new Set(meses) },
+            { id: 'filt-don-projeto', values: projetos },
             { id: 'filt-don-ano', values: anos },
             { id: 'filt-dcs-projeto', values: projetos },
             { id: 'filt-dcs-gestor', values: gestores }
@@ -2051,7 +2059,7 @@
         });
     }
 
-    // ===================== DC CARDS (TRELLO STYLE) =====================
+    // ===================== DC CARDS =====================
     async function carregarDCCards() {
         const container = document.getElementById('dc-cards-container');
         container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Carregando DC\'s...</div>';
@@ -2063,7 +2071,7 @@
 
         let query = supabaseClient.from('consumo_dc').select('*');
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
-        if (filtroGestor) query = query.eq('gestor', filtroGestor);
+        if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
         const { data: consumos } = await query.order('criado_em', { ascending: false });
 
         if (!consumos || consumos.length === 0) {
@@ -2071,7 +2079,6 @@
             return;
         }
 
-        // Agrupar por DC (última ocorrência de cada DC)
         const dcMap = new Map();
         consumos.forEach(c => {
             const dcNum = c.dc;
@@ -2081,8 +2088,6 @@
         });
 
         const dcs = Array.from(dcMap.values());
-        
-        // Filtrar por DC e Status
         const filtrados = dcs.filter(c => {
             if (filtroDC && !c.dc.toLowerCase().includes(filtroDC)) return false;
             if (filtroStatus && c.status_dc !== filtroStatus) return false;
@@ -2090,7 +2095,7 @@
         });
 
         if (filtrados.length === 0) {
-            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma DC encontrada com os filtros aplicados.</div>';
+            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma DC encontrada.</div>';
             return;
         }
 
@@ -2118,47 +2123,43 @@
                     <div class="dc-status ${statusClass}">${c.status_dc || 'Sem status'}</div>
                     <div class="dc-aging ${agingClass}">⏱️ Aging: ${agingText}</div>
                     <div class="dc-updated">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</div>
-                    <div style="font-size:11px;color:var(--text-soft);margin-top:4px;">${c.projeto || 'N/A'} • ${c.gestor || 'N/A'}</div>
+                    <div style="font-size:11px;color:var(--text-soft);margin-top:4px;">${c.projeto || 'N/A'} • ${c.gestor_logictel || 'N/A'}</div>
                 </div>
             `;
         });
     }
 
     function irParaConsumo(dc) {
-        // Navegar para a aba de Consumo DC e filtrar pela DC
         mudarAba('cad-consumo');
         document.getElementById('dc-numero').value = dc;
-        // Disparar evento de busca
         carregarConsumos();
     }
 
     // ===================== DASHBOARD PRINCIPAL =====================
     async function carregarDashboard() {
         const tbody = document.getElementById('tabela-dashboard-corpo');
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
-        const filtroProjeto = document.getElementById('filt-dash-projeto')?.value || '';
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
+
         const filtroGestor = document.getElementById('filt-dash-gestor')?.value || '';
-        const filtroMes = document.getElementById('filt-dash-mes')?.value || '';
+        const filtroProjeto = document.getElementById('filt-dash-projeto')?.value || '';
         const filtroAno = document.getElementById('filt-dash-ano')?.value || '';
 
         let query = supabaseClient.from('medicoes').select('*');
+        if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
-        if (filtroGestor) query = query.eq('gestor', filtroGestor);
-        if (filtroMes) query = query.eq('mes', filtroMes);
         if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: medicoes } = await query;
 
         let queryConsumo = supabaseClient.from('consumo_dc').select('*');
+        if (filtroGestor) queryConsumo = queryConsumo.eq('gestor_logictel', filtroGestor);
         if (filtroProjeto) queryConsumo = queryConsumo.eq('projeto', filtroProjeto);
-        if (filtroGestor) queryConsumo = queryConsumo.eq('gestor', filtroGestor);
-        if (filtroMes) queryConsumo = queryConsumo.eq('mes_medido', filtroMes);
         if (filtroAno) queryConsumo = queryConsumo.eq('ano', parseInt(filtroAno));
         const { data: consumos } = await queryConsumo;
 
         registrarUltimaAtualizacao();
 
         if (!medicoes || medicoes.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
             document.getElementById('stat-total-medido').innerText = 'R$ 0,00';
             document.getElementById('stat-total-consumido').innerText = 'R$ 0,00';
             document.getElementById('stat-saldo-total').innerText = 'R$ 0,00';
@@ -2170,60 +2171,57 @@
             const valorMedicao = Number(med.valor || 0);
             somaMedido += valorMedicao;
             let totalConsumido = 0;
+            const detalhesMeses = {};
             if (consumos) {
                 consumos.forEach(c => {
-                    if (c.empresa === med.empresa && c.gestor === med.gestor && c.mes_medido === med.mes && c.ano === med.ano) {
+                    if (c.empresa === med.empresa && c.gestor_logictel === med.gestor_logictel && c.projeto === med.projeto && c.ano === med.ano) {
                         totalConsumido += Number(c.valor || 0);
+                        const mesKey = `${c.mes_medido}/${c.ano}`;
+                        detalhesMeses[mesKey] = (detalhesMeses[mesKey] || 0) + Number(c.valor || 0);
                     }
                 });
             }
             somaConsumido += totalConsumido;
             const saldo = valorMedicao - totalConsumido;
+            
+            // Montar string de meses com saldo
+            const mesesComSaldo = Object.entries(detalhesMeses)
+                .filter(([_, val]) => val !== 0)
+                .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
+                .join('; ');
+            
             linhas.push({
-                gestor: med.gestor || 'N/A',
+                gestor: med.gestor_logictel || 'N/A',
                 projeto: med.projeto || 'N/A',
                 descricao: med.projeto || '',
                 empresa: med.empresa || 'N/A',
-                mes: med.mes || 'N/A',
+                diretor: med.gestor || 'N/A',
                 ano: med.ano || 'N/A',
-                valor: saldo
+                valor: saldo,
+                meses: mesesComSaldo || 'Sem saldo'
             });
-        });
-
-        // Agrupar por gestor e projeto
-        const grupos = {};
-        linhas.forEach(row => {
-            const key = `${row.gestor}|${row.projeto}|${row.empresa}`;
-            if (!grupos[key]) {
-                grupos[key] = { ...row, valor: 0, meses: {} };
-            }
-            grupos[key].valor += row.valor;
-            const mesKey = `${row.mes}/${row.ano}`;
-            grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + row.valor;
         });
 
         tbody.innerHTML = '';
         let totalGeral = 0;
-        Object.values(grupos).forEach(g => {
-            totalGeral += g.valor;
-            const valorClass = g.valor < 0 ? 'valor-negativo' : 'valor-positivo';
-            const mesesHtml = Object.entries(g.meses).sort().map(([mes, val]) => {
-                const cls = val < 0 ? 'valor-negativo' : 'valor-positivo';
-                return `<span class="mono ${cls}" style="margin-right:8px;">${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</span>`;
-            }).join('');
+        linhas.forEach(row => {
+            totalGeral += row.valor;
+            const valorClass = row.valor < 0 ? 'valor-negativo' : 'valor-positivo';
             tbody.innerHTML += `
                 <tr class="td-row">
-                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
-                    <td>${g.projeto}</td>
-                    <td>${g.descricao}</td>
-                    <td>${g.empresa}</td>
-                    <td colspan="2">${mesesHtml || 'Sem meses'}</td>
-                    <td class="text-right mono font-bold ${valorClass}">${g.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="font-medium" style="color:var(--text)">${row.gestor}</td>
+                    <td>${row.projeto}</td>
+                    <td>${row.descricao}</td>
+                    <td>${row.empresa}</td>
+                    <td>${row.diretor}</td>
+                    <td class="text-right">${row.ano}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right" style="font-size:11px;color:var(--text-soft);">${row.meses}</td>
                 </tr>
             `;
         });
-        if (Object.values(grupos).length > 0) {
-            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
+        if (linhas.length > 0) {
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
         }
 
         document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedido.toLocaleString('pt-BR', {minFractionDigits: 2});
@@ -2237,33 +2235,40 @@
     // ===================== DASHBOARD APROPRIAÇÃO =====================
     async function carregarDashApropriacao() {
         const tbody = document.getElementById('tabela-dash-apropriacao');
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-        const filtroProjeto = document.getElementById('filt-aprop-projeto')?.value || '';
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+
         const filtroGestor = document.getElementById('filt-aprop-gestor')?.value || '';
-        const filtroMes = document.getElementById('filt-aprop-mes')?.value || '';
+        const filtroProjeto = document.getElementById('filt-aprop-projeto')?.value || '';
         const filtroAno = document.getElementById('filt-aprop-ano')?.value || '';
 
         let query = supabaseClient.from('consumo_dc').select('*');
+        if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
-        if (filtroGestor) query = query.eq('gestor', filtroGestor);
-        if (filtroMes) query = query.eq('mes_apropriacao', filtroMes);
         if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: consumos } = await query;
 
         registrarUltimaAtualizacao();
         if (!consumos || consumos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
             return;
         }
 
-        // Agrupar por gestor, projeto, mês e ano
         const grupos = {};
         consumos.forEach(c => {
-            const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
+            const key = `${c.gestor_logictel}|${c.projeto}|${c.empresa}`;
             if (!grupos[key]) {
-                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, meses: {} };
+                grupos[key] = { 
+                    gestor: c.gestor_logictel || 'N/A', 
+                    projeto: c.projeto || 'N/A', 
+                    descricao: c.projeto || '', 
+                    empresa: c.empresa || 'N/A', 
+                    diretor: c.gestor || 'N/A',
+                    ano: c.ano || 'N/A',
+                    total: 0, 
+                    meses: {} 
+                };
             }
-            const mesKey = `${c.mes_apropriacao}/${c.ano}`;
+            const mesKey = `${c.mes_apropriacao}`;
             grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + Number(c.valor || 0);
             grupos[key].total += Number(c.valor || 0);
         });
@@ -2273,55 +2278,65 @@
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
             const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-            const mesesHtml = Object.entries(g.meses).sort().map(([mes, val]) => {
-                const cls = val < 0 ? 'valor-negativo' : 'valor-positivo';
-                return `<span class="mono ${cls}" style="margin-right:8px;">${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</span>`;
-            }).join('');
+            const mesesStr = Object.entries(g.meses)
+                .filter(([_, val]) => val !== 0)
+                .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
+                .join('; ');
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
                     <td>${g.projeto}</td>
                     <td>${g.descricao}</td>
                     <td>${g.empresa}</td>
-                    <td colspan="2">${mesesHtml || 'Sem meses'}</td>
+                    <td>${g.diretor}</td>
+                    <td class="text-right">${g.ano}</td>
                     <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right" style="font-size:11px;color:var(--text-soft);">${mesesStr || 'Sem meses'}</td>
                 </tr>
             `;
         });
         if (Object.values(grupos).length > 0) {
-            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
         }
     }
 
     // ===================== DASHBOARD DON =====================
     async function carregarDashDON() {
         const tbody = document.getElementById('tabela-dash-don');
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-        const filtroProjeto = document.getElementById('filt-don-projeto')?.value || '';
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+
         const filtroGestor = document.getElementById('filt-don-gestor')?.value || '';
-        const filtroMes = document.getElementById('filt-don-mes')?.value || '';
+        const filtroProjeto = document.getElementById('filt-don-projeto')?.value || '';
         const filtroAno = document.getElementById('filt-don-ano')?.value || '';
 
         let query = supabaseClient.from('consumo_dc').select('*');
+        if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
-        if (filtroGestor) query = query.eq('gestor', filtroGestor);
-        if (filtroMes) query = query.eq('mes_medido', filtroMes);
         if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: consumos } = await query;
 
         registrarUltimaAtualizacao();
         if (!consumos || consumos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
             return;
         }
 
         const grupos = {};
         consumos.forEach(c => {
-            const key = `${c.gestor}|${c.projeto}|${c.empresa}`;
+            const key = `${c.gestor_logictel}|${c.projeto}|${c.empresa}`;
             if (!grupos[key]) {
-                grupos[key] = { gestor: c.gestor || 'N/A', projeto: c.projeto || 'N/A', descricao: c.projeto || '', empresa: c.empresa || 'N/A', total: 0, meses: {} };
+                grupos[key] = { 
+                    gestor: c.gestor_logictel || 'N/A', 
+                    projeto: c.projeto || 'N/A', 
+                    descricao: c.projeto || '', 
+                    empresa: c.empresa || 'N/A', 
+                    diretor: c.gestor || 'N/A',
+                    ano: c.ano || 'N/A',
+                    total: 0, 
+                    meses: {} 
+                };
             }
-            const mesKey = `${c.mes_medido}/${c.ano}`;
+            const mesKey = `${c.mes_medido}`;
             grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + Number(c.valor || 0);
             grupos[key].total += Number(c.valor || 0);
         });
@@ -2331,23 +2346,25 @@
         Object.values(grupos).forEach(g => {
             totalGeral += g.total;
             const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-            const mesesHtml = Object.entries(g.meses).sort().map(([mes, val]) => {
-                const cls = val < 0 ? 'valor-negativo' : 'valor-positivo';
-                return `<span class="mono ${cls}" style="margin-right:8px;">${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}</span>`;
-            }).join('');
+            const mesesStr = Object.entries(g.meses)
+                .filter(([_, val]) => val !== 0)
+                .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
+                .join('; ');
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
                     <td>${g.projeto}</td>
                     <td>${g.descricao}</td>
                     <td>${g.empresa}</td>
-                    <td colspan="2">${mesesHtml || 'Sem meses'}</td>
+                    <td>${g.diretor}</td>
+                    <td class="text-right">${g.ano}</td>
                     <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right" style="font-size:11px;color:var(--text-soft);">${mesesStr || 'Sem meses'}</td>
                 </tr>
             `;
         });
         if (Object.values(grupos).length > 0) {
-            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td></tr>`;
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
         }
     }
 
@@ -2355,14 +2372,6 @@
     function registrarUltimaAtualizacao() {
         const agora = new Date().toLocaleString('pt-BR');
         document.getElementById('badge-ultima-atualizacao').innerText = `Última atualização: ${agora}`;
-    }
-
-    function atualizarGestores() {
-        const projeto = document.getElementById('med-projeto').value;
-        const selectGestor = document.getElementById('med-gestor');
-        selectGestor.innerHTML = '<option value="">Selecione...</option>';
-        if (projeto === '306') selectGestor.innerHTML += '<option value="Rodrigo Mendes">Rodrigo Mendes</option>';
-        else if (projeto === '340') selectGestor.innerHTML += '<option value="Rodrigo Pimentel">Rodrigo Pimentel</option>';
     }
 
     function valorParaNumero(valorFormatado) {
@@ -2386,8 +2395,8 @@
                     <td>${m.id}</td>
                     <td>${m.empresa}</td>
                     <td>${m.projeto || '-'}</td>
+                    <td>${m.gestor_logictel || '-'}</td>
                     <td>${m.gestor || '-'}</td>
-                    <td>${m.gerente || '-'}</td>
                     <td>${m.mes}</td>
                     <td>${m.ano}</td>
                     <td>${m.status_medicao || '-'}</td>
@@ -2408,8 +2417,8 @@
         const dados = {
             empresa: document.getElementById('med-empresa').value,
             projeto: document.getElementById('med-projeto').value,
-            gestor: document.getElementById('med-gestor').value,
-            gerente: document.getElementById('med-gerente').value,
+            gestor_logictel: document.getElementById('med-gestor').value,
+            gestor: document.getElementById('med-diretor').value || null,
             mes: document.getElementById('med-mes').value,
             ano: document.getElementById('med-ano').value,
             valor: valorParaNumero(document.getElementById('med-valor').value),
@@ -2433,9 +2442,8 @@
         document.getElementById('med-edit-id').value = id;
         document.getElementById('med-empresa').value = data.empresa;
         document.getElementById('med-projeto').value = data.projeto || '';
-        atualizarGestores();
-        document.getElementById('med-gestor').value = data.gestor || '';
-        document.getElementById('med-gerente').value = data.gerente || '';
+        document.getElementById('med-gestor').value = data.gestor_logictel || '';
+        document.getElementById('med-diretor').value = data.gestor || '';
         document.getElementById('med-mes').value = data.mes;
         document.getElementById('med-ano').value = data.ano;
         document.getElementById('med-valor').value = Number(data.valor).toLocaleString('pt-BR', {minFractionDigits: 2});
@@ -2468,8 +2476,8 @@
                     <td>${c.id}</td>
                     <td>${c.dc}</td>
                     <td>${c.projeto}</td>
-                    <td>${c.gestor}</td>
-                    <td>${c.gerente || '-'}</td>
+                    <td>${c.gestor_logictel || '-'}</td>
+                    <td>${c.gestor || '-'}</td>
                     <td>${c.mes_apropriacao}</td>
                     <td>${c.ano}</td>
                     <td>${c.mes_medido}</td>
@@ -2495,8 +2503,8 @@
             dc: document.getElementById('dc-numero').value,
             empresa: document.getElementById('dc-empresa').value,
             projeto: document.getElementById('dc-projeto').value,
-            gestor: document.getElementById('dc-gestor').value,
-            gerente: document.getElementById('dc-gerente').value || null,
+            gestor_logictel: document.getElementById('dc-gestor').value,
+            gestor: document.getElementById('dc-diretor').value || null,
             mes_apropriacao: document.getElementById('dc-mes-apropriacao').value,
             ano: document.getElementById('dc-ano').value,
             valor: valorParaNumero(document.getElementById('dc-valor').value),
@@ -2530,8 +2538,8 @@
         document.getElementById('dc-numero').value = data.dc;
         document.getElementById('dc-empresa').value = data.empresa;
         document.getElementById('dc-projeto').value = data.projeto;
-        document.getElementById('dc-gestor').value = data.gestor;
-        document.getElementById('dc-gerente').value = data.gerente || '';
+        document.getElementById('dc-gestor').value = data.gestor_logictel || '';
+        document.getElementById('dc-diretor').value = data.gestor || '';
         document.getElementById('dc-mes-apropriacao').value = data.mes_apropriacao;
         document.getElementById('dc-ano').value = data.ano;
         document.getElementById('dc-valor').value = Number(data.valor).toLocaleString('pt-BR', {minFractionDigits: 2});
@@ -2588,66 +2596,108 @@
         XLSX.writeFile(wb, `Consumo_DC_${data.dc}_${mesAno}.xlsx`);
     }
 
-    // ===================== CRUD USUÁRIOS =====================
-    async function carregarUsuarios() {
-        const tbody = document.getElementById('tabela-usuarios');
-        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('usuarios').select('*').order('id', { ascending: true });
-        if (error) { tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+    // ===================== CRUD DIRETORES =====================
+    async function carregarDiretores() {
+        const tbody = document.getElementById('tabela-diretores');
+        tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        const { data, error } = await supabaseClient.from('diretores').select('*').order('id', { ascending: true });
+        if (error) { tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Nenhum usuário cadastrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum diretor cadastrado.</td></tr>';
             return;
         }
         tbody.innerHTML = '';
-        data.forEach(u => {
-            const permissoes = u.permissoes || [];
-            const permissoesHtml = permissoes.map(p => `<span class="permissions-badge">${p}</span>`).join(' ');
+        data.forEach(d => {
             tbody.innerHTML += `
                 <tr class="td-row">
-                    <td>${u.id}</td>
-                    <td>${u.nome}</td>
-                    <td>${u.senha}</td>
-                    <td>${permissoesHtml || '<span style="color:var(--text-soft)">Nenhuma</span>'}</td>
+                    <td>${d.id}</td>
+                    <td>${d.nome}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarUsuario(${u.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirUsuario(${u.id})" class="btn-danger">Excluir</button>
+                            <button onclick="editarDiretor(${d.id})" class="btn-edit">Editar</button>
+                            <button onclick="excluirDiretor(${d.id})" class="btn-danger">Excluir</button>
                         </div>
                     </td>
                 </tr>`;
         });
     }
 
-    document.getElementById('form-usuario').addEventListener('submit', async (e) => {
+    document.getElementById('form-diretor').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const editId = document.getElementById('user-edit-id').value;
-        const senha = document.getElementById('user-senha').value;
-        if (!validarSenha()) { alert('A senha não atende aos critérios de segurança.'); return; }
-        const permissoes = getPermissoes();
-        const dados = { nome: document.getElementById('user-nome').value, senha: senha, permissoes: permissoes };
+        const editId = document.getElementById('diretor-edit-id').value;
+        const dados = { nome: document.getElementById('diretor-nome').value };
         let result;
-        if (editId) { result = await supabaseClient.from('usuarios').update(dados).eq('id', editId); } 
-        else { result = await supabaseClient.from('usuarios').insert([dados]); }
+        if (editId) { result = await supabaseClient.from('diretores').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('diretores').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Usuário atualizado!' : 'Usuário salvo!'); e.target.reset(); document.getElementById('user-edit-id').value = ''; document.getElementById('user-cancel-btn').style.display = 'none'; setPermissoes([]); document.getElementById('user-submit-btn').disabled = true; carregarUsuarios(); }
+        else { alert(editId ? 'Diretor atualizado!' : 'Diretor salvo!'); e.target.reset(); document.getElementById('diretor-edit-id').value = ''; document.getElementById('diretor-cancel-btn').style.display = 'none'; carregarDiretores(); carregarSelectDiretores('dc-diretor'); carregarSelectDiretores('med-diretor'); }
     });
 
-    async function editarUsuario(id) {
-        const { data } = await supabaseClient.from('usuarios').select('*').eq('id', id).single();
+    async function editarDiretor(id) {
+        const { data } = await supabaseClient.from('diretores').select('*').eq('id', id).single();
         if (!data) return;
-        document.getElementById('user-edit-id').value = id;
-        document.getElementById('user-nome').value = data.nome;
-        document.getElementById('user-senha').value = data.senha;
-        setPermissoes(data.permissoes || []);
-        document.getElementById('user-cancel-btn').style.display = 'inline-block';
-        validarSenha();
+        document.getElementById('diretor-edit-id').value = id;
+        document.getElementById('diretor-nome').value = data.nome;
+        document.getElementById('diretor-cancel-btn').style.display = 'inline-block';
     }
 
-    async function excluirUsuario(id) {
-        if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
-        const { error } = await supabaseClient.from('usuarios').delete().eq('id', id);
+    async function excluirDiretor(id) {
+        if (!confirm('Tem certeza que deseja excluir este diretor?')) return;
+        const { error } = await supabaseClient.from('diretores').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Usuário excluído!'); carregarUsuarios(); }
+        else { alert('Diretor excluído!'); carregarDiretores(); carregarSelectDiretores('dc-diretor'); carregarSelectDiretores('med-diretor'); }
+    }
+
+    // ===================== CRUD GESTORES LOGICTEL =====================
+    async function carregarGestoresLogictel() {
+        const tbody = document.getElementById('tabela-gestores');
+        tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        const { data, error } = await supabaseClient.from('gestores_logictel').select('*').order('id', { ascending: true });
+        if (error) { tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        data.forEach(g => {
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td>${g.id}</td>
+                    <td>${g.nome}</td>
+                    <td class="text-right">
+                        <div class="table-actions" style="justify-content:flex-end;">
+                            <button onclick="editarGestorLogictel(${g.id})" class="btn-edit">Editar</button>
+                            <button onclick="excluirGestorLogictel(${g.id})" class="btn-danger">Excluir</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    document.getElementById('form-gestor').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('gestor-edit-id').value;
+        const dados = { nome: document.getElementById('gestor-nome').value };
+        let result;
+        if (editId) { result = await supabaseClient.from('gestores_logictel').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('gestores_logictel').insert([dados]); }
+        if (result.error) alert('Erro: ' + result.error.message);
+        else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestoresLogictel(); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('med-gestor', 'gestores_logictel'); }
+    });
+
+    async function editarGestorLogictel(id) {
+        const { data } = await supabaseClient.from('gestores_logictel').select('*').eq('id', id).single();
+        if (!data) return;
+        document.getElementById('gestor-edit-id').value = id;
+        document.getElementById('gestor-nome').value = data.nome;
+        document.getElementById('gestor-cancel-btn').style.display = 'inline-block';
+    }
+
+    async function excluirGestorLogictel(id) {
+        if (!confirm('Tem certeza que deseja excluir este gestor?')) return;
+        const { error } = await supabaseClient.from('gestores_logictel').delete().eq('id', id);
+        if (error) alert('Erro: ' + error.message);
+        else { alert('Gestor excluído!'); carregarGestoresLogictel(); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('med-gestor', 'gestores_logictel'); }
     }
 
     // ===================== CRUD EMPRESAS =====================
@@ -2689,7 +2739,7 @@
         if (editId) { result = await supabaseClient.from('empresas').update(dados).eq('id', editId); } 
         else { result = await supabaseClient.from('empresas').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Empresa atualizada!' : 'Empresa salva!'); e.target.reset(); document.getElementById('empresa-edit-id').value = ''; document.getElementById('empresa-cancel-btn').style.display = 'none'; carregarEmpresas(); carregarSelectEmpresas('contrato-empresa'); carregarSelectEmpresas('projeto-empresa'); carregarSelectEmpresas('gestor-empresa'); carregarSelectEmpresas('gerente-empresa'); }
+        else { alert(editId ? 'Empresa atualizada!' : 'Empresa salva!'); e.target.reset(); document.getElementById('empresa-edit-id').value = ''; document.getElementById('empresa-cancel-btn').style.display = 'none'; carregarEmpresas(); carregarSelectEmpresas('contrato-empresa'); carregarSelectEmpresas('projeto-empresa'); }
     });
 
     async function editarEmpresa(id) {
@@ -2750,7 +2800,7 @@
         if (editId) { result = await supabaseClient.from('contratos').update(dados).eq('id', editId); } 
         else { result = await supabaseClient.from('contratos').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Contrato atualizado!' : 'Contrato salvo!'); e.target.reset(); document.getElementById('contrato-edit-id').value = ''; document.getElementById('contrato-cancel-btn').style.display = 'none'; carregarContratos(); carregarSelectContratos('projeto-contrato'); carregarSelectContratos('gestor-contrato'); carregarSelectContratos('gerente-contrato'); }
+        else { alert(editId ? 'Contrato atualizado!' : 'Contrato salvo!'); e.target.reset(); document.getElementById('contrato-edit-id').value = ''; document.getElementById('contrato-cancel-btn').style.display = 'none'; carregarContratos(); carregarSelectContratos('projeto-contrato'); }
     });
 
     async function editarContrato(id) {
@@ -2814,7 +2864,7 @@
         if (editId) { result = await supabaseClient.from('projetos').update(dados).eq('id', editId); } 
         else { result = await supabaseClient.from('projetos').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('gerente-projeto'); carregarFiltros(); }
+        else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('projeto-empresa'); carregarFiltros(); }
     });
 
     async function editarProjeto(id) {
@@ -2832,132 +2882,6 @@
         const { error } = await supabaseClient.from('projetos').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
         else { alert('Projeto excluído!'); carregarProjetos(); carregarFiltros(); }
-    }
-
-    // ===================== CRUD GESTORES =====================
-    async function carregarGestores() {
-        const tbody = document.getElementById('tabela-gestores');
-        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('gestores').select('*, empresas(nome), contratos(numero), projetos(nome)').order('id', { ascending: true });
-        if (error) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>'; return; }
-        tbody.innerHTML = '';
-        data.forEach(g => {
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td>${g.id}</td>
-                    <td>${g.nome}</td>
-                    <td>${g.empresas?.nome || 'N/A'}</td>
-                    <td>${g.contratos?.numero || 'N/A'}</td>
-                    <td>${g.projetos?.nome || 'N/A'}</td>
-                    <td class="text-right">
-                        <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarGestor(${g.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirGestor(${g.id})" class="btn-danger">Excluir</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    async function carregarSelectGestores(id, empresaId = null, contratoId = null, projetoId = null) {
-        const select = document.getElementById(id);
-        if (!select) return;
-        let query = supabaseClient.from('gestores').select('*').order('nome');
-        if (empresaId) query = query.eq('empresa_id', empresaId);
-        if (contratoId) query = query.eq('contrato_id', contratoId);
-        if (projetoId) query = query.eq('projeto_id', projetoId);
-        const { data } = await query;
-        select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(g => { select.innerHTML += `<option value="${g.id}">${g.nome}</option>`; });
-    }
-
-    document.getElementById('form-gestor').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const editId = document.getElementById('gestor-edit-id').value;
-        const dados = { nome: document.getElementById('gestor-nome').value, empresa_id: document.getElementById('gestor-empresa').value, contrato_id: document.getElementById('gestor-contrato').value, projeto_id: document.getElementById('gestor-projeto').value };
-        if (!dados.empresa_id || !dados.contrato_id || !dados.projeto_id) { alert('Selecione empresa, contrato e projeto!'); return; }
-        let result;
-        if (editId) { result = await supabaseClient.from('gestores').update(dados).eq('id', editId); } 
-        else { result = await supabaseClient.from('gestores').insert([dados]); }
-        if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestores(); carregarSelectGestores('gerente-gestor'); carregarFiltros(); }
-    });
-
-    async function editarGestor(id) {
-        const { data } = await supabaseClient.from('gestores').select('*').eq('id', id).single();
-        if (!data) return;
-        document.getElementById('gestor-edit-id').value = id;
-        document.getElementById('gestor-nome').value = data.nome;
-        document.getElementById('gestor-empresa').value = data.empresa_id;
-        document.getElementById('gestor-contrato').value = data.contrato_id;
-        document.getElementById('gestor-projeto').value = data.projeto_id;
-        document.getElementById('gestor-cancel-btn').style.display = 'inline-block';
-    }
-
-    async function excluirGestor(id) {
-        if (!confirm('Tem certeza que deseja excluir este gestor?')) return;
-        const { error } = await supabaseClient.from('gestores').delete().eq('id', id);
-        if (error) alert('Erro: ' + error.message);
-        else { alert('Gestor excluído!'); carregarGestores(); carregarFiltros(); }
-    }
-
-    // ===================== CRUD GERENTES =====================
-    async function carregarGerentes() {
-        const tbody = document.getElementById('tabela-gerentes');
-        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('gerentes').select('*, empresas(nome), contratos(numero), projetos(nome), gestores(nome)').order('id', { ascending: true });
-        if (error) { tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gerente cadastrado.</td></tr>'; return; }
-        tbody.innerHTML = '';
-        data.forEach(g => {
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td>${g.id}</td>
-                    <td>${g.nome}</td>
-                    <td>${g.empresas?.nome || 'N/A'}</td>
-                    <td>${g.contratos?.numero || 'N/A'}</td>
-                    <td>${g.projetos?.nome || 'N/A'}</td>
-                    <td>${g.gestores?.nome || 'N/A'}</td>
-                    <td class="text-right">
-                        <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarGerente(${g.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirGerente(${g.id})" class="btn-danger">Excluir</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    document.getElementById('form-gerente').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const editId = document.getElementById('gerente-edit-id').value;
-        const dados = { nome: document.getElementById('gerente-nome').value, empresa_id: document.getElementById('gerente-empresa').value, contrato_id: document.getElementById('gerente-contrato').value, projeto_id: document.getElementById('gerente-projeto').value, gestor_id: document.getElementById('gerente-gestor').value };
-        if (!dados.empresa_id || !dados.contrato_id || !dados.projeto_id || !dados.gestor_id) { alert('Selecione todos os campos!'); return; }
-        let result;
-        if (editId) { result = await supabaseClient.from('gerentes').update(dados).eq('id', editId); } 
-        else { result = await supabaseClient.from('gerentes').insert([dados]); }
-        if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Gerente atualizado!' : 'Gerente salvo!'); e.target.reset(); document.getElementById('gerente-edit-id').value = ''; document.getElementById('gerente-cancel-btn').style.display = 'none'; carregarGerentes(); carregarFiltros(); }
-    });
-
-    async function editarGerente(id) {
-        const { data } = await supabaseClient.from('gerentes').select('*').eq('id', id).single();
-        if (!data) return;
-        document.getElementById('gerente-edit-id').value = id;
-        document.getElementById('gerente-nome').value = data.nome;
-        document.getElementById('gerente-empresa').value = data.empresa_id;
-        document.getElementById('gerente-contrato').value = data.contrato_id;
-        document.getElementById('gerente-projeto').value = data.projeto_id;
-        document.getElementById('gerente-gestor').value = data.gestor_id;
-        document.getElementById('gerente-cancel-btn').style.display = 'inline-block';
-    }
-
-    async function excluirGerente(id) {
-        if (!confirm('Tem certeza que deseja excluir este gerente?')) return;
-        const { error } = await supabaseClient.from('gerentes').delete().eq('id', id);
-        if (error) alert('Erro: ' + error.message);
-        else { alert('Gerente excluído!'); carregarGerentes(); carregarFiltros(); }
     }
 
     // ===================== CRUD STATUS =====================
@@ -3119,8 +3043,8 @@
         tbody.innerHTML = '';
         let filtrados = consumos.filter(c => {
             if (fProj && !c.projeto.toLowerCase().includes(fProj)) return false;
-            if (fGest && !c.gestor.toLowerCase().includes(fGest)) return false;
-            if (fGer && (!c.gerente || !c.gerente.toLowerCase().includes(fGer))) return false;
+            if (fGest && !c.gestor_logictel?.toLowerCase().includes(fGest)) return false;
+            if (fGer && (!c.gestor || !c.gestor.toLowerCase().includes(fGer))) return false;
             if (fData && (!c.criado_em || !c.criado_em.startsWith(fData))) return false;
             return true;
         });
@@ -3132,8 +3056,8 @@
                     <td class="text-xs mono" style="color:var(--text-muted)">${dataFormatada}</td>
                     <td class="font-medium" style="color:var(--text)">${c.dc}</td>
                     <td>${c.projeto}</td>
-                    <td>${c.gestor}</td>
-                    <td>${c.gerente || '-'}</td>
+                    <td>${c.gestor_logictel || '-'}</td>
+                    <td>${c.gestor || '-'}</td>
                     <td>${c.mes_apropriacao}</td>
                     <td>${c.ano}</td>
                     <td>${c.status_nf || '-'}</td>
@@ -3162,8 +3086,8 @@
         tbody.innerHTML = '';
         let filtrados = consumos.filter(c => {
             if (fProj && !c.projeto.toLowerCase().includes(fProj)) return false;
-            if (fGest && !c.gestor.toLowerCase().includes(fGest)) return false;
-            if (fGer && (!c.gerente || !c.gerente.toLowerCase().includes(fGer))) return false;
+            if (fGest && !c.gestor_logictel?.toLowerCase().includes(fGest)) return false;
+            if (fGer && (!c.gestor || !c.gestor.toLowerCase().includes(fGer))) return false;
             if (fData && (!c.criado_em || !c.criado_em.startsWith(fData))) return false;
             return true;
         });
@@ -3175,8 +3099,8 @@
                     <td class="text-xs mono" style="color:var(--text-muted)">${dataFormatada}</td>
                     <td class="font-medium" style="color:var(--text)">${c.dc}</td>
                     <td>${c.projeto}</td>
-                    <td>${c.gestor}</td>
-                    <td>${c.gerente || '-'}</td>
+                    <td>${c.gestor_logictel || '-'}</td>
+                    <td>${c.gestor || '-'}</td>
                     <td class="font-medium" style="color:var(--gold)">${c.mes_medido}</td>
                     <td>${c.ano}</td>
                     <td>${c.status_dc || '-'}</td>
@@ -3189,6 +3113,68 @@
                     </td>
                 </tr>`;
         });
+    }
+
+    // ===================== CRUD USUÁRIOS =====================
+    async function carregarUsuarios() {
+        const tbody = document.getElementById('tabela-usuarios');
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        const { data, error } = await supabaseClient.from('usuarios').select('*').order('id', { ascending: true });
+        if (error) { tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Nenhum usuário cadastrado.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        data.forEach(u => {
+            const permissoes = u.permissoes || [];
+            const permissoesHtml = permissoes.map(p => `<span class="permissions-badge">${p}</span>`).join(' ');
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td>${u.id}</td>
+                    <td>${u.nome}</td>
+                    <td>${u.senha}</td>
+                    <td>${permissoesHtml || '<span style="color:var(--text-soft)">Nenhuma</span>'}</td>
+                    <td class="text-right">
+                        <div class="table-actions" style="justify-content:flex-end;">
+                            <button onclick="editarUsuario(${u.id})" class="btn-edit">Editar</button>
+                            <button onclick="excluirUsuario(${u.id})" class="btn-danger">Excluir</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    document.getElementById('form-usuario').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('user-edit-id').value;
+        const senha = document.getElementById('user-senha').value;
+        if (!validarSenha()) { alert('A senha não atende aos critérios de segurança.'); return; }
+        const permissoes = getPermissoes();
+        const dados = { nome: document.getElementById('user-nome').value, senha: senha, permissoes: permissoes };
+        let result;
+        if (editId) { result = await supabaseClient.from('usuarios').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('usuarios').insert([dados]); }
+        if (result.error) alert('Erro: ' + result.error.message);
+        else { alert(editId ? 'Usuário atualizado!' : 'Usuário salvo!'); e.target.reset(); document.getElementById('user-edit-id').value = ''; document.getElementById('user-cancel-btn').style.display = 'none'; setPermissoes([]); document.getElementById('user-submit-btn').disabled = true; carregarUsuarios(); }
+    });
+
+    async function editarUsuario(id) {
+        const { data } = await supabaseClient.from('usuarios').select('*').eq('id', id).single();
+        if (!data) return;
+        document.getElementById('user-edit-id').value = id;
+        document.getElementById('user-nome').value = data.nome;
+        document.getElementById('user-senha').value = data.senha;
+        setPermissoes(data.permissoes || []);
+        document.getElementById('user-cancel-btn').style.display = 'inline-block';
+        validarSenha();
+    }
+
+    async function excluirUsuario(id) {
+        if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+        const { error } = await supabaseClient.from('usuarios').delete().eq('id', id);
+        if (error) alert('Erro: ' + error.message);
+        else { alert('Usuário excluído!'); carregarUsuarios(); }
     }
 
     // ===================== INICIALIZAÇÃO =====================
