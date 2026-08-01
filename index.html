@@ -2576,56 +2576,7 @@
         const gestorId = document.getElementById('med-gestor').value;
         const diretorId = document.getElementById('med-diretor').value || null;
         
-        let empresaNome = '';
-        let projetoNome = '';
-        let gestorNome = '';
-        let diretorNome = '';
-        
-        try {
-            if (empresaId) {
-                const { data: empresa } = await supabaseClient
-                    .from('empresas')
-                    .select('nome')
-                    .eq('id', parseInt(empresaId))
-                    .single();
-                if (empresa) empresaNome = empresa.nome;
-            }
-            
-            if (projetoId) {
-                const { data: projeto } = await supabaseClient
-                    .from('projetos')
-                    .select('nome')
-                    .eq('id', parseInt(projetoId))
-                    .single();
-                if (projeto) projetoNome = projeto.nome;
-            }
-            
-            if (gestorId) {
-                const { data: gestor } = await supabaseClient
-                    .from('gestores_logictel')
-                    .select('nome')
-                    .eq('id', parseInt(gestorId))
-                    .single();
-                if (gestor) gestorNome = gestor.nome;
-            }
-            
-            if (diretorId) {
-                const { data: diretor } = await supabaseClient
-                    .from('diretores')
-                    .select('nome')
-                    .eq('id', parseInt(diretorId))
-                    .single();
-                if (diretor) diretorNome = diretor.nome;
-            }
-        } catch (err) {
-            console.error('Erro ao buscar nomes:', err);
-        }
-        
         const dados = {
-            empresa: empresaNome,
-            projeto: projetoNome,
-            gestor_logictel: gestorNome,
-            diretor: diretorNome,
             empresa_id: empresaId || null,
             projeto_id: projetoId || null,
             gestor_logictel_id: gestorId || null,
