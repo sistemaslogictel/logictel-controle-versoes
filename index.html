@@ -2536,7 +2536,8 @@
             .order('id', { ascending: false });
         
         if (error) { 
-            tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; 
+            console.error('Erro ao carregar medições:', error);
+            tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`; 
             return; 
         }
         if (!data || data.length === 0) {
@@ -2570,11 +2571,65 @@
         e.preventDefault();
         const editId = document.getElementById('med-edit-id').value;
         
+        const empresaId = document.getElementById('med-empresa').value;
+        const projetoId = document.getElementById('med-projeto').value;
+        const gestorId = document.getElementById('med-gestor').value;
+        const diretorId = document.getElementById('med-diretor').value || null;
+        
+        let empresaNome = '';
+        let projetoNome = '';
+        let gestorNome = '';
+        let diretorNome = '';
+        
+        try {
+            if (empresaId) {
+                const { data: empresa } = await supabaseClient
+                    .from('empresas')
+                    .select('nome')
+                    .eq('id', parseInt(empresaId))
+                    .single();
+                if (empresa) empresaNome = empresa.nome;
+            }
+            
+            if (projetoId) {
+                const { data: projeto } = await supabaseClient
+                    .from('projetos')
+                    .select('nome')
+                    .eq('id', parseInt(projetoId))
+                    .single();
+                if (projeto) projetoNome = projeto.nome;
+            }
+            
+            if (gestorId) {
+                const { data: gestor } = await supabaseClient
+                    .from('gestores_logictel')
+                    .select('nome')
+                    .eq('id', parseInt(gestorId))
+                    .single();
+                if (gestor) gestorNome = gestor.nome;
+            }
+            
+            if (diretorId) {
+                const { data: diretor } = await supabaseClient
+                    .from('diretores')
+                    .select('nome')
+                    .eq('id', parseInt(diretorId))
+                    .single();
+                if (diretor) diretorNome = diretor.nome;
+            }
+        } catch (err) {
+            console.error('Erro ao buscar nomes:', err);
+        }
+        
         const dados = {
-            empresa_id: document.getElementById('med-empresa').value,
-            projeto_id: document.getElementById('med-projeto').value,
-            gestor_logictel_id: document.getElementById('med-gestor').value,
-            diretor_id: document.getElementById('med-diretor').value || null,
+            empresa: empresaNome,
+            projeto: projetoNome,
+            gestor_logictel: gestorNome,
+            diretor: diretorNome,
+            empresa_id: empresaId || null,
+            projeto_id: projetoId || null,
+            gestor_logictel_id: gestorId || null,
+            diretor_id: diretorId || null,
             mes: document.getElementById('med-mes').value,
             ano: document.getElementById('med-ano').value,
             valor: valorParaNumero(document.getElementById('med-valor').value),
@@ -2584,12 +2639,14 @@
         
         let result;
         if (editId) {
-            result = await supabaseClient.from('medicoes').update(dados).eq('id', editId);
+            result = await supabaseClient.from('medicoes').update(dados).eq('id', parseInt(editId));
         } else {
             result = await supabaseClient.from('medicoes').insert([dados]);
         }
-        if (result.error) alert('Erro: ' + result.error.message);
-        else { 
+        if (result.error) {
+            alert('Erro: ' + result.error.message);
+            console.error('Erro detalhado:', result.error);
+        } else { 
             alert(editId ? 'Medição atualizada!' : 'Medição salva!'); 
             e.target.reset(); 
             document.getElementById('med-edit-id').value = ''; 
@@ -2601,7 +2658,7 @@
     });
 
     async function editarMedicao(id) {
-        const { data } = await supabaseClient
+        const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
                 id,
@@ -2617,6 +2674,11 @@
             `)
             .eq('id', id)
             .single();
+        
+        if (error) {
+            alert('Erro ao carregar: ' + error.message);
+            return;
+        }
         if (!data) return;
         
         document.getElementById('med-edit-id').value = id;
@@ -3098,13 +3160,12 @@
         }
     }
 
-    // ===================== CRUD GESTORES LOGICTEL (CORRIGIDO) =====================
+    // ===================== CRUD GESTORES LOGICTEL =====================
     async function carregarGestoresLogictel() {
         const tbody = document.getElementById('tabela-gestores');
         tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         
         try {
-            // Buscar todos os gestores primeiro
             const { data: gestores, error: errorGestores } = await supabaseClient
                 .from('gestores_logictel')
                 .select('*')
@@ -3121,7 +3182,6 @@
                 return;
             }
             
-            // Buscar todos os projetos para fazer o join manualmente
             const { data: projetos, error: errorProjetos } = await supabaseClient
                 .from('projetos')
                 .select('id, nome');
@@ -3130,7 +3190,6 @@
                 console.error('Erro ao carregar projetos:', errorProjetos);
             }
             
-            // Criar um mapa de projetos para busca rápida
             const projetosMap = {};
             if (projetos) {
                 projetos.forEach(p => {
