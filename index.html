@@ -1662,7 +1662,7 @@
                 'dcs': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>',
                 'medicoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l13-13 5 5-13 13H3v-5z"/><path d="M13.5 6.5l4 4"/><path d="M9 11l1.5 1.5"/><path d="M6 14l1.5 1.5"/></svg>',
                 'historico': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
-                'adm': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
+                'adm': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l-.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
                 'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
                 'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
                 'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
@@ -3098,104 +3098,166 @@
         }
     }
 
-    // ===================== CRUD GESTORES LOGICTEL =====================
+    // ===================== CRUD GESTORES LOGICTEL (CORRIGIDO) =====================
     async function carregarGestoresLogictel() {
         const tbody = document.getElementById('tabela-gestores');
         tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         
-        const { data, error } = await supabaseClient
-            .from('gestores_logictel')
-            .select(`
-                id,
-                nome,
-                projeto_id,
-                projetos(nome)
-            `)
-            .order('id', { ascending: true });
-        
-        if (error) { 
-            console.error('Erro ao carregar gestores:', error);
-            tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`; 
-            return; 
+        try {
+            // Buscar todos os gestores primeiro
+            const { data: gestores, error: errorGestores } = await supabaseClient
+                .from('gestores_logictel')
+                .select('*')
+                .order('id', { ascending: true });
+            
+            if (errorGestores) {
+                console.error('Erro ao carregar gestores:', errorGestores);
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${errorGestores.message}</td></tr>`;
+                return;
+            }
+            
+            if (!gestores || gestores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>';
+                return;
+            }
+            
+            // Buscar todos os projetos para fazer o join manualmente
+            const { data: projetos, error: errorProjetos } = await supabaseClient
+                .from('projetos')
+                .select('id, nome');
+            
+            if (errorProjetos) {
+                console.error('Erro ao carregar projetos:', errorProjetos);
+            }
+            
+            // Criar um mapa de projetos para busca rápida
+            const projetosMap = {};
+            if (projetos) {
+                projetos.forEach(p => {
+                    projetosMap[p.id] = p.nome;
+                });
+            }
+            
+            tbody.innerHTML = '';
+            gestores.forEach(g => {
+                const nomeProjeto = g.projeto_id ? (projetosMap[g.projeto_id] || '-') : '-';
+                tbody.innerHTML += `
+                    <tr class="td-row">
+                        <td>${g.id}</td>
+                        <td>${g.nome}</td>
+                        <td>${nomeProjeto}</td>
+                        <td class="text-right">
+                            <div class="table-actions" style="justify-content:flex-end;">
+                                <button onclick="editarGestorLogictel(${g.id})" class="btn-edit">Editar</button>
+                                <button onclick="excluirGestorLogictel(${g.id})" class="btn-danger">Excluir</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        } catch (e) {
+            console.error('Erro inesperado:', e);
+            tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
         }
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>';
-            return;
-        }
-        tbody.innerHTML = '';
-        data.forEach(g => {
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td>${g.id}</td>
-                    <td>${g.nome}</td>
-                    <td>${g.projetos?.nome || '-'}</td>
-                    <td class="text-right">
-                        <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarGestorLogictel(${g.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirGestorLogictel(${g.id})" class="btn-danger">Excluir</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
     }
 
     document.getElementById('form-gestor').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('gestor-edit-id').value;
-        const dados = { 
-            nome: document.getElementById('gestor-nome').value,
-            projeto_id: document.getElementById('gestor-projeto').value || null
-        };
-        if (!dados.nome) { alert('Nome do Gestor é obrigatório!'); return; }
-        if (!dados.projeto_id) { alert('Selecione um Projeto!'); return; }
+        const nome = document.getElementById('gestor-nome').value.trim();
+        const projetoId = document.getElementById('gestor-projeto').value;
         
-        let result;
-        if (editId) { 
-            result = await supabaseClient.from('gestores_logictel').update(dados).eq('id', editId); 
-        } else { 
-            result = await supabaseClient.from('gestores_logictel').insert([dados]); 
+        if (!nome) { 
+            alert('Nome do Gestor é obrigatório!'); 
+            return; 
         }
-        if (result.error) alert('Erro: ' + result.error.message);
-        else { 
-            alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); 
-            e.target.reset(); 
-            document.getElementById('gestor-edit-id').value = ''; 
-            document.getElementById('gestor-cancel-btn').style.display = 'none'; 
-            carregarGestoresLogictel(); 
-            carregarSelectGestores('med-gestor', 'gestores_logictel');
-            carregarSelectGestores('dc-gestor', 'gestores_logictel');
-            carregarFiltros(); 
+        if (!projetoId) { 
+            alert('Selecione um Projeto!'); 
+            return; 
+        }
+        
+        const dados = { 
+            nome: nome,
+            projeto_id: parseInt(projetoId)
+        };
+        
+        try {
+            let result;
+            if (editId) {
+                result = await supabaseClient
+                    .from('gestores_logictel')
+                    .update(dados)
+                    .eq('id', parseInt(editId));
+            } else {
+                result = await supabaseClient
+                    .from('gestores_logictel')
+                    .insert([dados]);
+            }
+            
+            if (result.error) {
+                alert('Erro: ' + result.error.message);
+                return;
+            }
+            
+            alert(editId ? 'Gestor atualizado com sucesso!' : 'Gestor salvo com sucesso!');
+            e.target.reset();
+            document.getElementById('gestor-edit-id').value = '';
+            document.getElementById('gestor-cancel-btn').style.display = 'none';
+            
+            await carregarGestoresLogictel();
+            await carregarSelectGestores('med-gestor', 'gestores_logictel');
+            await carregarSelectGestores('dc-gestor', 'gestores_logictel');
+            await carregarFiltros();
+        } catch (e) {
+            console.error('Erro:', e);
+            alert('Erro ao salvar gestor.');
         }
     });
 
     async function editarGestorLogictel(id) {
-        const { data } = await supabaseClient
-            .from('gestores_logictel')
-            .select(`
-                id,
-                nome,
-                projeto_id,
-                projetos(nome)
-            `)
-            .eq('id', id)
-            .single();
-        if (!data) return;
-        document.getElementById('gestor-edit-id').value = id;
-        document.getElementById('gestor-nome').value = data.nome;
-        document.getElementById('gestor-projeto').value = data.projeto_id || '';
-        document.getElementById('gestor-cancel-btn').style.display = 'inline-block';
+        try {
+            const { data, error } = await supabaseClient
+                .from('gestores_logictel')
+                .select('*')
+                .eq('id', id)
+                .single();
+            
+            if (error) {
+                alert('Erro ao carregar dados do gestor: ' + error.message);
+                return;
+            }
+            if (!data) {
+                alert('Gestor não encontrado!');
+                return;
+            }
+            
+            document.getElementById('gestor-edit-id').value = id;
+            document.getElementById('gestor-nome').value = data.nome;
+            document.getElementById('gestor-projeto').value = data.projeto_id || '';
+            document.getElementById('gestor-cancel-btn').style.display = 'inline-block';
+            
+            document.getElementById('form-gestor').scrollIntoView({ behavior: 'smooth' });
+        } catch (e) {
+            console.error('Erro:', e);
+            alert('Erro ao carregar dados do gestor.');
+        }
     }
 
     async function excluirGestorLogictel(id) {
         if (!confirm('Tem certeza que deseja excluir este gestor?')) return;
-        const { error } = await supabaseClient.from('gestores_logictel').delete().eq('id', id);
-        if (error) alert('Erro: ' + error.message);
-        else { 
-            alert('Gestor excluído!'); 
-            carregarGestoresLogictel(); 
-            carregarSelectGestores('med-gestor', 'gestores_logictel');
-            carregarSelectGestores('dc-gestor', 'gestores_logictel');
-            carregarFiltros(); 
+        try {
+            const { error } = await supabaseClient.from('gestores_logictel').delete().eq('id', id);
+            if (error) {
+                alert('Erro: ' + error.message);
+                return;
+            }
+            alert('Gestor excluído com sucesso!');
+            await carregarGestoresLogictel();
+            await carregarSelectGestores('med-gestor', 'gestores_logictel');
+            await carregarSelectGestores('dc-gestor', 'gestores_logictel');
+            await carregarFiltros();
+        } catch (e) {
+            console.error('Erro:', e);
+            alert('Erro ao excluir gestor.');
         }
     }
 
@@ -3437,58 +3499,63 @@
         
         container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Carregando logs...</div>';
         
-        const { data, error } = await supabaseClient
-            .from('logs_atualizacoes')
-            .select('*')
-            .order('criado_em', { ascending: false })
-            .limit(50);
-        
-        if (error) {
-            container.innerHTML = `<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar logs: ${error.message}</div>`;
-            return;
-        }
-        
-        if (!data || data.length === 0) {
-            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma atualização registrada ainda.</div>';
-            return;
-        }
-        
-        container.innerHTML = `
-            <div class="space-y-4">
-                <div class="bg-primary-100 p-4 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">🔄</span>
-                        <div>
-                            <div class="font-semibold">Última atualização do banco</div>
-                            <div class="text-sm text-muted">${new Date(data[0].criado_em).toLocaleString('pt-BR')}</div>
+        try {
+            const { data, error } = await supabaseClient
+                .from('logs_atualizacoes')
+                .select('*')
+                .order('criado_em', { ascending: false })
+                .limit(50);
+            
+            if (error) {
+                container.innerHTML = `<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar logs: ${error.message}</div>`;
+                return;
+            }
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma atualização registrada ainda.</div>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-primary-100 p-4 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">🔄</span>
+                            <div>
+                                <div class="font-semibold">Última atualização do banco</div>
+                                <div class="text-sm text-muted">${new Date(data[0].criado_em).toLocaleString('pt-BR')}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-4">
+                        <div class="font-semibold mb-2">Histórico de alterações (últimos 50)</div>
+                        <div class="space-y-1 max-h-96 overflow-y-auto">
+                            ${data.map(log => {
+                                const operacaoClass = log.operacao === 'INSERT' ? 'text-success' : 
+                                                     log.operacao === 'UPDATE' ? 'text-primary' : 'text-danger';
+                                const operacaoIcon = log.operacao === 'INSERT' ? '✅' : 
+                                                    log.operacao === 'UPDATE' ? '✏️' : '🗑️';
+                                return `
+                                    <div class="flex items-center justify-between text-sm py-1 px-2 hover:bg-gray-50 rounded">
+                                        <div class="flex items-center gap-2">
+                                            <span>${operacaoIcon}</span>
+                                            <span class="${operacaoClass} font-medium">${log.operacao}</span>
+                                            <span class="text-muted">${log.tabela}</span>
+                                            ${log.registro_id ? `<span class="text-xs text-muted">ID: ${log.registro_id}</span>` : ''}
+                                        </div>
+                                        <span class="text-xs text-muted">${new Date(log.criado_em).toLocaleString('pt-BR')}</span>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 </div>
-                
-                <div class="border-t border-gray-200 pt-4">
-                    <div class="font-semibold mb-2">Histórico de alterações (últimos 50)</div>
-                    <div class="space-y-1 max-h-96 overflow-y-auto">
-                        ${data.map(log => {
-                            const operacaoClass = log.operacao === 'INSERT' ? 'text-success' : 
-                                                 log.operacao === 'UPDATE' ? 'text-primary' : 'text-danger';
-                            const operacaoIcon = log.operacao === 'INSERT' ? '✅' : 
-                                                log.operacao === 'UPDATE' ? '✏️' : '🗑️';
-                            return `
-                                <div class="flex items-center justify-between text-sm py-1 px-2 hover:bg-gray-50 rounded">
-                                    <div class="flex items-center gap-2">
-                                        <span>${operacaoIcon}</span>
-                                        <span class="${operacaoClass} font-medium">${log.operacao}</span>
-                                        <span class="text-muted">${log.tabela}</span>
-                                        ${log.registro_id ? `<span class="text-xs text-muted">ID: ${log.registro_id}</span>` : ''}
-                                    </div>
-                                    <span class="text-xs text-muted">${new Date(log.criado_em).toLocaleString('pt-BR')}</span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
+            `;
+        } catch (e) {
+            console.error('Erro:', e);
+            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar logs.</div>';
+        }
     }
 
     // ===================== CRUD USUÁRIOS =====================
