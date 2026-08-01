@@ -1190,6 +1190,7 @@
               <label class="checkbox-item"><input type="checkbox" value="historico-gestor" class="permission-check"><span>Hist. Gestor</span></label>
               <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
               <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label>
               <label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label>
               <label class="checkbox-item"><input type="checkbox" value="relatorios" class="permission-check"><span>Relatórios</span></label>
               <label class="checkbox-item"><input type="checkbox" value="configuracoes" class="permission-check"><span>Configurações</span></label>
@@ -1279,14 +1280,48 @@
       </div>
     </div>
 
-    <!-- ===================== LOGICTEL: GESTOR ===================== -->
+    <!-- ===================== LOGICTEL: PROJETO (PRIMEIRO) ===================== -->
+    <div id="tab-adm-projeto" class="tab-content space-y-4">
+      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
+      <div class="card card-pad">
+        <form id="form-projeto" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="projeto-edit-id" value="">
+          <div>
+            <label class="label">Nome do Projeto *</label>
+            <input type="text" id="projeto-nome" required placeholder="Ex: 306, 340, 7200-306" class="input">
+          </div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('projeto')" class="btn-cancel" style="display:none;" id="projeto-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary w-full">Salvar Projeto</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-projetos"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== LOGICTEL: GESTOR LOGICTEL (SEGUNDO, COM VÍNCULO AO PROJETO) ===================== -->
     <div id="tab-adm-gestor" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor Logictel</h2>
       <div class="card card-pad">
         <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="hidden" id="gestor-edit-id" value="">
-          <div><label class="label">Nome do Gestor *</label><input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input"></div>
-          <div><label class="label">Projeto (opcional)</label><select id="gestor-projeto" class="input"><option value="">Selecione...</option></select></div>
+          <div>
+            <label class="label">Nome do Gestor *</label>
+            <input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input">
+          </div>
+          <div>
+            <label class="label">Projeto *</label>
+            <select id="gestor-projeto" required class="input">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Gestor</button>
@@ -1298,33 +1333,6 @@
           <table class="w-full text-left border-collapse">
             <thead><tr class="th-row"><th>ID</th><th>Gestor Logictel</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-gestores"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== LOGICTEL: PROJETO ===================== -->
-    <div id="tab-adm-projeto" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
-      <div class="card card-pad">
-        <form id="form-projeto" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <input type="hidden" id="projeto-edit-id" value="">
-          <div><label class="label">Nome do Projeto *</label><input type="text" id="projeto-nome" required placeholder="Nome do projeto" class="input"></div>
-          <div><label class="label">Gestor Logictel *</label><select id="projeto-gestor" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Empresa (opcional)</label><select id="projeto-empresa" class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Diretor (opcional)</label><select id="projeto-diretor" class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Contrato (opcional)</label><select id="projeto-contrato" class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('projeto')" class="btn-cancel" style="display:none;" id="projeto-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Projeto</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th>Gestor Logictel</th><th>Empresa</th><th>Diretor</th><th>Contrato</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-projetos"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1613,9 +1621,9 @@
                 { id: 'adm-diretor', label: 'Diretor Cliente', area: 'adm-cliente' },
                 { id: 'adm-contrato', label: 'Contrato', area: 'adm-cliente' }
             ]},
-            { id: 'cadastros-logictel', label: 'Cadastro Logictel', icon: 'logictel', area: 'adm-cliente', type: 'flyout', children: [
-                { id: 'adm-gestor', label: 'Gestor Logictel', area: 'adm-cliente' },
-                { id: 'adm-projeto', label: 'Projeto', area: 'adm-cliente' }
+            { id: 'cadastros-logictel', label: 'Cadastro Logictel', icon: 'logictel', area: 'adm-logictel', type: 'flyout', children: [
+                { id: 'adm-projeto', label: 'Projeto', area: 'adm-logictel' },
+                { id: 'adm-gestor', label: 'Gestor Logictel', area: 'adm-logictel' }
             ]},
             { id: 'cadastros-status', label: 'Cadastro Status', icon: 'status', area: 'adm-status', type: 'flyout', children: [
                 { id: 'adm-status-dc', label: 'Status DC', area: 'adm-status' },
@@ -1883,8 +1891,8 @@
             'adm-empresa': 'adm-cliente',
             'adm-diretor': 'adm-cliente',
             'adm-contrato': 'adm-cliente',
-            'adm-gestor': 'adm-cliente',
-            'adm-projeto': 'adm-cliente',
+            'adm-projeto': 'adm-logictel',
+            'adm-gestor': 'adm-logictel',
             'adm-status-dc': 'adm-status',
             'adm-status-med': 'adm-status',
             'adm-status-nf': 'adm-status'
@@ -1918,8 +1926,8 @@
         else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
         else if (nomeAba === 'adm-diretor') { carregarDiretores(); carregarSelectEmpresas('diretor-empresa'); }
         else if (nomeAba === 'adm-contrato') { carregarContratos(); carregarSelectEmpresas('contrato-empresa'); carregarSelectDiretores('contrato-diretor'); }
-        else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); carregarSelectProjetos('gestor-projeto'); }
-        else if (nomeAba === 'adm-projeto') { carregarProjetos(); carregarSelectEmpresas('projeto-empresa'); carregarSelectDiretores('projeto-diretor'); carregarSelectContratos('projeto-contrato'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); }
+        else if (nomeAba === 'adm-projeto') { carregarProjetos(); carregarSelectProjetos('gestor-projeto'); }
+        else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); carregarSelectProjetos('gestor-projeto'); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); }
         else if (nomeAba === 'adm-status-dc') carregarStatusDC();
         else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
         else if (nomeAba === 'adm-status-nf') carregarStatusNF();
@@ -1956,7 +1964,6 @@
         carregarSelectStatus('filt-dcs-status', 'status_dc');
         carregarSelectGestores('dc-gestor', 'gestores_logictel');
         carregarSelectGestores('med-gestor', 'gestores_logictel');
-        carregarSelectGestores('projeto-gestor', 'gestores_logictel');
         carregarFiltros();
         carregarDCCards();
     }
@@ -2015,18 +2022,13 @@
         });
     }
 
-    async function carregarSelectProjetos(id, empresaId = null, diretorId = null, contratoId = null, gestorId = null) {
+    async function carregarSelectProjetos(id) {
         const select = document.getElementById(id);
         if (!select) return;
-        let query = supabaseClient.from('projetos').select('*, empresas(nome), diretores(nome), contratos(numero), gestores_logictel(nome)').order('nome');
-        if (empresaId) query = query.eq('empresa_id', empresaId);
-        if (diretorId) query = query.eq('diretor_id', diretorId);
-        if (contratoId) query = query.eq('contrato_id', contratoId);
-        if (gestorId) query = query.eq('gestor_id', gestorId);
-        const { data } = await query;
+        const { data } = await supabaseClient.from('projetos').select('id, nome').order('nome');
         select.innerHTML = '<option value="">Selecione...</option>';
         if (data) data.forEach(p => {
-            select.innerHTML += `<option value="${p.id}">${p.nome}${p.empresas?.nome ? ` (${p.empresas.nome})` : ''}</option>`;
+            select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
         });
     }
 
@@ -2058,7 +2060,8 @@
 
     // ===================== CARREGAR FILTROS =====================
     async function carregarFiltros() {
-        const { data: projetos } = await supabaseClient.from('projetos').select('nome, gestores_logictel(nome)');
+        const { data: projetos } = await supabaseClient.from('projetos').select('nome');
+        const { data: gestores } = await supabaseClient.from('gestores_logictel').select('nome');
         const projetosSet = new Set();
         const gestoresSet = new Set();
         const anos = new Set([2025, 2026, 2027]);
@@ -2066,7 +2069,11 @@
         if (projetos) {
             projetos.forEach(p => {
                 if (p.nome) projetosSet.add(p.nome);
-                if (p.gestores_logictel?.nome) gestoresSet.add(p.gestores_logictel.nome);
+            });
+        }
+        if (gestores) {
+            gestores.forEach(g => {
+                if (g.nome) gestoresSet.add(g.nome);
             });
         }
         
@@ -2183,7 +2190,6 @@
         const filtroProjeto = document.getElementById('filt-dash-projeto')?.value || '';
         const filtroAno = document.getElementById('filt-dash-ano')?.value || '';
 
-        // Buscar medições com JOINs
         let query = supabaseClient.from('medicoes')
             .select(`
                 id,
@@ -2205,7 +2211,6 @@
         if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: medicoes } = await query;
 
-        // Buscar consumos com JOINs
         let queryConsumo = supabaseClient.from('consumo_dc')
             .select(`
                 id,
@@ -2989,12 +2994,104 @@
         else { alert('Contrato excluído!'); carregarContratos(); }
     }
 
+    // ===================== CRUD PROJETOS =====================
+    async function carregarProjetos() {
+        const tbody = document.getElementById('tabela-projetos');
+        tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        
+        const { data, error } = await supabaseClient
+            .from('projetos')
+            .select('*')
+            .order('id', { ascending: true });
+        
+        if (error) { 
+            tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; 
+            return; 
+        }
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum projeto cadastrado.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        data.forEach(p => {
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td>${p.id}</td>
+                    <td>${p.nome}</td>
+                    <td class="text-right">
+                        <div class="table-actions" style="justify-content:flex-end;">
+                            <button onclick="editarProjeto(${p.id})" class="btn-edit">Editar</button>
+                            <button onclick="excluirProjeto(${p.id})" class="btn-danger">Excluir</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    document.getElementById('form-projeto').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('projeto-edit-id').value;
+        const dados = { 
+            nome: document.getElementById('projeto-nome').value
+        };
+        if (!dados.nome) { alert('Nome do Projeto é obrigatório!'); return; }
+        
+        let result;
+        if (editId) { 
+            result = await supabaseClient.from('projetos').update(dados).eq('id', editId); 
+        } else { 
+            result = await supabaseClient.from('projetos').insert([dados]); 
+        }
+        if (result.error) alert('Erro: ' + result.error.message);
+        else { 
+            alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); 
+            e.target.reset(); 
+            document.getElementById('projeto-edit-id').value = ''; 
+            document.getElementById('projeto-cancel-btn').style.display = 'none'; 
+            carregarProjetos(); 
+            carregarSelectProjetos('gestor-projeto');
+            carregarSelectProjetos('dc-projeto');
+            carregarSelectProjetos('med-projeto');
+            carregarFiltros(); 
+        }
+    });
+
+    async function editarProjeto(id) {
+        const { data } = await supabaseClient.from('projetos').select('*').eq('id', id).single();
+        if (!data) return;
+        document.getElementById('projeto-edit-id').value = id;
+        document.getElementById('projeto-nome').value = data.nome;
+        document.getElementById('projeto-cancel-btn').style.display = 'inline-block';
+    }
+
+    async function excluirProjeto(id) {
+        if (!confirm('Tem certeza que deseja excluir este projeto?')) return;
+        const { error } = await supabaseClient.from('projetos').delete().eq('id', id);
+        if (error) alert('Erro: ' + error.message);
+        else { 
+            alert('Projeto excluído!'); 
+            carregarProjetos(); 
+            carregarSelectProjetos('gestor-projeto');
+            carregarSelectProjetos('dc-projeto');
+            carregarSelectProjetos('med-projeto');
+            carregarFiltros(); 
+        }
+    }
+
     // ===================== CRUD GESTORES LOGICTEL =====================
     async function carregarGestoresLogictel() {
         const tbody = document.getElementById('tabela-gestores');
         tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('gestores_logictel').select('*, projetos(nome)').order('id', { ascending: true });
-        if (error) { tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        
+        const { data, error } = await supabaseClient
+            .from('gestores_logictel')
+            .select('*, projetos(nome)')
+            .order('id', { ascending: true });
+        
+        if (error) { 
+            tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; 
+            return; 
+        }
         if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>';
             return;
@@ -3024,15 +3121,33 @@
             projeto_id: document.getElementById('gestor-projeto').value || null
         };
         if (!dados.nome) { alert('Nome do Gestor é obrigatório!'); return; }
+        if (!dados.projeto_id) { alert('Selecione um Projeto!'); return; }
+        
         let result;
-        if (editId) { result = await supabaseClient.from('gestores_logictel').update(dados).eq('id', editId); } 
-        else { result = await supabaseClient.from('gestores_logictel').insert([dados]); }
+        if (editId) { 
+            result = await supabaseClient.from('gestores_logictel').update(dados).eq('id', editId); 
+        } else { 
+            result = await supabaseClient.from('gestores_logictel').insert([dados]); 
+        }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestoresLogictel(); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); carregarFiltros(); }
+        else { 
+            alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); 
+            e.target.reset(); 
+            document.getElementById('gestor-edit-id').value = ''; 
+            document.getElementById('gestor-cancel-btn').style.display = 'none'; 
+            carregarGestoresLogictel(); 
+            carregarSelectGestores('med-gestor', 'gestores_logictel');
+            carregarSelectGestores('dc-gestor', 'gestores_logictel');
+            carregarFiltros(); 
+        }
     });
 
     async function editarGestorLogictel(id) {
-        const { data } = await supabaseClient.from('gestores_logictel').select('*').eq('id', id).single();
+        const { data } = await supabaseClient
+            .from('gestores_logictel')
+            .select('*, projetos(nome)')
+            .eq('id', id)
+            .single();
         if (!data) return;
         document.getElementById('gestor-edit-id').value = id;
         document.getElementById('gestor-nome').value = data.nome;
@@ -3044,74 +3159,13 @@
         if (!confirm('Tem certeza que deseja excluir este gestor?')) return;
         const { error } = await supabaseClient.from('gestores_logictel').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Gestor excluído!'); carregarGestoresLogictel(); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); carregarFiltros(); }
-    }
-
-    // ===================== CRUD PROJETOS =====================
-    async function carregarProjetos() {
-        const tbody = document.getElementById('tabela-projetos');
-        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('projetos').select('*, empresas(nome), diretores(nome), contratos(numero), gestores_logictel(nome)').order('id', { ascending: true });
-        if (error) { tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
-        if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum projeto cadastrado.</td></tr>'; return; }
-        tbody.innerHTML = '';
-        data.forEach(p => {
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td>${p.id}</td>
-                    <td>${p.nome}</td>
-                    <td>${p.gestores_logictel?.nome || '-'}</td>
-                    <td>${p.empresas?.nome || '-'}</td>
-                    <td>${p.diretores?.nome || '-'}</td>
-                    <td>${p.contratos?.numero || '-'}</td>
-                    <td class="text-right">
-                        <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarProjeto(${p.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirProjeto(${p.id})" class="btn-danger">Excluir</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    document.getElementById('form-projeto').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const editId = document.getElementById('projeto-edit-id').value;
-        const dados = { 
-            nome: document.getElementById('projeto-nome').value,
-            gestor_id: document.getElementById('projeto-gestor').value,
-            empresa_id: document.getElementById('projeto-empresa').value || null,
-            diretor_id: document.getElementById('projeto-diretor').value || null,
-            contrato_id: document.getElementById('projeto-contrato').value || null
-        };
-        if (!dados.nome || !dados.gestor_id) {
-            alert('Nome do Projeto e Gestor Logictel são obrigatórios!');
-            return;
+        else { 
+            alert('Gestor excluído!'); 
+            carregarGestoresLogictel(); 
+            carregarSelectGestores('med-gestor', 'gestores_logictel');
+            carregarSelectGestores('dc-gestor', 'gestores_logictel');
+            carregarFiltros(); 
         }
-        let result;
-        if (editId) { result = await supabaseClient.from('projetos').update(dados).eq('id', editId); } 
-        else { result = await supabaseClient.from('projetos').insert([dados]); }
-        if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('dc-projeto'); carregarSelectProjetos('med-projeto'); carregarFiltros(); }
-    });
-
-    async function editarProjeto(id) {
-        const { data } = await supabaseClient.from('projetos').select('*').eq('id', id).single();
-        if (!data) return;
-        document.getElementById('projeto-edit-id').value = id;
-        document.getElementById('projeto-nome').value = data.nome;
-        document.getElementById('projeto-gestor').value = data.gestor_id || '';
-        document.getElementById('projeto-empresa').value = data.empresa_id || '';
-        document.getElementById('projeto-diretor').value = data.diretor_id || '';
-        document.getElementById('projeto-contrato').value = data.contrato_id || '';
-        document.getElementById('projeto-cancel-btn').style.display = 'inline-block';
-    }
-
-    async function excluirProjeto(id) {
-        if (!confirm('Tem certeza que deseja excluir este projeto?')) return;
-        const { error } = await supabaseClient.from('projetos').delete().eq('id', id);
-        if (error) alert('Erro: ' + error.message);
-        else { alert('Projeto excluído!'); carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('dc-projeto'); carregarSelectProjetos('med-projeto'); carregarFiltros(); }
     }
 
     // ===================== CRUD STATUS =====================
