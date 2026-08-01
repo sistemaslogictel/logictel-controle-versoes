@@ -1281,7 +1281,7 @@
       </div>
     </div>
 
-    <!-- ===================== LOGICTEL: PROJETO (PRIMEIRO) ===================== -->
+    <!-- ===================== LOGICTEL: PROJETO ===================== -->
     <div id="tab-adm-projeto" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
       <div class="card card-pad">
@@ -1307,7 +1307,7 @@
       </div>
     </div>
 
-    <!-- ===================== LOGICTEL: GESTOR LOGICTEL (SEGUNDO, COM VÍNCULO AO PROJETO) ===================== -->
+    <!-- ===================== LOGICTEL: GESTOR ===================== -->
     <div id="tab-adm-gestor" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor Logictel</h2>
       <div class="card card-pad">
@@ -1412,6 +1412,7 @@
         <h2 class="text-2xl font-bold" style="color:var(--text)">📊 Atualizações do Sistema</h2>
         <p class="text-sm mt-0.5" style="color:var(--text-muted)">Acompanhe todas as alterações realizadas no sistema.</p>
       </div>
+      
       <div class="card card-pad">
         <div id="logs-container">
           <div class="p-6 text-center" style="color:var(--text-soft)">Carregando logs...</div>
@@ -1665,7 +1666,7 @@
                 'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
                 'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
                 'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
-                'atualizacoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
+                'atualizacoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
             };
             return icons[name] || '';
         }
@@ -1944,7 +1945,7 @@
         else if (nomeAba === 'adm-diretor') { carregarDiretores(); carregarSelectEmpresas('diretor-empresa'); }
         else if (nomeAba === 'adm-contrato') { carregarContratos(); carregarSelectEmpresas('contrato-empresa'); carregarSelectDiretores('contrato-diretor'); }
         else if (nomeAba === 'adm-projeto') { carregarProjetos(); carregarSelectProjetos('gestor-projeto'); }
-        else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); carregarSelectProjetos('gestor-projeto'); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); }
+        else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); carregarSelectProjetos('gestor-projeto'); }
         else if (nomeAba === 'adm-status-dc') carregarStatusDC();
         else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
         else if (nomeAba === 'adm-status-nf') carregarStatusNF();
@@ -1984,6 +1985,7 @@
         carregarSelectGestores('med-gestor', 'gestores_logictel');
         carregarFiltros();
         carregarDCCards();
+        carregarLogsAtualizacoes();
     }
 
     // ===================== CARREGAR SELECTS =====================
@@ -2508,123 +2510,6 @@
         return parseFloat(valorFormatado.replace(/\./g, '').replace(',', '.'));
     }
 
-    // ===================== REGISTRAR LOG MANUAL =====================
-    async function registrarLog(tabela, operacao, registroId, dados) {
-        try {
-            await supabaseClient
-                .from('logs_atualizacoes')
-                .insert([{
-                    tabela: tabela,
-                    operacao: operacao,
-                    registro_id: registroId,
-                    dados_novos: dados,
-                    usuario: usuarioLogado?.nome || 'admin'
-                }]);
-        } catch (e) {
-            console.error('Erro ao registrar log:', e);
-        }
-    }
-
-    // ===================== CARREGAR LOGS DE ATUALIZAÇÕES =====================
-    async function carregarLogsAtualizacoes() {
-        const container = document.getElementById('logs-container');
-        if (!container) return;
-
-        container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Carregando logs...</div>';
-
-        const { data, error } = await supabaseClient
-            .from('logs_atualizacoes')
-            .select('*')
-            .order('criado_em', { ascending: false })
-            .limit(50);
-
-        if (error) {
-            container.innerHTML = `<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar logs: ${error.message}</div>`;
-            return;
-        }
-
-        if (!data || data.length === 0) {
-            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma atualização registrada ainda.</div>';
-            return;
-        }
-
-        const ultimoCommit = await buscarUltimoCommit();
-
-        container.innerHTML = `
-            <div class="space-y-4">
-                <div class="p-4 rounded-lg" style="background:var(--primary-100);">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">🔄</span>
-                        <div>
-                            <div class="font-semibold" style="color:var(--text)">Última atualização do banco</div>
-                            <div class="text-sm" style="color:var(--text-muted)">${new Date(data[0].criado_em).toLocaleString('pt-BR')}</div>
-                        </div>
-                    </div>
-                </div>
-
-                ${ultimoCommit ? `
-                <div class="p-4 rounded-lg" style="background:var(--primary-100);">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">📝</span>
-                        <div>
-                            <div class="font-semibold" style="color:var(--text)">Último commit</div>
-                            <div class="text-sm" style="color:var(--text-muted)">${ultimoCommit.message || 'N/A'}</div>
-                            <div class="text-xs" style="color:var(--text-soft)">${ultimoCommit.date || ''}</div>
-                        </div>
-                    </div>
-                </div>
-                ` : ''}
-
-                <div class="pt-4" style="border-top:1px solid var(--border);">
-                    <div class="font-semibold mb-2" style="color:var(--text)">Histórico de alterações (últimos 50)</div>
-                    <div class="space-y-1" style="max-height:24rem; overflow-y:auto;">
-                        ${data.map(log => {
-                            const operacaoClass = log.operacao === 'INSERT' ? 'text-pos' :
-                                                 log.operacao === 'UPDATE' ? '' :
-                                                 'text-neg';
-                            const operacaoColor = log.operacao === 'INSERT' ? 'var(--success)' :
-                                                 log.operacao === 'UPDATE' ? 'var(--primary)' : 'var(--danger)';
-                            const operacaoIcon = log.operacao === 'INSERT' ? '✅' :
-                                                log.operacao === 'UPDATE' ? '✏️' : '🗑️';
-                            return `
-                                <div class="flex items-center justify-between text-sm py-1 px-2 rounded td-row">
-                                    <div class="flex items-center gap-2">
-                                        <span>${operacaoIcon}</span>
-                                        <span class="font-medium" style="color:${operacaoColor}">${log.operacao}</span>
-                                        <span style="color:var(--text-muted)">${log.tabela}</span>
-                                        ${log.registro_id ? `<span class="text-xs" style="color:var(--text-soft)">ID: ${log.registro_id}</span>` : ''}
-                                    </div>
-                                    <span class="text-xs" style="color:var(--text-soft)">${new Date(log.criado_em).toLocaleString('pt-BR')}</span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // ===================== BUSCAR ÚLTIMO COMMIT DO GITHUB =====================
-    async function buscarUltimoCommit() {
-        try {
-            const repo = 'sistemaslogictel/logictel-controle-versoes';
-            const response = await fetch(`https://api.github.com/repos/${repo}/commits?per_page=1`);
-            if (!response.ok) return null;
-            const data = await response.json();
-            if (data && data.length > 0) {
-                return {
-                    message: data[0].commit.message,
-                    date: new Date(data[0].commit.author.date).toLocaleString('pt-BR'),
-                    sha: data[0].sha.substring(0, 7)
-                };
-            }
-            return null;
-        } catch (e) {
-            console.error('Erro ao buscar último commit:', e);
-            return null;
-        }
-    }
-
     // ===================== CRUD MEDIÇÕES =====================
     async function carregarMedicoes() {
         const tbody = document.getElementById('tabela-medicoes');
@@ -2700,10 +2585,8 @@
         let result;
         if (editId) {
             result = await supabaseClient.from('medicoes').update(dados).eq('id', editId);
-            if (!result.error) await registrarLog('medicoes', 'UPDATE', editId, dados);
         } else {
-            result = await supabaseClient.from('medicoes').insert([dados]).select();
-            if (!result.error && result.data && result.data[0]) await registrarLog('medicoes', 'INSERT', result.data[0].id, dados);
+            result = await supabaseClient.from('medicoes').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
         else { 
@@ -2753,7 +2636,7 @@
         if (!confirm('Tem certeza que deseja excluir esta medição?')) return;
         const { error } = await supabaseClient.from('medicoes').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { await registrarLog('medicoes', 'DELETE', id, null); alert('Medição excluída!'); carregarMedicoes(); carregarFiltros(); }
+        else { alert('Medição excluída!'); carregarMedicoes(); carregarFiltros(); }
     }
 
     // ===================== CRUD CONSUMOS =====================
@@ -2855,10 +2738,8 @@
         let result;
         if (editId) {
             result = await supabaseClient.from('consumo_dc').update(dados).eq('id', editId);
-            if (!result.error) await registrarLog('consumo_dc', 'UPDATE', editId, dados);
         } else {
-            result = await supabaseClient.from('consumo_dc').insert([dados]).select();
-            if (!result.error && result.data && result.data[0]) await registrarLog('consumo_dc', 'INSERT', result.data[0].id, dados);
+            result = await supabaseClient.from('consumo_dc').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
         else { 
@@ -2930,7 +2811,7 @@
         if (!confirm('Tem certeza que deseja excluir este consumo?')) return;
         const { error } = await supabaseClient.from('consumo_dc').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { await registrarLog('consumo_dc', 'DELETE', id, null); alert('Consumo excluído!'); carregarConsumos(); carregarFiltros(); carregarDCCards(); }
+        else { alert('Consumo excluído!'); carregarConsumos(); carregarFiltros(); carregarDCCards(); }
     }
 
     // ===================== EXPORTAR EXCEL =====================
@@ -2996,8 +2877,8 @@
         const editId = document.getElementById('empresa-edit-id').value;
         const dados = { nome: document.getElementById('empresa-nome').value };
         let result;
-        if (editId) { result = await supabaseClient.from('empresas').update(dados).eq('id', editId); if (!result.error) await registrarLog('empresas', 'UPDATE', editId, dados); } 
-        else { result = await supabaseClient.from('empresas').insert([dados]).select(); if (!result.error && result.data && result.data[0]) await registrarLog('empresas', 'INSERT', result.data[0].id, dados); }
+        if (editId) { result = await supabaseClient.from('empresas').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('empresas').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Empresa atualizada!' : 'Empresa salva!'); e.target.reset(); document.getElementById('empresa-edit-id').value = ''; document.getElementById('empresa-cancel-btn').style.display = 'none'; carregarEmpresas(); carregarSelectEmpresas('contrato-empresa'); carregarSelectEmpresas('projeto-empresa'); carregarSelectEmpresas('diretor-empresa'); carregarSelectEmpresas('dc-empresa'); carregarSelectEmpresas('med-empresa'); }
     });
@@ -3014,7 +2895,7 @@
         if (!confirm('Tem certeza que deseja excluir esta empresa?')) return;
         const { error } = await supabaseClient.from('empresas').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { await registrarLog('empresas', 'DELETE', id, null); alert('Empresa excluída!'); carregarEmpresas(); }
+        else { alert('Empresa excluída!'); carregarEmpresas(); }
     }
 
     // ===================== CRUD DIRETORES =====================
@@ -3053,8 +2934,8 @@
         };
         if (!dados.empresa_id) { alert('Selecione uma empresa!'); return; }
         let result;
-        if (editId) { result = await supabaseClient.from('diretores').update(dados).eq('id', editId); if (!result.error) await registrarLog('diretores', 'UPDATE', editId, dados); } 
-        else { result = await supabaseClient.from('diretores').insert([dados]).select(); if (!result.error && result.data && result.data[0]) await registrarLog('diretores', 'INSERT', result.data[0].id, dados); }
+        if (editId) { result = await supabaseClient.from('diretores').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('diretores').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Diretor atualizado!' : 'Diretor salvo!'); e.target.reset(); document.getElementById('diretor-edit-id').value = ''; document.getElementById('diretor-cancel-btn').style.display = 'none'; carregarDiretores(); carregarSelectDiretores('contrato-diretor'); carregarSelectDiretores('projeto-diretor'); carregarSelectDiretores('dc-diretor'); carregarSelectDiretores('med-diretor'); }
     });
@@ -3072,7 +2953,7 @@
         if (!confirm('Tem certeza que deseja excluir este diretor?')) return;
         const { error } = await supabaseClient.from('diretores').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { await registrarLog('diretores', 'DELETE', id, null); alert('Diretor excluído!'); carregarDiretores(); carregarSelectDiretores('contrato-diretor'); carregarSelectDiretores('projeto-diretor'); carregarSelectDiretores('dc-diretor'); carregarSelectDiretores('med-diretor'); }
+        else { alert('Diretor excluído!'); carregarDiretores(); carregarSelectDiretores('contrato-diretor'); carregarSelectDiretores('projeto-diretor'); carregarSelectDiretores('dc-diretor'); carregarSelectDiretores('med-diretor'); }
     }
 
     // ===================== CRUD CONTRATOS =====================
@@ -3110,8 +2991,8 @@
         };
         if (!dados.empresa_id || !dados.diretor_id) { alert('Selecione empresa e diretor!'); return; }
         let result;
-        if (editId) { result = await supabaseClient.from('contratos').update(dados).eq('id', editId); if (!result.error) await registrarLog('contratos', 'UPDATE', editId, dados); } 
-        else { result = await supabaseClient.from('contratos').insert([dados]).select(); if (!result.error && result.data && result.data[0]) await registrarLog('contratos', 'INSERT', result.data[0].id, dados); }
+        if (editId) { result = await supabaseClient.from('contratos').update(dados).eq('id', editId); } 
+        else { result = await supabaseClient.from('contratos').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
         else { alert(editId ? 'Contrato atualizado!' : 'Contrato salvo!'); e.target.reset(); document.getElementById('contrato-edit-id').value = ''; document.getElementById('contrato-cancel-btn').style.display = 'none'; carregarContratos(); carregarSelectContratos('projeto-contrato'); }
     });
@@ -3130,7 +3011,7 @@
         if (!confirm('Tem certeza que deseja excluir este contrato?')) return;
         const { error } = await supabaseClient.from('contratos').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { await registrarLog('contratos', 'DELETE', id, null); alert('Contrato excluído!'); carregarContratos(); }
+        else { alert('Contrato excluído!'); carregarContratos(); }
     }
 
     // ===================== CRUD PROJETOS =====================
@@ -3178,10 +3059,8 @@
         let result;
         if (editId) { 
             result = await supabaseClient.from('projetos').update(dados).eq('id', editId); 
-            if (!result.error) await registrarLog('projetos', 'UPDATE', editId, dados);
         } else { 
-            result = await supabaseClient.from('projetos').insert([dados]).select(); 
-            if (!result.error && result.data && result.data[0]) await registrarLog('projetos', 'INSERT', result.data[0].id, dados);
+            result = await supabaseClient.from('projetos').insert([dados]); 
         }
         if (result.error) alert('Erro: ' + result.error.message);
         else { 
@@ -3210,7 +3089,6 @@
         const { error } = await supabaseClient.from('projetos').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
         else { 
-            await registrarLog('projetos', 'DELETE', id, null);
             alert('Projeto excluído!'); 
             carregarProjetos(); 
             carregarSelectProjetos('gestor-projeto');
@@ -3224,10 +3102,7 @@
     async function carregarGestoresLogictel() {
         const tbody = document.getElementById('tabela-gestores');
         tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-
-        // Busca explícita dos campos + relacionamento com projetos (fix: alguns clientes
-        // do PostgREST não resolvem corretamente o "*, projetos(nome)" quando há mais
-        // de uma FK possível na tabela; listar os campos evita ambiguidade)
+        
         const { data, error } = await supabaseClient
             .from('gestores_logictel')
             .select(`
@@ -3277,10 +3152,8 @@
         let result;
         if (editId) { 
             result = await supabaseClient.from('gestores_logictel').update(dados).eq('id', editId); 
-            if (!result.error) await registrarLog('gestores_logictel', 'UPDATE', editId, dados);
         } else { 
-            result = await supabaseClient.from('gestores_logictel').insert([dados]).select(); 
-            if (!result.error && result.data && result.data[0]) await registrarLog('gestores_logictel', 'INSERT', result.data[0].id, dados);
+            result = await supabaseClient.from('gestores_logictel').insert([dados]); 
         }
         if (result.error) alert('Erro: ' + result.error.message);
         else { 
@@ -3298,7 +3171,12 @@
     async function editarGestorLogictel(id) {
         const { data } = await supabaseClient
             .from('gestores_logictel')
-            .select('*, projetos(nome)')
+            .select(`
+                id,
+                nome,
+                projeto_id,
+                projetos(nome)
+            `)
             .eq('id', id)
             .single();
         if (!data) return;
@@ -3313,7 +3191,6 @@
         const { error } = await supabaseClient.from('gestores_logictel').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
         else { 
-            await registrarLog('gestores_logictel', 'DELETE', id, null);
             alert('Gestor excluído!'); 
             carregarGestoresLogictel(); 
             carregarSelectGestores('med-gestor', 'gestores_logictel');
@@ -3551,6 +3428,67 @@
                     </td>
                 </tr>`;
         });
+    }
+
+    // ===================== LOGS DE ATUALIZAÇÕES =====================
+    async function carregarLogsAtualizacoes() {
+        const container = document.getElementById('logs-container');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Carregando logs...</div>';
+        
+        const { data, error } = await supabaseClient
+            .from('logs_atualizacoes')
+            .select('*')
+            .order('criado_em', { ascending: false })
+            .limit(50);
+        
+        if (error) {
+            container.innerHTML = `<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar logs: ${error.message}</div>`;
+            return;
+        }
+        
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma atualização registrada ainda.</div>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="space-y-4">
+                <div class="bg-primary-100 p-4 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🔄</span>
+                        <div>
+                            <div class="font-semibold">Última atualização do banco</div>
+                            <div class="text-sm text-muted">${new Date(data[0].criado_em).toLocaleString('pt-BR')}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="font-semibold mb-2">Histórico de alterações (últimos 50)</div>
+                    <div class="space-y-1 max-h-96 overflow-y-auto">
+                        ${data.map(log => {
+                            const operacaoClass = log.operacao === 'INSERT' ? 'text-success' : 
+                                                 log.operacao === 'UPDATE' ? 'text-primary' : 'text-danger';
+                            const operacaoIcon = log.operacao === 'INSERT' ? '✅' : 
+                                                log.operacao === 'UPDATE' ? '✏️' : '🗑️';
+                            return `
+                                <div class="flex items-center justify-between text-sm py-1 px-2 hover:bg-gray-50 rounded">
+                                    <div class="flex items-center gap-2">
+                                        <span>${operacaoIcon}</span>
+                                        <span class="${operacaoClass} font-medium">${log.operacao}</span>
+                                        <span class="text-muted">${log.tabela}</span>
+                                        ${log.registro_id ? `<span class="text-xs text-muted">ID: ${log.registro_id}</span>` : ''}
+                                    </div>
+                                    <span class="text-xs text-muted">${new Date(log.criado_em).toLocaleString('pt-BR')}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     // ===================== CRUD USUÁRIOS =====================
