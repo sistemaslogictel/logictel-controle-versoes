@@ -1207,7 +1207,7 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO EMPRESA ===================== -->
+    <!-- ===================== CLIENTE: EMPRESA ===================== -->
     <div id="tab-adm-empresa" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Empresa</h2>
       <div class="card card-pad">
@@ -1230,7 +1230,7 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO DIRETOR CLIENTE ===================== -->
+    <!-- ===================== CLIENTE: DIRETOR CLIENTE ===================== -->
     <div id="tab-adm-diretor" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Diretor Cliente</h2>
       <div class="card card-pad">
@@ -1254,7 +1254,7 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO CONTRATO ===================== -->
+    <!-- ===================== CLIENTE: CONTRATO ===================== -->
     <div id="tab-adm-contrato" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Contrato</h2>
       <div class="card card-pad">
@@ -1279,13 +1279,14 @@
       </div>
     </div>
 
-    <!-- ===================== CADASTRO GESTOR LOGICTEL ===================== -->
+    <!-- ===================== LOGICTEL: GESTOR ===================== -->
     <div id="tab-adm-gestor" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor Logictel</h2>
       <div class="card card-pad">
         <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="hidden" id="gestor-edit-id" value="">
           <div><label class="label">Nome do Gestor *</label><input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input"></div>
+          <div><label class="label">Projeto (opcional)</label><select id="gestor-projeto" class="input"><option value="">Selecione...</option></select></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Gestor</button>
@@ -1295,24 +1296,24 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Gestor Logictel</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-gestores"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>ID</th><th>Gestor Logictel</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-gestores"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ===================== CADASTRO PROJETO ===================== -->
+    <!-- ===================== LOGICTEL: PROJETO ===================== -->
     <div id="tab-adm-projeto" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
       <div class="card card-pad">
         <form id="form-projeto" class="grid grid-cols-1 md:grid-cols-5 gap-4">
           <input type="hidden" id="projeto-edit-id" value="">
           <div><label class="label">Nome do Projeto *</label><input type="text" id="projeto-nome" required placeholder="Nome do projeto" class="input"></div>
-          <div><label class="label">Empresa *</label><select id="projeto-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Diretor *</label><select id="projeto-diretor" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Contrato *</label><select id="projeto-contrato" required class="input"><option value="">Selecione...</option></select></div>
           <div><label class="label">Gestor Logictel *</label><select id="projeto-gestor" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Empresa (opcional)</label><select id="projeto-empresa" class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Diretor (opcional)</label><select id="projeto-diretor" class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Contrato (opcional)</label><select id="projeto-contrato" class="input"><option value="">Selecione...</option></select></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('projeto')" class="btn-cancel" style="display:none;" id="projeto-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Projeto</button>
@@ -1322,7 +1323,7 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th>Empresa</th><th>Diretor</th><th>Contrato</th><th>Gestor Logictel</th><th class="text-right">Ações</th></tr></thead>
+            <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th>Gestor Logictel</th><th>Empresa</th><th>Diretor</th><th>Contrato</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-projetos"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -1610,9 +1611,11 @@
             { id: 'cadastros-cliente', label: 'Cadastro Cliente', icon: 'cliente', area: 'adm-cliente', type: 'flyout', children: [
                 { id: 'adm-empresa', label: 'Empresa', area: 'adm-cliente' },
                 { id: 'adm-diretor', label: 'Diretor Cliente', area: 'adm-cliente' },
-                { id: 'adm-contrato', label: 'Contrato', area: 'adm-cliente' },
-                { id: 'adm-projeto', label: 'Projeto', area: 'adm-cliente' },
-                { id: 'adm-gestor', label: 'Gestor Logictel', area: 'adm-cliente' }
+                { id: 'adm-contrato', label: 'Contrato', area: 'adm-cliente' }
+            ]},
+            { id: 'cadastros-logictel', label: 'Cadastro Logictel', icon: 'logictel', area: 'adm-cliente', type: 'flyout', children: [
+                { id: 'adm-gestor', label: 'Gestor Logictel', area: 'adm-cliente' },
+                { id: 'adm-projeto', label: 'Projeto', area: 'adm-cliente' }
             ]},
             { id: 'cadastros-status', label: 'Cadastro Status', icon: 'status', area: 'adm-status', type: 'flyout', children: [
                 { id: 'adm-status-dc', label: 'Status DC', area: 'adm-status' },
@@ -1637,6 +1640,7 @@
                 'historico': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
                 'adm': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
                 'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+                'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
                 'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
             };
             return icons[name] || '';
@@ -1879,8 +1883,8 @@
             'adm-empresa': 'adm-cliente',
             'adm-diretor': 'adm-cliente',
             'adm-contrato': 'adm-cliente',
-            'adm-projeto': 'adm-cliente',
             'adm-gestor': 'adm-cliente',
+            'adm-projeto': 'adm-cliente',
             'adm-status-dc': 'adm-status',
             'adm-status-med': 'adm-status',
             'adm-status-nf': 'adm-status'
@@ -1914,8 +1918,8 @@
         else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
         else if (nomeAba === 'adm-diretor') { carregarDiretores(); carregarSelectEmpresas('diretor-empresa'); }
         else if (nomeAba === 'adm-contrato') { carregarContratos(); carregarSelectEmpresas('contrato-empresa'); carregarSelectDiretores('contrato-diretor'); }
+        else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); carregarSelectProjetos('gestor-projeto'); }
         else if (nomeAba === 'adm-projeto') { carregarProjetos(); carregarSelectEmpresas('projeto-empresa'); carregarSelectDiretores('projeto-diretor'); carregarSelectContratos('projeto-contrato'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); }
-        else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); }
         else if (nomeAba === 'adm-status-dc') carregarStatusDC();
         else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
         else if (nomeAba === 'adm-status-nf') carregarStatusNF();
@@ -1945,6 +1949,7 @@
         carregarSelectContratos('projeto-contrato');
         carregarSelectProjetos('dc-projeto');
         carregarSelectProjetos('med-projeto');
+        carregarSelectProjetos('gestor-projeto');
         carregarSelectStatus('dc-status-dc', 'status_dc');
         carregarSelectStatus('dc-status-nf', 'status_nf');
         carregarSelectStatus('med-status', 'status_medicao');
@@ -1963,7 +1968,7 @@
         const { data } = await supabaseClient.from(tabela).select('*').order('nome');
         select.innerHTML = '<option value="">Selecione...</option>';
         if (data) data.forEach(s => {
-            select.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
+            select.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
         });
     }
 
@@ -1972,8 +1977,8 @@
         if (!select) return;
         const { data } = await supabaseClient.from(tabela).select('*').order('nome');
         select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(s => {
-            select.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
+        if (data) data.forEach(g => {
+            select.innerHTML += `<option value="${g.id}">${g.nome}</option>`;
         });
     }
 
@@ -1982,8 +1987,8 @@
         if (!select) return;
         const { data } = await supabaseClient.from('diretores').select('*, empresas(nome)').order('nome');
         select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(s => {
-            select.innerHTML += `<option value="${s.id}">${s.nome}${s.empresas?.nome ? ` (${s.empresas.nome})` : ''}</option>`;
+        if (data) data.forEach(d => {
+            select.innerHTML += `<option value="${d.id}">${d.nome}${d.empresas?.nome ? ` (${d.empresas.nome})` : ''}</option>`;
         });
     }
 
@@ -2053,34 +2058,41 @@
 
     // ===================== CARREGAR FILTROS =====================
     async function carregarFiltros() {
-        const { data: medicoes } = await supabaseClient.from('medicoes').select('projeto, gestor_logictel');
-        const { data: consumos } = await supabaseClient.from('consumo_dc').select('projeto, gestor_logictel');
-        const projetos = new Set();
-        const gestores = new Set();
+        const { data: projetos } = await supabaseClient.from('projetos').select('nome, gestores_logictel(nome)');
+        const projetosSet = new Set();
+        const gestoresSet = new Set();
         const anos = new Set([2025, 2026, 2027]);
-        if (medicoes) { medicoes.forEach(m => { if (m.projeto) projetos.add(m.projeto); if (m.gestor_logictel) gestores.add(m.gestor_logictel); }); }
-        if (consumos) { consumos.forEach(c => { if (c.projeto) projetos.add(c.projeto); if (c.gestor_logictel) gestores.add(c.gestor_logictel); }); }
+        
+        if (projetos) {
+            projetos.forEach(p => {
+                if (p.nome) projetosSet.add(p.nome);
+                if (p.gestores_logictel?.nome) gestoresSet.add(p.gestores_logictel.nome);
+            });
+        }
         
         const filtrosConfig = [
-            { id: 'filt-dash-gestor', values: gestores },
-            { id: 'filt-dash-projeto', values: projetos },
+            { id: 'filt-dash-gestor', values: gestoresSet },
+            { id: 'filt-dash-projeto', values: projetosSet },
             { id: 'filt-dash-ano', values: anos },
-            { id: 'filt-aprop-gestor', values: gestores },
-            { id: 'filt-aprop-projeto', values: projetos },
+            { id: 'filt-aprop-gestor', values: gestoresSet },
+            { id: 'filt-aprop-projeto', values: projetosSet },
             { id: 'filt-aprop-ano', values: anos },
-            { id: 'filt-don-gestor', values: gestores },
-            { id: 'filt-don-projeto', values: projetos },
+            { id: 'filt-don-gestor', values: gestoresSet },
+            { id: 'filt-don-projeto', values: projetosSet },
             { id: 'filt-don-ano', values: anos },
-            { id: 'filt-dcs-projeto', values: projetos },
-            { id: 'filt-dcs-gestor', values: gestores }
+            { id: 'filt-dcs-projeto', values: projetosSet },
+            { id: 'filt-dcs-gestor', values: gestoresSet }
         ];
+        
         filtrosConfig.forEach(({ id, values }) => {
             const select = document.getElementById(id);
             if (select) {
                 const currentValue = select.value;
                 select.innerHTML = '<option value="">Todos</option>';
                 const sorted = Array.from(values).sort();
-                sorted.forEach(v => { if (v) select.innerHTML += `<option value="${v}">${v}</option>`; });
+                sorted.forEach(v => { 
+                    if (v) select.innerHTML += `<option value="${v}">${v}</option>`; 
+                });
                 if (currentValue) select.value = currentValue;
             }
         });
@@ -2163,68 +2175,166 @@
     }
 
     // ===================== DASHBOARD PRINCIPAL =====================
-async function carregarFiltros() {
-    // Buscar dados das VIEWS
-    const { data: medicoes } = await supabaseClient.from('v_medicoes').select('projeto_id, gestor_logictel_id, projeto, gestor_logictel');
-    const { data: consumos } = await supabaseClient.from('v_consumo_dc').select('projeto_id, gestor_logictel_id, projeto, gestor_logictel');
-    const { data: projetos } = await supabaseClient.from('v_projetos').select('id, projeto, gestor_logictel');
-    
-    const projetosSet = new Set();
-    const gestoresSet = new Set();
-    const anos = new Set([2025, 2026, 2027]);
-    
-    if (medicoes) {
-        medicoes.forEach(m => {
-            if (m.projeto) projetosSet.add(m.projeto);
-            if (m.gestor_logictel) gestoresSet.add(m.gestor_logictel);
-        });
-    }
-    if (consumos) {
-        consumos.forEach(c => {
-            if (c.projeto) projetosSet.add(c.projeto);
-            if (c.gestor_logictel) gestoresSet.add(c.gestor_logictel);
-        });
-    }
-    
-    const filtrosConfig = [
-        { id: 'filt-dash-gestor', values: gestoresSet },
-        { id: 'filt-dash-projeto', values: projetosSet },
-        { id: 'filt-dash-ano', values: anos },
-        { id: 'filt-aprop-gestor', values: gestoresSet },
-        { id: 'filt-aprop-projeto', values: projetosSet },
-        { id: 'filt-aprop-ano', values: anos },
-        { id: 'filt-don-gestor', values: gestoresSet },
-        { id: 'filt-don-projeto', values: projetosSet },
-        { id: 'filt-don-ano', values: anos },
-        { id: 'filt-dcs-projeto', values: projetosSet },
-        { id: 'filt-dcs-gestor', values: gestoresSet }
-    ];
-    
-    filtrosConfig.forEach(({ id, values }) => {
-        const select = document.getElementById(id);
-        if (select) {
-            const currentValue = select.value;
-            select.innerHTML = '<option value="">Todos</option>';
-            const sorted = Array.from(values).sort();
-            sorted.forEach(v => { 
-                if (v) select.innerHTML += `<option value="${v}">${v}</option>`; 
-            });
-            if (currentValue) select.value = currentValue;
+    async function carregarDashboard() {
+        const tbody = document.getElementById('tabela-dashboard-corpo');
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
+
+        const filtroGestor = document.getElementById('filt-dash-gestor')?.value || '';
+        const filtroProjeto = document.getElementById('filt-dash-projeto')?.value || '';
+        const filtroAno = document.getElementById('filt-dash-ano')?.value || '';
+
+        // Buscar medições com JOINs
+        let query = supabaseClient.from('medicoes')
+            .select(`
+                id,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes,
+                ano,
+                valor,
+                empresas(nome),
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome)
+            `);
+        
+        if (filtroGestor) query = query.eq('gestores_logictel.nome', filtroGestor);
+        if (filtroProjeto) query = query.eq('projetos.nome', filtroProjeto);
+        if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
+        const { data: medicoes } = await query;
+
+        // Buscar consumos com JOINs
+        let queryConsumo = supabaseClient.from('consumo_dc')
+            .select(`
+                id,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes_apropriacao,
+                ano,
+                valor,
+                mes_medido,
+                empresas(nome),
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome)
+            `);
+        
+        if (filtroGestor) queryConsumo = queryConsumo.eq('gestores_logictel.nome', filtroGestor);
+        if (filtroProjeto) queryConsumo = queryConsumo.eq('projetos.nome', filtroProjeto);
+        if (filtroAno) queryConsumo = queryConsumo.eq('ano', parseInt(filtroAno));
+        const { data: consumos } = await queryConsumo;
+
+        registrarUltimaAtualizacao();
+
+        if (!medicoes || medicoes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
+            document.getElementById('stat-total-medido').innerText = 'R$ 0,00';
+            document.getElementById('stat-total-consumido').innerText = 'R$ 0,00';
+            document.getElementById('stat-saldo-total').innerText = 'R$ 0,00';
+            return;
         }
-    });
-}
-    // ===================== DASHBOARD DON =====================
-    async function carregarDashDON() {
-        const tbody = document.getElementById('tabela-dash-don');
+
+        let somaMedido = 0, somaConsumido = 0, linhas = [];
+        
+        medicoes.forEach(med => {
+            const valorMedicao = Number(med.valor || 0);
+            somaMedido += valorMedicao;
+            let totalConsumido = 0;
+            const detalhesMeses = {};
+            
+            if (consumos) {
+                consumos.forEach(c => {
+                    if (c.empresa_id === med.empresa_id && 
+                        c.gestor_logictel_id === med.gestor_logictel_id && 
+                        c.projeto_id === med.projeto_id && 
+                        c.ano === med.ano) {
+                        totalConsumido += Number(c.valor || 0);
+                        const mesKey = `${c.mes_medido}`;
+                        detalhesMeses[mesKey] = (detalhesMeses[mesKey] || 0) + Number(c.valor || 0);
+                    }
+                });
+            }
+            somaConsumido += totalConsumido;
+            const saldo = valorMedicao - totalConsumido;
+            
+            const mesesComSaldo = Object.entries(detalhesMeses)
+                .filter(([_, val]) => val !== 0)
+                .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
+                .join('; ');
+            
+            linhas.push({
+                gestor: med.gestores_logictel?.nome || 'N/A',
+                projeto: med.projetos?.nome || 'N/A',
+                descricao: med.projetos?.nome || '',
+                empresa: med.empresas?.nome || 'N/A',
+                diretor: med.diretores?.nome || 'N/A',
+                ano: med.ano || 'N/A',
+                valor: saldo,
+                meses: mesesComSaldo || 'Sem saldo'
+            });
+        });
+
+        tbody.innerHTML = '';
+        let totalGeral = 0;
+        linhas.forEach(row => {
+            totalGeral += row.valor;
+            const valorClass = row.valor < 0 ? 'valor-negativo' : 'valor-positivo';
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${row.gestor}</td>
+                    <td>${row.projeto}</td>
+                    <td>${row.descricao}</td>
+                    <td>${row.empresa}</td>
+                    <td>${row.diretor}</td>
+                    <td class="text-right">${row.ano}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${row.valor.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right" style="font-size:11px;color:var(--text-soft);">${row.meses}</td>
+                </tr>
+            `;
+        });
+        if (linhas.length > 0) {
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
+        }
+
+        document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedido.toLocaleString('pt-BR', {minFractionDigits: 2});
+        document.getElementById('stat-total-consumido').innerText = 'R$ ' + somaConsumido.toLocaleString('pt-BR', {minFractionDigits: 2});
+        const saldoTotal = somaMedido - somaConsumido;
+        const statSaldo = document.getElementById('stat-saldo-total');
+        statSaldo.innerText = 'R$ ' + saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
+        statSaldo.style.color = saldoTotal < 0 ? 'var(--danger)' : 'var(--success)';
+    }
+
+    // ===================== DASHBOARD APROPRIAÇÃO =====================
+    async function carregarDashApropriacao() {
+        const tbody = document.getElementById('tabela-dash-apropriacao');
         tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
-        const filtroGestor = document.getElementById('filt-don-gestor')?.value || '';
-        const filtroProjeto = document.getElementById('filt-don-projeto')?.value || '';
-        const filtroAno = document.getElementById('filt-don-ano')?.value || '';
+        const filtroGestor = document.getElementById('filt-aprop-gestor')?.value || '';
+        const filtroProjeto = document.getElementById('filt-aprop-projeto')?.value || '';
+        const filtroAno = document.getElementById('filt-aprop-ano')?.value || '';
 
-        let query = supabaseClient.from('consumo_dc').select('*');
-        if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
-        if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
+        let query = supabaseClient.from('consumo_dc')
+            .select(`
+                id,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes_apropriacao,
+                ano,
+                valor,
+                empresas(nome),
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome)
+            `);
+        
+        if (filtroGestor) query = query.eq('gestores_logictel.nome', filtroGestor);
+        if (filtroProjeto) query = query.eq('projetos.nome', filtroProjeto);
         if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
         const { data: consumos } = await query;
 
@@ -2236,14 +2346,98 @@ async function carregarFiltros() {
 
         const grupos = {};
         consumos.forEach(c => {
-            const key = `${c.gestor_logictel}|${c.projeto}|${c.empresa}`;
+            const key = `${c.gestores_logictel?.nome}|${c.projetos?.nome}|${c.empresas?.nome}`;
             if (!grupos[key]) {
                 grupos[key] = { 
-                    gestor: c.gestor_logictel || 'N/A', 
-                    projeto: c.projeto || 'N/A', 
-                    descricao: c.projeto || '', 
-                    empresa: c.empresa || 'N/A', 
-                    diretor: c.gestor || 'N/A',
+                    gestor: c.gestores_logictel?.nome || 'N/A', 
+                    projeto: c.projetos?.nome || 'N/A', 
+                    descricao: c.projetos?.nome || '', 
+                    empresa: c.empresas?.nome || 'N/A', 
+                    diretor: c.diretores?.nome || 'N/A',
+                    ano: c.ano || 'N/A',
+                    total: 0, 
+                    meses: {} 
+                };
+            }
+            const mesKey = `${c.mes_apropriacao}`;
+            grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + Number(c.valor || 0);
+            grupos[key].total += Number(c.valor || 0);
+        });
+
+        tbody.innerHTML = '';
+        let totalGeral = 0;
+        Object.values(grupos).forEach(g => {
+            totalGeral += g.total;
+            const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
+            const mesesStr = Object.entries(g.meses)
+                .filter(([_, val]) => val !== 0)
+                .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
+                .join('; ');
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
+                    <td>${g.projeto}</td>
+                    <td>${g.descricao}</td>
+                    <td>${g.empresa}</td>
+                    <td>${g.diretor}</td>
+                    <td class="text-right">${g.ano}</td>
+                    <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    <td class="text-right" style="font-size:11px;color:var(--text-soft);">${mesesStr || 'Sem meses'}</td>
+                </tr>
+            `;
+        });
+        if (Object.values(grupos).length > 0) {
+            tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalGeral < 0 ? 'valor-negativo' : 'valor-positivo'}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
+        }
+    }
+
+    // ===================== DASHBOARD DON =====================
+    async function carregarDashDON() {
+        const tbody = document.getElementById('tabela-dash-don');
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+
+        const filtroGestor = document.getElementById('filt-don-gestor')?.value || '';
+        const filtroProjeto = document.getElementById('filt-don-projeto')?.value || '';
+        const filtroAno = document.getElementById('filt-don-ano')?.value || '';
+
+        let query = supabaseClient.from('consumo_dc')
+            .select(`
+                id,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes_apropriacao,
+                ano,
+                valor,
+                mes_medido,
+                empresas(nome),
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome)
+            `);
+        
+        if (filtroGestor) query = query.eq('gestores_logictel.nome', filtroGestor);
+        if (filtroProjeto) query = query.eq('projetos.nome', filtroProjeto);
+        if (filtroAno) query = query.eq('ano', parseInt(filtroAno));
+        const { data: consumos } = await query;
+
+        registrarUltimaAtualizacao();
+        if (!consumos || consumos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+            return;
+        }
+
+        const grupos = {};
+        consumos.forEach(c => {
+            const key = `${c.gestores_logictel?.nome}|${c.projetos?.nome}|${c.empresas?.nome}`;
+            if (!grupos[key]) {
+                grupos[key] = { 
+                    gestor: c.gestores_logictel?.nome || 'N/A', 
+                    projeto: c.projetos?.nome || 'N/A', 
+                    descricao: c.projetos?.nome || '', 
+                    empresa: c.empresas?.nome || 'N/A', 
+                    diretor: c.diretores?.nome || 'N/A',
                     ano: c.ano || 'N/A',
                     total: 0, 
                     meses: {} 
@@ -2295,8 +2489,31 @@ async function carregarFiltros() {
     async function carregarMedicoes() {
         const tbody = document.getElementById('tabela-medicoes');
         tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('medicoes').select('*').order('id', { ascending: false });
-        if (error) { tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        
+        const { data, error } = await supabaseClient
+            .from('medicoes')
+            .select(`
+                id,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes,
+                ano,
+                valor,
+                data_email_medicao,
+                status_medicao,
+                empresas(nome),
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome)
+            `)
+            .order('id', { ascending: false });
+        
+        if (error) { 
+            tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; 
+            return; 
+        }
         if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>';
             return;
@@ -2306,10 +2523,10 @@ async function carregarFiltros() {
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td>${m.id}</td>
-                    <td>${m.empresa}</td>
-                    <td>${m.projeto || '-'}</td>
-                    <td>${m.gestor_logictel || '-'}</td>
-                    <td>${m.gestor || '-'}</td>
+                    <td>${m.empresas?.nome || '-'}</td>
+                    <td>${m.projetos?.nome || '-'}</td>
+                    <td>${m.gestores_logictel?.nome || '-'}</td>
+                    <td>${m.diretores?.nome || '-'}</td>
                     <td>${m.mes}</td>
                     <td>${m.ano}</td>
                     <td>${m.status_medicao || '-'}</td>
@@ -2327,17 +2544,19 @@ async function carregarFiltros() {
     document.getElementById('form-medicao').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('med-edit-id').value;
+        
         const dados = {
-            empresa: document.getElementById('med-empresa').value,
-            projeto: document.getElementById('med-projeto').value,
-            gestor_logictel: document.getElementById('med-gestor').value,
-            gestor: document.getElementById('med-diretor').value || null,
+            empresa_id: document.getElementById('med-empresa').value,
+            projeto_id: document.getElementById('med-projeto').value,
+            gestor_logictel_id: document.getElementById('med-gestor').value,
+            diretor_id: document.getElementById('med-diretor').value || null,
             mes: document.getElementById('med-mes').value,
             ano: document.getElementById('med-ano').value,
             valor: valorParaNumero(document.getElementById('med-valor').value),
             data_email_medicao: document.getElementById('med-data-email').value || null,
             status_medicao: document.getElementById('med-status').value
         };
+        
         let result;
         if (editId) {
             result = await supabaseClient.from('medicoes').update(dados).eq('id', editId);
@@ -2345,18 +2564,41 @@ async function carregarFiltros() {
             result = await supabaseClient.from('medicoes').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Medição atualizada!' : 'Medição salva!'); e.target.reset(); document.getElementById('med-edit-id').value = ''; document.getElementById('med-cancel-btn').style.display = 'none'; carregarMedicoes(); carregarFiltros(); }
+        else { 
+            alert(editId ? 'Medição atualizada!' : 'Medição salva!'); 
+            e.target.reset(); 
+            document.getElementById('med-edit-id').value = ''; 
+            document.getElementById('med-cancel-btn').style.display = 'none'; 
+            carregarMedicoes(); 
+            carregarFiltros(); 
+        }
         aplicarMascaras();
     });
 
     async function editarMedicao(id) {
-        const { data } = await supabaseClient.from('medicoes').select('*').eq('id', id).single();
+        const { data } = await supabaseClient
+            .from('medicoes')
+            .select(`
+                id,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes,
+                ano,
+                valor,
+                data_email_medicao,
+                status_medicao
+            `)
+            .eq('id', id)
+            .single();
         if (!data) return;
+        
         document.getElementById('med-edit-id').value = id;
-        document.getElementById('med-empresa').value = data.empresa;
-        document.getElementById('med-projeto').value = data.projeto || '';
-        document.getElementById('med-gestor').value = data.gestor_logictel || '';
-        document.getElementById('med-diretor').value = data.gestor || '';
+        document.getElementById('med-empresa').value = data.empresa_id || '';
+        document.getElementById('med-projeto').value = data.projeto_id || '';
+        document.getElementById('med-gestor').value = data.gestor_logictel_id || '';
+        document.getElementById('med-diretor').value = data.diretor_id || '';
         document.getElementById('med-mes').value = data.mes;
         document.getElementById('med-ano').value = data.ano;
         document.getElementById('med-valor').value = Number(data.valor).toLocaleString('pt-BR', {minFractionDigits: 2});
@@ -2376,8 +2618,41 @@ async function carregarFiltros() {
     async function carregarConsumos() {
         const tbody = document.getElementById('tabela-consumos');
         tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('consumo_dc').select('*').order('id', { ascending: false });
-        if (error) { tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        
+        const { data, error } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id,
+                dc,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes_apropriacao,
+                ano,
+                valor,
+                mes_medido,
+                data_solicitacao_faturamento,
+                status_dc,
+                status_nf,
+                num_nf,
+                data_emissao_nf,
+                centro_custo,
+                item,
+                folha_registro,
+                po,
+                ultima_atualizacao,
+                empresas(nome),
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome)
+            `)
+            .order('id', { ascending: false });
+        
+        if (error) { 
+            tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; 
+            return; 
+        }
         if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>';
             return;
@@ -2388,9 +2663,9 @@ async function carregarFiltros() {
                 <tr class="td-row">
                     <td>${c.id}</td>
                     <td>${c.dc}</td>
-                    <td>${c.projeto}</td>
-                    <td>${c.gestor_logictel || '-'}</td>
-                    <td>${c.gestor || '-'}</td>
+                    <td>${c.projetos?.nome || '-'}</td>
+                    <td>${c.gestores_logictel?.nome || '-'}</td>
+                    <td>${c.diretores?.nome || '-'}</td>
                     <td>${c.mes_apropriacao}</td>
                     <td>${c.ano}</td>
                     <td>${c.mes_medido}</td>
@@ -2412,12 +2687,13 @@ async function carregarFiltros() {
         e.preventDefault();
         const editId = document.getElementById('consumo-edit-id').value;
         const agora = new Date().toISOString();
+        
         const dados = {
             dc: document.getElementById('dc-numero').value,
-            empresa: document.getElementById('dc-empresa').value,
-            projeto: document.getElementById('dc-projeto').value,
-            gestor_logictel: document.getElementById('dc-gestor').value,
-            gestor: document.getElementById('dc-diretor').value || null,
+            empresa_id: document.getElementById('dc-empresa').value,
+            projeto_id: document.getElementById('dc-projeto').value,
+            gestor_logictel_id: document.getElementById('dc-gestor').value,
+            diretor_id: document.getElementById('dc-diretor').value || null,
             mes_apropriacao: document.getElementById('dc-mes-apropriacao').value,
             ano: document.getElementById('dc-ano').value,
             valor: valorParaNumero(document.getElementById('dc-valor').value),
@@ -2433,6 +2709,7 @@ async function carregarFiltros() {
             po: document.getElementById('dc-po').value || null,
             ultima_atualizacao: agora
         };
+        
         let result;
         if (editId) {
             result = await supabaseClient.from('consumo_dc').update(dados).eq('id', editId);
@@ -2440,19 +2717,54 @@ async function carregarFiltros() {
             result = await supabaseClient.from('consumo_dc').insert([dados]);
         }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); e.target.reset(); document.getElementById('consumo-edit-id').value = ''; document.getElementById('consumo-cancel-btn').style.display = 'none'; document.getElementById('campos-extras-consumo').classList.remove('visible'); controlarCamposNF(); carregarConsumos(); carregarFiltros(); carregarDCCards(); }
+        else { 
+            alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!'); 
+            e.target.reset(); 
+            document.getElementById('consumo-edit-id').value = ''; 
+            document.getElementById('consumo-cancel-btn').style.display = 'none'; 
+            document.getElementById('campos-extras-consumo').classList.remove('visible'); 
+            controlarCamposNF(); 
+            carregarConsumos(); 
+            carregarFiltros(); 
+            carregarDCCards(); 
+        }
         aplicarMascaras();
     });
 
     async function editarConsumo(id) {
-        const { data } = await supabaseClient.from('consumo_dc').select('*').eq('id', id).single();
+        const { data } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id,
+                dc,
+                empresa_id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes_apropriacao,
+                ano,
+                valor,
+                mes_medido,
+                data_solicitacao_faturamento,
+                status_dc,
+                status_nf,
+                num_nf,
+                data_emissao_nf,
+                centro_custo,
+                item,
+                folha_registro,
+                po
+            `)
+            .eq('id', id)
+            .single();
         if (!data) return;
+        
         document.getElementById('consumo-edit-id').value = id;
         document.getElementById('dc-numero').value = data.dc;
-        document.getElementById('dc-empresa').value = data.empresa;
-        document.getElementById('dc-projeto').value = data.projeto;
-        document.getElementById('dc-gestor').value = data.gestor_logictel || '';
-        document.getElementById('dc-diretor').value = data.gestor || '';
+        document.getElementById('dc-empresa').value = data.empresa_id || '';
+        document.getElementById('dc-projeto').value = data.projeto_id || '';
+        document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
+        document.getElementById('dc-diretor').value = data.diretor_id || '';
         document.getElementById('dc-mes-apropriacao').value = data.mes_apropriacao;
         document.getElementById('dc-ano').value = data.ano;
         document.getElementById('dc-valor').value = Number(data.valor).toLocaleString('pt-BR', {minFractionDigits: 2});
@@ -2680,11 +2992,11 @@ async function carregarFiltros() {
     // ===================== CRUD GESTORES LOGICTEL =====================
     async function carregarGestoresLogictel() {
         const tbody = document.getElementById('tabela-gestores');
-        tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
-        const { data, error } = await supabaseClient.from('gestores_logictel').select('*').order('id', { ascending: true });
-        if (error) { tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
+        tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        const { data, error } = await supabaseClient.from('gestores_logictel').select('*, projetos(nome)').order('id', { ascending: true });
+        if (error) { tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; return; }
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Nenhum gestor cadastrado.</td></tr>';
             return;
         }
         tbody.innerHTML = '';
@@ -2693,6 +3005,7 @@ async function carregarFiltros() {
                 <tr class="td-row">
                     <td>${g.id}</td>
                     <td>${g.nome}</td>
+                    <td>${g.projetos?.nome || '-'}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
                             <button onclick="editarGestorLogictel(${g.id})" class="btn-edit">Editar</button>
@@ -2706,12 +3019,16 @@ async function carregarFiltros() {
     document.getElementById('form-gestor').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('gestor-edit-id').value;
-        const dados = { nome: document.getElementById('gestor-nome').value };
+        const dados = { 
+            nome: document.getElementById('gestor-nome').value,
+            projeto_id: document.getElementById('gestor-projeto').value || null
+        };
+        if (!dados.nome) { alert('Nome do Gestor é obrigatório!'); return; }
         let result;
         if (editId) { result = await supabaseClient.from('gestores_logictel').update(dados).eq('id', editId); } 
         else { result = await supabaseClient.from('gestores_logictel').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestoresLogictel(); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); }
+        else { alert(editId ? 'Gestor atualizado!' : 'Gestor salvo!'); e.target.reset(); document.getElementById('gestor-edit-id').value = ''; document.getElementById('gestor-cancel-btn').style.display = 'none'; carregarGestoresLogictel(); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); carregarFiltros(); }
     });
 
     async function editarGestorLogictel(id) {
@@ -2719,6 +3036,7 @@ async function carregarFiltros() {
         if (!data) return;
         document.getElementById('gestor-edit-id').value = id;
         document.getElementById('gestor-nome').value = data.nome;
+        document.getElementById('gestor-projeto').value = data.projeto_id || '';
         document.getElementById('gestor-cancel-btn').style.display = 'inline-block';
     }
 
@@ -2726,7 +3044,7 @@ async function carregarFiltros() {
         if (!confirm('Tem certeza que deseja excluir este gestor?')) return;
         const { error } = await supabaseClient.from('gestores_logictel').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Gestor excluído!'); carregarGestoresLogictel(); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); }
+        else { alert('Gestor excluído!'); carregarGestoresLogictel(); carregarSelectGestores('med-gestor', 'gestores_logictel'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectGestores('projeto-gestor', 'gestores_logictel'); carregarFiltros(); }
     }
 
     // ===================== CRUD PROJETOS =====================
@@ -2742,10 +3060,10 @@ async function carregarFiltros() {
                 <tr class="td-row">
                     <td>${p.id}</td>
                     <td>${p.nome}</td>
-                    <td>${p.empresas?.nome || 'N/A'}</td>
-                    <td>${p.diretores?.nome || 'N/A'}</td>
-                    <td>${p.contratos?.numero || 'N/A'}</td>
-                    <td>${p.gestores_logictel?.nome || 'N/A'}</td>
+                    <td>${p.gestores_logictel?.nome || '-'}</td>
+                    <td>${p.empresas?.nome || '-'}</td>
+                    <td>${p.diretores?.nome || '-'}</td>
+                    <td>${p.contratos?.numero || '-'}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
                             <button onclick="editarProjeto(${p.id})" class="btn-edit">Editar</button>
@@ -2760,21 +3078,21 @@ async function carregarFiltros() {
         e.preventDefault();
         const editId = document.getElementById('projeto-edit-id').value;
         const dados = { 
-            nome: document.getElementById('projeto-nome').value, 
-            empresa_id: document.getElementById('projeto-empresa').value,
-            diretor_id: document.getElementById('projeto-diretor').value,
-            contrato_id: document.getElementById('projeto-contrato').value,
-            gestor_id: document.getElementById('projeto-gestor').value
+            nome: document.getElementById('projeto-nome').value,
+            gestor_id: document.getElementById('projeto-gestor').value,
+            empresa_id: document.getElementById('projeto-empresa').value || null,
+            diretor_id: document.getElementById('projeto-diretor').value || null,
+            contrato_id: document.getElementById('projeto-contrato').value || null
         };
-        if (!dados.empresa_id || !dados.diretor_id || !dados.contrato_id || !dados.gestor_id) {
-            alert('Selecione todos os campos!');
+        if (!dados.nome || !dados.gestor_id) {
+            alert('Nome do Projeto e Gestor Logictel são obrigatórios!');
             return;
         }
         let result;
         if (editId) { result = await supabaseClient.from('projetos').update(dados).eq('id', editId); } 
         else { result = await supabaseClient.from('projetos').insert([dados]); }
         if (result.error) alert('Erro: ' + result.error.message);
-        else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('dc-projeto'); carregarSelectProjetos('med-projeto'); carregarFiltros(); }
+        else { alert(editId ? 'Projeto atualizado!' : 'Projeto salvo!'); e.target.reset(); document.getElementById('projeto-edit-id').value = ''; document.getElementById('projeto-cancel-btn').style.display = 'none'; carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('dc-projeto'); carregarSelectProjetos('med-projeto'); carregarFiltros(); }
     });
 
     async function editarProjeto(id) {
@@ -2782,10 +3100,10 @@ async function carregarFiltros() {
         if (!data) return;
         document.getElementById('projeto-edit-id').value = id;
         document.getElementById('projeto-nome').value = data.nome;
-        document.getElementById('projeto-empresa').value = data.empresa_id;
+        document.getElementById('projeto-gestor').value = data.gestor_id || '';
+        document.getElementById('projeto-empresa').value = data.empresa_id || '';
         document.getElementById('projeto-diretor').value = data.diretor_id || '';
         document.getElementById('projeto-contrato').value = data.contrato_id || '';
-        document.getElementById('projeto-gestor').value = data.gestor_id || '';
         document.getElementById('projeto-cancel-btn').style.display = 'inline-block';
     }
 
@@ -2793,7 +3111,7 @@ async function carregarFiltros() {
         if (!confirm('Tem certeza que deseja excluir este projeto?')) return;
         const { error } = await supabaseClient.from('projetos').delete().eq('id', id);
         if (error) alert('Erro: ' + error.message);
-        else { alert('Projeto excluído!'); carregarProjetos(); carregarSelectProjetos('dc-projeto'); carregarSelectProjetos('med-projeto'); carregarFiltros(); }
+        else { alert('Projeto excluído!'); carregarProjetos(); carregarSelectProjetos('gestor-projeto'); carregarSelectProjetos('dc-projeto'); carregarSelectProjetos('med-projeto'); carregarFiltros(); }
     }
 
     // ===================== CRUD STATUS =====================
