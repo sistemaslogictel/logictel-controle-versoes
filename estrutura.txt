@@ -1,0 +1,22 @@
+logictel-sistema/
+├── index.html
+├── assets/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── config.js
+│       ├── auth.js
+│       ├── database.js
+│       ├── components.js
+│       ├── dashboard.js
+│       ├── medicoes.js
+│       ├── consumo.js
+│       ├── cadastros.js
+│       ├── gestores.js
+│       ├── projetos.js
+│       ├── status.js
+│       ├── historico.js
+│       ├── logs.js
+│       └── main.js
+└── assets/
+    └── logo.png
