@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.4 - Controle de Medições e DCs - Logictel</title>
+<title>V.5 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -707,7 +707,7 @@
   }
 
   /* =====================================================
-     NOVO ESTILO DAS DASHBOARDS - ESTILO IMAGEM
+     ESTILO DAS DASHBOARDS
      ===================================================== */
   .dash-table-container {
     overflow-x: auto;
@@ -718,6 +718,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    min-width: 600px;
   }
   
   .dash-table-container thead th {
@@ -739,6 +740,11 @@
     text-align: right;
   }
   
+  .dash-table-container thead th.mes-header {
+    text-align: right;
+    min-width: 80px;
+  }
+  
   .dash-table-container tbody td {
     padding: 10px 14px;
     border-bottom: 1px solid var(--border);
@@ -750,6 +756,13 @@
     text-align: right;
     font-weight: 600;
     font-family: 'IBM Plex Mono', monospace;
+  }
+  
+  .dash-table-container tbody td.mes-coluna {
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    min-width: 80px;
   }
   
   .dash-table-container tbody tr:hover {
@@ -783,13 +796,6 @@
     color: var(--text-soft);
   }
 
-  .dash-table-container .mes-coluna {
-    text-align: right;
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 500;
-    min-width: 80px;
-  }
-
   .dash-table-container .gestor-coluna {
     font-weight: 600;
     color: var(--text);
@@ -797,12 +803,6 @@
 
   .dash-table-container .projeto-coluna {
     font-weight: 500;
-  }
-
-  /* Cabeçalho dos meses na tabela */
-  .dash-table-container .mes-header {
-    text-align: right;
-    min-width: 80px;
   }
 
   .dash-table-container .descricao-coluna {
@@ -945,7 +945,7 @@
       padding: 6px 8px;
       font-size: 11px;
     }
-    .dash-table-container .mes-coluna {
+    .dash-table-container td.mes-coluna {
       min-width: 60px;
     }
   }
@@ -1064,11 +1064,10 @@
         </div>
       </div>
 
-      <!-- Tabela estilo imagem -->
       <div class="card">
         <div class="dash-table-container">
           <table>
-            <thead>
+            <thead id="dash-header">
               <tr>
                 <th>Gestão</th>
                 <th>Projeto</th>
@@ -1102,7 +1101,7 @@
       <div class="card">
         <div class="dash-table-container">
           <table>
-            <thead>
+            <thead id="aprop-header">
               <tr>
                 <th>Gestão</th>
                 <th>Projeto</th>
@@ -1136,7 +1135,7 @@
       <div class="card">
         <div class="dash-table-container">
           <table>
-            <thead>
+            <thead id="don-header">
               <tr>
                 <th>Gestão</th>
                 <th>Projeto</th>
@@ -2454,7 +2453,6 @@
         tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
 
         try {
-            // Buscar medições e consumos
             const { data: medicoes, error: errorMed } = await supabaseClient
                 .from('medicoes')
                 .select(`
@@ -2491,9 +2489,10 @@
                 return;
             }
 
-            // Agrupar por gestor, projeto, empresa, ano
             const grupos = {};
             const todosMeses = new Set();
+            const mesesOrdem = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
             
             medicoes.forEach(med => {
                 const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.empresa_id}|${med.ano}`;
@@ -2508,17 +2507,15 @@
                         empresa: med.empresas?.nome || 'N/A',
                         ano: med.ano || 'N/A',
                         meses: {},
-                        totalMedido: 0,
-                        totalConsumido: 0
+                        totalSaldo: 0
                     };
                 }
                 
                 const valorMedicao = Number(med.valor || 0);
                 grupos[key].meses[mesKey] = { medicao: valorMedicao, consumo: 0 };
-                grupos[key].totalMedido += valorMedicao;
+                grupos[key].totalSaldo += valorMedicao;
             });
 
-            // Adicionar consumos aos grupos
             if (consumos) {
                 consumos.forEach(c => {
                     const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
@@ -2526,62 +2523,88 @@
                     
                     if (grupos[key] && grupos[key].meses[mesKey]) {
                         grupos[key].meses[mesKey].consumo += Number(c.valor || 0);
-                        grupos[key].totalConsumido += Number(c.valor || 0);
                     }
                 });
             }
 
-            // Ordenar meses
-            const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
-                                    .filter(m => todosMeses.has(m));
+            Object.values(grupos).forEach(g => {
+                let saldoAcumulado = 0;
+                const mesesGrupo = Object.keys(g.meses).sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+                
+                mesesGrupo.forEach(mes => {
+                    const med = g.meses[mes].medicao || 0;
+                    const cons = g.meses[mes].consumo || 0;
+                    const saldo = med + cons;
+                    saldoAcumulado += saldo;
+                    g.meses[mes].saldo = saldo;
+                    g.meses[mes].saldoAcumulado = saldoAcumulado;
+                });
+                
+                g.totalSaldo = saldoAcumulado;
+            });
 
-            // Atualizar cabeçalho
-            document.getElementById('header-mes1').textContent = mesesOrdenados[0] || 'Mês 1';
-            document.getElementById('header-mes2').textContent = mesesOrdenados[1] || 'Mês 2';
+            const mesesExibir = Array.from(todosMeses).sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
 
-            // Montar tabela
+            const headerRow = document.querySelector('#dash-header');
+            if (headerRow) {
+                let html = '<tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>';
+                mesesExibir.forEach(mes => {
+                    html += `<th class="mes-header">${mes}</th>`;
+                });
+                html += '<th>Total Geral</th></tr>';
+                headerRow.innerHTML = html;
+            }
+
             tbody.innerHTML = '';
             let totalGeral = 0;
-            const mesesExibir = mesesOrdenados.slice(0, 2);
             
             Object.values(grupos).forEach(g => {
-                const saldoTotal = g.totalMedido - g.totalConsumido;
-                totalGeral += saldoTotal;
+                totalGeral += g.totalSaldo;
                 
-                const valoresMeses = mesesExibir.map(mes => {
-                    if (g.meses[mes]) {
-                        const saldo = g.meses[mes].medicao - g.meses[mes].consumo;
-                        return saldo;
-                    }
-                    return 0;
-                });
-
-                const valorClass = saldoTotal < 0 ? 'valor-negativo' : (saldoTotal > 0 ? 'valor-positivo' : 'valor-zero');
-                
-                tbody.innerHTML += `
+                let html = `
                     <tr class="td-row">
                         <td class="gestor-coluna">${g.gestor}</td>
                         <td class="projeto-coluna">${g.projeto}</td>
                         <td class="descricao-coluna">${g.descricao}</td>
                         <td class="empresa-coluna">${g.empresa}</td>
-                        <td class="mes-coluna ${valoresMeses[0] < 0 ? 'valor-negativo' : (valoresMeses[0] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[0] !== 0 ? valoresMeses[0].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
-                        <td class="mes-coluna ${valoresMeses[1] < 0 ? 'valor-negativo' : (valoresMeses[1] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[1] !== 0 ? valoresMeses[1].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
-                        <td class="${valorClass}">${saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                `;
+                
+                mesesExibir.forEach(mes => {
+                    const saldo = g.meses[mes]?.saldo || 0;
+                    const valorClass = saldo < 0 ? 'valor-negativo' : (saldo > 0 ? 'valor-positivo' : 'valor-zero');
+                    const displayValor = saldo !== 0 ? saldo.toLocaleString('pt-BR', {minFractionDigits: 2}) : '-';
+                    html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
+                });
+                
+                const totalClass = g.totalSaldo < 0 ? 'valor-negativo' : (g.totalSaldo > 0 ? 'valor-positivo' : 'valor-zero');
+                html += `
+                        <td class="${totalClass}">${g.totalSaldo.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     </tr>
                 `;
+                
+                tbody.innerHTML += html;
             });
 
-            // Linha total
             const totalClass = totalGeral < 0 ? 'valor-negativo' : (totalGeral > 0 ? 'valor-positivo' : 'valor-zero');
-            tbody.innerHTML += `
+            let totalHtml = `
                 <tr class="total-row">
                     <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
-                    <td class="mes-coluna"></td>
-                    <td class="mes-coluna"></td>
+            `;
+            
+            mesesExibir.forEach(mes => {
+                let totalMes = 0;
+                Object.values(grupos).forEach(g => {
+                    totalMes += g.meses[mes]?.saldo || 0;
+                });
+                const mesClass = totalMes < 0 ? 'valor-negativo' : (totalMes > 0 ? 'valor-positivo' : 'valor-zero');
+                totalHtml += `<td class="mes-coluna ${mesClass}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>`;
+            });
+            
+            totalHtml += `
                     <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
+            tbody.innerHTML += totalHtml;
 
             registrarUltimaAtualizacao();
         } catch (e) {
@@ -2625,9 +2648,10 @@
                 return;
             }
 
-            // Agrupar por gestor, projeto, empresa, ano
             const grupos = {};
             const todosMeses = new Set();
+            const mesesOrdem = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
             consumos.forEach(c => {
                 const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
@@ -2651,48 +2675,68 @@
                 grupos[key].total += valor;
             });
 
-            // Ordenar meses
-            const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
-                                    .filter(m => todosMeses.has(m));
+            const mesesExibir = Array.from(todosMeses).sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
 
-            // Atualizar cabeçalho
-            document.getElementById('header-aprop-mes1').textContent = mesesOrdenados[0] || 'Mês 1';
-            document.getElementById('header-aprop-mes2').textContent = mesesOrdenados[1] || 'Mês 2';
+            const headerRow = document.querySelector('#aprop-header');
+            if (headerRow) {
+                let html = '<tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>';
+                mesesExibir.forEach(mes => {
+                    html += `<th class="mes-header">${mes}</th>`;
+                });
+                html += '<th>Total Geral</th></tr>';
+                headerRow.innerHTML = html;
+            }
 
-            // Montar tabela
             tbody.innerHTML = '';
             let totalGeral = 0;
-            const mesesExibir = mesesOrdenados.slice(0, 2);
 
             Object.values(grupos).forEach(g => {
                 totalGeral += g.total;
-                const valorClass = g.total < 0 ? 'valor-negativo' : (g.total > 0 ? 'valor-positivo' : 'valor-zero');
                 
-                const valoresMeses = mesesExibir.map(mes => g.meses[mes] || 0);
-
-                tbody.innerHTML += `
+                let html = `
                     <tr class="td-row">
                         <td class="gestor-coluna">${g.gestor}</td>
                         <td class="projeto-coluna">${g.projeto}</td>
                         <td class="descricao-coluna">${g.descricao}</td>
                         <td class="empresa-coluna">${g.empresa}</td>
-                        <td class="mes-coluna ${valoresMeses[0] < 0 ? 'valor-negativo' : (valoresMeses[0] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[0] !== 0 ? valoresMeses[0].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
-                        <td class="mes-coluna ${valoresMeses[1] < 0 ? 'valor-negativo' : (valoresMeses[1] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[1] !== 0 ? valoresMeses[1].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
-                        <td class="${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                `;
+                
+                mesesExibir.forEach(mes => {
+                    const valor = g.meses[mes] || 0;
+                    const valorClass = valor < 0 ? 'valor-negativo' : (valor > 0 ? 'valor-positivo' : 'valor-zero');
+                    const displayValor = valor !== 0 ? valor.toLocaleString('pt-BR', {minFractionDigits: 2}) : '-';
+                    html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
+                });
+                
+                const totalClass = g.total < 0 ? 'valor-negativo' : (g.total > 0 ? 'valor-positivo' : 'valor-zero');
+                html += `
+                        <td class="${totalClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     </tr>
                 `;
+                
+                tbody.innerHTML += html;
             });
 
             const totalClass = totalGeral < 0 ? 'valor-negativo' : (totalGeral > 0 ? 'valor-positivo' : 'valor-zero');
-            tbody.innerHTML += `
+            let totalHtml = `
                 <tr class="total-row">
                     <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
-                    <td class="mes-coluna"></td>
-                    <td class="mes-coluna"></td>
+            `;
+            
+            mesesExibir.forEach(mes => {
+                let totalMes = 0;
+                Object.values(grupos).forEach(g => {
+                    totalMes += g.meses[mes] || 0;
+                });
+                const mesClass = totalMes < 0 ? 'valor-negativo' : (totalMes > 0 ? 'valor-positivo' : 'valor-zero');
+                totalHtml += `<td class="mes-coluna ${mesClass}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>`;
+            });
+            
+            totalHtml += `
                     <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
+            tbody.innerHTML += totalHtml;
 
             registrarUltimaAtualizacao();
         } catch (e) {
@@ -2736,9 +2780,10 @@
                 return;
             }
 
-            // Agrupar por gestor, projeto, empresa, ano
             const grupos = {};
             const todosMeses = new Set();
+            const mesesOrdem = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
             consumos.forEach(c => {
                 const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
@@ -2762,48 +2807,68 @@
                 grupos[key].total += valor;
             });
 
-            // Ordenar meses
-            const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
-                                    .filter(m => todosMeses.has(m));
+            const mesesExibir = Array.from(todosMeses).sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
 
-            // Atualizar cabeçalho
-            document.getElementById('header-don-mes1').textContent = mesesOrdenados[0] || 'Mês 1';
-            document.getElementById('header-don-mes2').textContent = mesesOrdenados[1] || 'Mês 2';
+            const headerRow = document.querySelector('#don-header');
+            if (headerRow) {
+                let html = '<tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>';
+                mesesExibir.forEach(mes => {
+                    html += `<th class="mes-header">${mes}</th>`;
+                });
+                html += '<th>Total Geral</th></tr>';
+                headerRow.innerHTML = html;
+            }
 
-            // Montar tabela
             tbody.innerHTML = '';
             let totalGeral = 0;
-            const mesesExibir = mesesOrdenados.slice(0, 2);
 
             Object.values(grupos).forEach(g => {
                 totalGeral += g.total;
-                const valorClass = g.total < 0 ? 'valor-negativo' : (g.total > 0 ? 'valor-positivo' : 'valor-zero');
                 
-                const valoresMeses = mesesExibir.map(mes => g.meses[mes] || 0);
-
-                tbody.innerHTML += `
+                let html = `
                     <tr class="td-row">
                         <td class="gestor-coluna">${g.gestor}</td>
                         <td class="projeto-coluna">${g.projeto}</td>
                         <td class="descricao-coluna">${g.descricao}</td>
                         <td class="empresa-coluna">${g.empresa}</td>
-                        <td class="mes-coluna ${valoresMeses[0] < 0 ? 'valor-negativo' : (valoresMeses[0] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[0] !== 0 ? valoresMeses[0].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
-                        <td class="mes-coluna ${valoresMeses[1] < 0 ? 'valor-negativo' : (valoresMeses[1] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[1] !== 0 ? valoresMeses[1].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
-                        <td class="${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                `;
+                
+                mesesExibir.forEach(mes => {
+                    const valor = g.meses[mes] || 0;
+                    const valorClass = valor < 0 ? 'valor-negativo' : (valor > 0 ? 'valor-positivo' : 'valor-zero');
+                    const displayValor = valor !== 0 ? valor.toLocaleString('pt-BR', {minFractionDigits: 2}) : '-';
+                    html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
+                });
+                
+                const totalClass = g.total < 0 ? 'valor-negativo' : (g.total > 0 ? 'valor-positivo' : 'valor-zero');
+                html += `
+                        <td class="${totalClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                     </tr>
                 `;
+                
+                tbody.innerHTML += html;
             });
 
             const totalClass = totalGeral < 0 ? 'valor-negativo' : (totalGeral > 0 ? 'valor-positivo' : 'valor-zero');
-            tbody.innerHTML += `
+            let totalHtml = `
                 <tr class="total-row">
                     <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
-                    <td class="mes-coluna"></td>
-                    <td class="mes-coluna"></td>
+            `;
+            
+            mesesExibir.forEach(mes => {
+                let totalMes = 0;
+                Object.values(grupos).forEach(g => {
+                    totalMes += g.meses[mes] || 0;
+                });
+                const mesClass = totalMes < 0 ? 'valor-negativo' : (totalMes > 0 ? 'valor-positivo' : 'valor-zero');
+                totalHtml += `<td class="mes-coluna ${mesClass}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>`;
+            });
+            
+            totalHtml += `
                     <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
                 </tr>
             `;
+            tbody.innerHTML += totalHtml;
 
             registrarUltimaAtualizacao();
         } catch (e) {
@@ -2841,7 +2906,6 @@
                 return;
             }
 
-            // Buscar status
             const { data: statusList } = await supabaseClient
                 .from('status_dc')
                 .select('id, codigo, nome, motivo, responsavel, cor');
