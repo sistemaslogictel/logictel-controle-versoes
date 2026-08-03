@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.3 - Controle de Medições e DCs - Logictel</title>
+<title>V.4 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -706,36 +706,117 @@
     z-index:10;
   }
 
-  .dash-table th, .dash-table td {
-    padding:10px 14px;
-    text-align:left;
-    font-size:13px;
+  /* =====================================================
+     NOVO ESTILO DAS DASHBOARDS - ESTILO IMAGEM
+     ===================================================== */
+  .dash-table-container {
+    overflow-x: auto;
+    padding: 0;
   }
-  .dash-table th {
-    background:var(--paper);
-    font-weight:600;
-    color:var(--text-muted);
-    text-transform:uppercase;
-    font-size:10px;
-    letter-spacing:0.06em;
-    white-space:nowrap;
+  
+  .dash-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
   }
-  .dash-table td {
-    border-bottom:1px solid var(--border);
+  
+  .dash-table-container thead th {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 14px;
+    text-align: left;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
-  .dash-table .total-row td {
-    background:var(--primary-100);
-    font-weight:700;
+  
+  .dash-table-container thead th:last-child {
+    text-align: right;
   }
-  .dash-table .total-row td:last-child {
-    font-weight:700;
+  
+  .dash-table-container tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
   }
-  .dash-table .valor-positivo { color:var(--success); }
-  .dash-table .valor-negativo { color:var(--danger); }
+  
+  .dash-table-container tbody td:last-child {
+    text-align: right;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  
+  .dash-table-container tbody tr:hover {
+    background: var(--paper);
+  }
+  
+  .dash-table-container tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .dash-table-container .total-row td {
+    background: var(--primary-100);
+    font-weight: 700;
+    border-top: 2px solid var(--primary);
+  }
+  
+  .dash-table-container .total-row td:last-child {
+    font-weight: 700;
+    font-size: 14px;
+  }
+  
+  .dash-table-container .valor-positivo {
+    color: var(--success);
+  }
+  
+  .dash-table-container .valor-negativo {
+    color: var(--danger);
+  }
+  
+  .dash-table-container .valor-zero {
+    color: var(--text-soft);
+  }
 
-  .campos-extras { display:none; }
-  .campos-extras.visible { display:grid; }
+  .dash-table-container .mes-coluna {
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    min-width: 80px;
+  }
 
+  .dash-table-container .gestor-coluna {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .dash-table-container .projeto-coluna {
+    font-weight: 500;
+  }
+
+  /* Cabeçalho dos meses na tabela */
+  .dash-table-container .mes-header {
+    text-align: right;
+    min-width: 80px;
+  }
+
+  .dash-table-container .descricao-coluna {
+    color: var(--text-soft);
+    font-size: 12px;
+  }
+
+  .dash-table-container .empresa-coluna {
+    color: var(--text-muted);
+  }
+
+  /* =====================================================
+     DC CARDS
+     ===================================================== */
   .dc-cards-grid {
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
@@ -827,6 +908,9 @@
   }
   .dc-card .dc-tipo-medicao.final { background:var(--danger-bg); color:var(--danger); }
 
+  .campos-extras { display:none; }
+  .campos-extras.visible { display:grid; }
+
   @media (max-width: 900px){
     .sidebar{ display:none; }
     .mobile-menu-toggle{ display:inline-flex; align-items:center; gap:8px; }
@@ -837,6 +921,11 @@
     .checkbox-group{ grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); }
     .login-card{ padding:32px 24px; margin:16px; }
     .dc-cards-grid{ grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); }
+    .dash-table-container thead th,
+    .dash-table-container tbody td {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
   }
   @media (max-width: 600px){
     .filters-bar{ grid-template-columns:1fr; }
@@ -851,6 +940,14 @@
     .checkbox-group{ grid-template-columns:1fr 1fr; }
     .login-card{ padding:24px 20px; }
     .dc-cards-grid{ grid-template-columns:1fr 1fr; }
+    .dash-table-container thead th,
+    .dash-table-container tbody td {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+    .dash-table-container .mes-coluna {
+      min-width: 60px;
+    }
   }
   @media (max-width: 480px){
     .flyout{ position:fixed; left:auto; right:8px; top:auto; min-width:180px; max-width:220px; max-height:250px; }
@@ -860,6 +957,11 @@
     .login-logo img{ height:56px; }
     .filters-bar{ grid-template-columns:1fr; }
     .dc-cards-grid{ grid-template-columns:1fr; }
+    .dash-table-container thead th,
+    .dash-table-container tbody td {
+      padding: 4px 6px;
+      font-size: 10px;
+    }
   }
 </style>
 </head>
@@ -944,18 +1046,12 @@
       <div class="flex justify-between items-center flex-wrap gap-3">
         <div>
           <h2 class="text-2xl font-bold" style="color:var(--text)">Visão Geral de Saldos</h2>
-          <p class="text-sm mt-0.5" style="color:var(--text-muted)">Acompanhamento do valor total medido versus o valor consumido pelas DCs.</p>
+          <p class="text-sm mt-0.5" style="color:var(--text-muted)">Acompanhamento do saldo por mês após consumo das DCs.</p>
         </div>
         <button onclick="carregarDashboard()" class="btn-secondary">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Atualizar
         </button>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 stats-grid">
-        <div class="stat-card"><div class="stat-label">Total Medido</div><div class="stat-value" id="stat-total-medido" style="color:var(--text)">R$ 0,00</div></div>
-        <div class="stat-card"><div class="stat-label">Total Consumido</div><div class="stat-value" id="stat-total-consumido" style="color:var(--gold)">R$ 0,00</div></div>
-        <div class="stat-card"><div class="stat-label">Saldo Total</div><div class="stat-value" id="stat-saldo-total" style="color:var(--success)">R$ 0,00</div></div>
       </div>
 
       <div class="filters-bar">
@@ -968,22 +1064,24 @@
         </div>
       </div>
 
+      <!-- Tabela estilo imagem -->
       <div class="card">
-        <div class="table-scroll">
-          <table class="w-full text-left border-collapse dash-table">
+        <div class="dash-table-container">
+          <table>
             <thead>
               <tr>
-                <th>Gestor Logictel</th>
+                <th>Gestão</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th>Diretor Cliente</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Saldo Total</th>
-                <th class="text-right">Meses com Saldo</th>
+                <th class="mes-header" id="header-mes1">Mês 1</th>
+                <th class="mes-header" id="header-mes2">Mês 2</th>
+                <th>Total Geral</th>
               </tr>
             </thead>
-            <tbody id="tabela-dashboard-corpo"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr></tbody>
+            <tbody id="tabela-dashboard-corpo">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -991,7 +1089,10 @@
 
     <!-- ===================== DASHBOARD APROPRIAÇÃO ===================== -->
     <div id="tab-dash-apropriacao" class="tab-content space-y-6">
-      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Apropriação</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p></div>
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Apropriação</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p>
+      </div>
       <div class="filters-bar">
         <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
         <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
@@ -999,21 +1100,22 @@
         <div class="flex gap-2"><button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button></div>
       </div>
       <div class="card">
-        <div class="table-scroll">
-          <table class="w-full text-left border-collapse dash-table">
+        <div class="dash-table-container">
+          <table>
             <thead>
               <tr>
-                <th>Gestor Logictel</th>
+                <th>Gestão</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th>Diretor Cliente</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Valor Total</th>
-                <th class="text-right">Meses Apropriados</th>
+                <th class="mes-header" id="header-aprop-mes1">Mês 1</th>
+                <th class="mes-header" id="header-aprop-mes2">Mês 2</th>
+                <th>Total Geral</th>
               </tr>
             </thead>
-            <tbody id="tabela-dash-apropriacao"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <tbody id="tabela-dash-apropriacao">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -1021,7 +1123,10 @@
 
     <!-- ===================== DASHBOARD DON ===================== -->
     <div id="tab-dash-don" class="tab-content space-y-6">
-      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido.</p></div>
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido.</p>
+      </div>
       <div class="filters-bar">
         <select id="filt-don-gestor" class="input" onchange="carregarDashDON()"><option value="">Todos os Gestores</option></select>
         <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
@@ -1029,21 +1134,22 @@
         <div class="flex gap-2"><button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button></div>
       </div>
       <div class="card">
-        <div class="table-scroll">
-          <table class="w-full text-left border-collapse dash-table">
+        <div class="dash-table-container">
+          <table>
             <thead>
               <tr>
-                <th>Gestor Logictel</th>
+                <th>Gestão</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th>Diretor Cliente</th>
-                <th class="text-right">Ano</th>
-                <th class="text-right">Valor Total</th>
-                <th class="text-right">Meses Medidos</th>
+                <th class="mes-header" id="header-don-mes1">Mês 1</th>
+                <th class="mes-header" id="header-don-mes2">Mês 2</th>
+                <th>Total Geral</th>
               </tr>
             </thead>
-            <tbody id="tabela-dash-don"><tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <tbody id="tabela-dash-don">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -1416,7 +1522,11 @@
       <div class="card card-pad">
         <form id="form-status-dc" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="hidden" id="statusdc-edit-id" value="">
-          <div><label class="label">Nome do Status *</label><input type="text" id="statusdc-nome" required placeholder="Ex: Ativo, Inativo, Pendente" class="input"></div>
+          <div><label class="label">Código *</label><input type="text" id="statusdc-codigo" required placeholder="Ex: ZE, AA, CM" class="input" style="text-transform:uppercase;"></div>
+          <div><label class="label">Nome *</label><input type="text" id="statusdc-nome" required placeholder="Nome do status" class="input"></div>
+          <div><label class="label">Motivo</label><textarea id="statusdc-motivo" rows="2" placeholder="Motivo/observação do status" class="input"></textarea></div>
+          <div><label class="label">Responsável</label><select id="statusdc-responsavel" class="input"><option value="Logictel">Logictel</option><option value="V.tal">V.tal</option></select></div>
+          <div><label class="label">Cor</label><input type="color" id="statusdc-cor" value="#3498DB" class="input"></div>
           <div class="flex items-end gap-2">
             <button type="button" onclick="cancelarEdicao('statusdc')" class="btn-cancel" style="display:none;" id="statusdc-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary w-full">Salvar Status DC</button>
@@ -1426,8 +1536,8 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Status DC</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-statusdc"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>ID</th><th>Código</th><th>Nome</th><th>Motivo</th><th>Responsável</th><th>Cor</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-statusdc"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -2006,11 +2116,19 @@
         if (nomeAba === 'dashboard') carregarDashboard();
         else if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
         else if (nomeAba === 'dash-don') carregarDashDON();
-        else if (nomeAba === 'dcs') carregarDCCards();
+        else if (nomeAba === 'dcs') { carregarDCCards(); carregarFiltroStatus(); }
         else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
         else if (nomeAba === 'medicao-gestor-hist') carregarMedicaoHist();
         else if (nomeAba === 'cad-medicao') carregarMedicoes();
-        else if (nomeAba === 'cad-consumo') { carregarConsumos(); carregarSelectStatus('dc-status-dc', 'status_dc'); carregarSelectStatus('dc-status-nf', 'status_nf'); carregarSelectGestores('dc-gestor', 'gestores_logictel'); carregarSelectDiretores('dc-diretor'); carregarSelectEmpresas('dc-empresa'); carregarSelectProjetos('dc-projeto'); carregarStatusDCCustom(); }
+        else if (nomeAba === 'cad-consumo') { 
+            carregarConsumos(); 
+            carregarStatusDCCustom(); 
+            carregarSelectStatus('dc-status-nf', 'status_nf'); 
+            carregarSelectGestores('dc-gestor', 'gestores_logictel'); 
+            carregarSelectDiretores('dc-diretor'); 
+            carregarSelectEmpresas('dc-empresa'); 
+            carregarSelectProjetos('dc-projeto'); 
+        }
         else if (nomeAba === 'adm-user') carregarUsuarios();
         else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
         else if (nomeAba === 'adm-diretor') { carregarDiretores(); carregarSelectEmpresas('diretor-empresa'); }
@@ -2051,24 +2169,51 @@
         carregarSelectStatus('dc-status-dc', 'status_dc');
         carregarSelectStatus('dc-status-nf', 'status_nf');
         carregarSelectStatus('med-status', 'status_medicao');
-        carregarSelectStatus('filt-dcs-status', 'status_dc');
         carregarSelectGestores('dc-gestor', 'gestores_logictel');
         carregarSelectGestores('med-gestor', 'gestores_logictel');
         carregarFiltros();
         carregarDCCards();
         carregarLogsAtualizacoes();
         carregarStatusDCCustom();
+        carregarFiltroStatus();
     }
 
     // ===================== CARREGAR SELECTS =====================
     async function carregarSelectStatus(id, tabela) {
         const select = document.getElementById(id);
         if (!select) return;
-        const { data } = await supabaseClient.from(tabela).select('*').order('nome');
-        select.innerHTML = '<option value="">Selecione...</option>';
-        if (data) data.forEach(s => {
-            select.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
-        });
+        
+        try {
+            if (tabela === 'status_dc') {
+                const { data } = await supabaseClient
+                    .from('status_dc')
+                    .select('id, codigo, nome')
+                    .order('codigo');
+                
+                select.innerHTML = '<option value="">Selecione...</option>';
+                if (data) {
+                    data.forEach(s => {
+                        select.innerHTML += `<option value="${s.id}">${s.codigo} - ${s.nome}</option>`;
+                    });
+                }
+                return;
+            }
+            
+            const { data } = await supabaseClient
+                .from(tabela)
+                .select('*')
+                .order('nome');
+            
+            select.innerHTML = '<option value="">Selecione...</option>';
+            if (data) {
+                data.forEach(s => {
+                    select.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+                });
+            }
+        } catch (e) {
+            console.error(`Erro ao carregar select ${id}:`, e);
+            select.innerHTML = '<option value="">Erro ao carregar</option>';
+        }
     }
 
     async function carregarSelectGestores(id, tabela) {
@@ -2137,18 +2282,49 @@
             
             if (error) {
                 console.error('Erro ao carregar status DC:', error);
+                select.innerHTML = '<option value="">Erro ao carregar status</option>';
                 return;
             }
             
-            select.innerHTML = '<option value="">Selecione...</option>';
-            if (data) {
+            select.innerHTML = '<option value="">Selecione um status...</option>';
+            if (data && data.length > 0) {
                 data.forEach(s => {
                     const label = `${s.codigo} - ${s.nome}`;
-                    select.innerHTML += `<option value="${s.id}" data-motivo="${s.motivo}" data-responsavel="${s.responsavel}" data-cor="${s.cor}">${label}</option>`;
+                    select.innerHTML += `<option value="${s.id}" data-motivo="${s.motivo || ''}" data-responsavel="${s.responsavel || ''}" data-cor="${s.cor || '#3498DB'}">${label}</option>`;
                 });
+            } else {
+                select.innerHTML = '<option value="">Nenhum status cadastrado</option>';
             }
         } catch (e) {
             console.error('Erro ao carregar status DC custom:', e);
+            select.innerHTML = '<option value="">Erro ao carregar status</option>';
+        }
+    }
+
+    // ===================== CARREGAR FILTRO DE STATUS =====================
+    async function carregarFiltroStatus() {
+        const select = document.getElementById('filt-dcs-status');
+        if (!select) return;
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('status_dc')
+                .select('id, codigo, nome')
+                .order('codigo');
+            
+            if (error) {
+                console.error('Erro ao carregar filtro de status:', error);
+                return;
+            }
+            
+            select.innerHTML = '<option value="">Todos os Status</option>';
+            if (data && data.length > 0) {
+                data.forEach(s => {
+                    select.innerHTML += `<option value="${s.id}">${s.codigo} - ${s.nome}</option>`;
+                });
+            }
+        } catch (e) {
+            console.error('Erro ao carregar filtro de status:', e);
         }
     }
 
@@ -2257,6 +2433,385 @@
         });
     }
 
+    // ===================== FUNÇÃO PARA PEGAR MESES DO ANO =====================
+    function getMesesDoAno(ano) {
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const anoAtual = new Date().getFullYear();
+        const mesAtual = new Date().getMonth();
+        
+        if (ano === anoAtual) {
+            return meses.slice(0, mesAtual + 1);
+        }
+        return meses;
+    }
+
+    // ===================== DASHBOARD PRINCIPAL =====================
+    async function carregarDashboard() {
+        const tbody = document.getElementById('tabela-dashboard-corpo');
+        if (!tbody) return;
+        
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
+
+        try {
+            // Buscar medições e consumos
+            const { data: medicoes, error: errorMed } = await supabaseClient
+                .from('medicoes')
+                .select(`
+                    id,
+                    empresa_id,
+                    projeto_id,
+                    gestor_logictel_id,
+                    diretor_id,
+                    mes,
+                    ano,
+                    valor,
+                    empresas(nome),
+                    projetos(nome),
+                    gestores_logictel(nome),
+                    diretores(nome)
+                `);
+            
+            if (errorMed) {
+                console.error('Erro ao carregar medições:', errorMed);
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados</td></tr>`;
+                return;
+            }
+
+            const { data: consumos, error: errorCons } = await supabaseClient
+                .from('consumo_dc')
+                .select('*');
+            
+            if (errorCons) {
+                console.error('Erro ao carregar consumos:', errorCons);
+            }
+
+            if (!medicoes || medicoes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
+                return;
+            }
+
+            // Agrupar por gestor, projeto, empresa, ano
+            const grupos = {};
+            const todosMeses = new Set();
+            
+            medicoes.forEach(med => {
+                const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.empresa_id}|${med.ano}`;
+                const mesKey = med.mes;
+                todosMeses.add(mesKey);
+                
+                if (!grupos[key]) {
+                    grupos[key] = {
+                        gestor: med.gestores_logictel?.nome || 'N/A',
+                        projeto: med.projetos?.nome || 'N/A',
+                        descricao: med.projetos?.nome || '',
+                        empresa: med.empresas?.nome || 'N/A',
+                        ano: med.ano || 'N/A',
+                        meses: {},
+                        totalMedido: 0,
+                        totalConsumido: 0
+                    };
+                }
+                
+                const valorMedicao = Number(med.valor || 0);
+                grupos[key].meses[mesKey] = { medicao: valorMedicao, consumo: 0 };
+                grupos[key].totalMedido += valorMedicao;
+            });
+
+            // Adicionar consumos aos grupos
+            if (consumos) {
+                consumos.forEach(c => {
+                    const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
+                    const mesKey = c.mes_apropriacao;
+                    
+                    if (grupos[key] && grupos[key].meses[mesKey]) {
+                        grupos[key].meses[mesKey].consumo += Number(c.valor || 0);
+                        grupos[key].totalConsumido += Number(c.valor || 0);
+                    }
+                });
+            }
+
+            // Ordenar meses
+            const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+                                    .filter(m => todosMeses.has(m));
+
+            // Atualizar cabeçalho
+            document.getElementById('header-mes1').textContent = mesesOrdenados[0] || 'Mês 1';
+            document.getElementById('header-mes2').textContent = mesesOrdenados[1] || 'Mês 2';
+
+            // Montar tabela
+            tbody.innerHTML = '';
+            let totalGeral = 0;
+            const mesesExibir = mesesOrdenados.slice(0, 2);
+            
+            Object.values(grupos).forEach(g => {
+                const saldoTotal = g.totalMedido - g.totalConsumido;
+                totalGeral += saldoTotal;
+                
+                const valoresMeses = mesesExibir.map(mes => {
+                    if (g.meses[mes]) {
+                        const saldo = g.meses[mes].medicao - g.meses[mes].consumo;
+                        return saldo;
+                    }
+                    return 0;
+                });
+
+                const valorClass = saldoTotal < 0 ? 'valor-negativo' : (saldoTotal > 0 ? 'valor-positivo' : 'valor-zero');
+                
+                tbody.innerHTML += `
+                    <tr class="td-row">
+                        <td class="gestor-coluna">${g.gestor}</td>
+                        <td class="projeto-coluna">${g.projeto}</td>
+                        <td class="descricao-coluna">${g.descricao}</td>
+                        <td class="empresa-coluna">${g.empresa}</td>
+                        <td class="mes-coluna ${valoresMeses[0] < 0 ? 'valor-negativo' : (valoresMeses[0] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[0] !== 0 ? valoresMeses[0].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
+                        <td class="mes-coluna ${valoresMeses[1] < 0 ? 'valor-negativo' : (valoresMeses[1] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[1] !== 0 ? valoresMeses[1].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
+                        <td class="${valorClass}">${saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    </tr>
+                `;
+            });
+
+            // Linha total
+            const totalClass = totalGeral < 0 ? 'valor-negativo' : (totalGeral > 0 ? 'valor-positivo' : 'valor-zero');
+            tbody.innerHTML += `
+                <tr class="total-row">
+                    <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
+                    <td class="mes-coluna"></td>
+                    <td class="mes-coluna"></td>
+                    <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+
+            registrarUltimaAtualizacao();
+        } catch (e) {
+            console.error('Erro inesperado:', e);
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        }
+    }
+
+    // ===================== DASHBOARD APROPRIAÇÃO =====================
+    async function carregarDashApropriacao() {
+        const tbody = document.getElementById('tabela-dash-apropriacao');
+        if (!tbody) return;
+        
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+
+        try {
+            const { data: consumos, error } = await supabaseClient
+                .from('consumo_dc')
+                .select(`
+                    id,
+                    empresa_id,
+                    projeto_id,
+                    gestor_logictel_id,
+                    diretor_id,
+                    mes_apropriacao,
+                    ano,
+                    valor,
+                    empresas(nome),
+                    projetos(nome),
+                    gestores_logictel(nome),
+                    diretores(nome)
+                `);
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!consumos || consumos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+                return;
+            }
+
+            // Agrupar por gestor, projeto, empresa, ano
+            const grupos = {};
+            const todosMeses = new Set();
+
+            consumos.forEach(c => {
+                const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
+                const mesKey = c.mes_apropriacao;
+                todosMeses.add(mesKey);
+                
+                if (!grupos[key]) {
+                    grupos[key] = {
+                        gestor: c.gestores_logictel?.nome || 'N/A',
+                        projeto: c.projetos?.nome || 'N/A',
+                        descricao: c.projetos?.nome || '',
+                        empresa: c.empresas?.nome || 'N/A',
+                        ano: c.ano || 'N/A',
+                        meses: {},
+                        total: 0
+                    };
+                }
+                
+                const valor = Number(c.valor || 0);
+                grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + valor;
+                grupos[key].total += valor;
+            });
+
+            // Ordenar meses
+            const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+                                    .filter(m => todosMeses.has(m));
+
+            // Atualizar cabeçalho
+            document.getElementById('header-aprop-mes1').textContent = mesesOrdenados[0] || 'Mês 1';
+            document.getElementById('header-aprop-mes2').textContent = mesesOrdenados[1] || 'Mês 2';
+
+            // Montar tabela
+            tbody.innerHTML = '';
+            let totalGeral = 0;
+            const mesesExibir = mesesOrdenados.slice(0, 2);
+
+            Object.values(grupos).forEach(g => {
+                totalGeral += g.total;
+                const valorClass = g.total < 0 ? 'valor-negativo' : (g.total > 0 ? 'valor-positivo' : 'valor-zero');
+                
+                const valoresMeses = mesesExibir.map(mes => g.meses[mes] || 0);
+
+                tbody.innerHTML += `
+                    <tr class="td-row">
+                        <td class="gestor-coluna">${g.gestor}</td>
+                        <td class="projeto-coluna">${g.projeto}</td>
+                        <td class="descricao-coluna">${g.descricao}</td>
+                        <td class="empresa-coluna">${g.empresa}</td>
+                        <td class="mes-coluna ${valoresMeses[0] < 0 ? 'valor-negativo' : (valoresMeses[0] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[0] !== 0 ? valoresMeses[0].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
+                        <td class="mes-coluna ${valoresMeses[1] < 0 ? 'valor-negativo' : (valoresMeses[1] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[1] !== 0 ? valoresMeses[1].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
+                        <td class="${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    </tr>
+                `;
+            });
+
+            const totalClass = totalGeral < 0 ? 'valor-negativo' : (totalGeral > 0 ? 'valor-positivo' : 'valor-zero');
+            tbody.innerHTML += `
+                <tr class="total-row">
+                    <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
+                    <td class="mes-coluna"></td>
+                    <td class="mes-coluna"></td>
+                    <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+
+            registrarUltimaAtualizacao();
+        } catch (e) {
+            console.error('Erro inesperado:', e);
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        }
+    }
+
+    // ===================== DASHBOARD DON =====================
+    async function carregarDashDON() {
+        const tbody = document.getElementById('tabela-dash-don');
+        if (!tbody) return;
+        
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+
+        try {
+            const { data: consumos, error } = await supabaseClient
+                .from('consumo_dc')
+                .select(`
+                    id,
+                    empresa_id,
+                    projeto_id,
+                    gestor_logictel_id,
+                    diretor_id,
+                    mes_medido,
+                    ano,
+                    valor,
+                    empresas(nome),
+                    projetos(nome),
+                    gestores_logictel(nome),
+                    diretores(nome)
+                `);
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!consumos || consumos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
+                return;
+            }
+
+            // Agrupar por gestor, projeto, empresa, ano
+            const grupos = {};
+            const todosMeses = new Set();
+
+            consumos.forEach(c => {
+                const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
+                const mesKey = c.mes_medido;
+                todosMeses.add(mesKey);
+                
+                if (!grupos[key]) {
+                    grupos[key] = {
+                        gestor: c.gestores_logictel?.nome || 'N/A',
+                        projeto: c.projetos?.nome || 'N/A',
+                        descricao: c.projetos?.nome || '',
+                        empresa: c.empresas?.nome || 'N/A',
+                        ano: c.ano || 'N/A',
+                        meses: {},
+                        total: 0
+                    };
+                }
+                
+                const valor = Number(c.valor || 0);
+                grupos[key].meses[mesKey] = (grupos[key].meses[mesKey] || 0) + valor;
+                grupos[key].total += valor;
+            });
+
+            // Ordenar meses
+            const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+                                    .filter(m => todosMeses.has(m));
+
+            // Atualizar cabeçalho
+            document.getElementById('header-don-mes1').textContent = mesesOrdenados[0] || 'Mês 1';
+            document.getElementById('header-don-mes2').textContent = mesesOrdenados[1] || 'Mês 2';
+
+            // Montar tabela
+            tbody.innerHTML = '';
+            let totalGeral = 0;
+            const mesesExibir = mesesOrdenados.slice(0, 2);
+
+            Object.values(grupos).forEach(g => {
+                totalGeral += g.total;
+                const valorClass = g.total < 0 ? 'valor-negativo' : (g.total > 0 ? 'valor-positivo' : 'valor-zero');
+                
+                const valoresMeses = mesesExibir.map(mes => g.meses[mes] || 0);
+
+                tbody.innerHTML += `
+                    <tr class="td-row">
+                        <td class="gestor-coluna">${g.gestor}</td>
+                        <td class="projeto-coluna">${g.projeto}</td>
+                        <td class="descricao-coluna">${g.descricao}</td>
+                        <td class="empresa-coluna">${g.empresa}</td>
+                        <td class="mes-coluna ${valoresMeses[0] < 0 ? 'valor-negativo' : (valoresMeses[0] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[0] !== 0 ? valoresMeses[0].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
+                        <td class="mes-coluna ${valoresMeses[1] < 0 ? 'valor-negativo' : (valoresMeses[1] > 0 ? 'valor-positivo' : 'valor-zero')}">${valoresMeses[1] !== 0 ? valoresMeses[1].toLocaleString('pt-BR', {minFractionDigits: 2}) : '-'}</td>
+                        <td class="${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                    </tr>
+                `;
+            });
+
+            const totalClass = totalGeral < 0 ? 'valor-negativo' : (totalGeral > 0 ? 'valor-positivo' : 'valor-zero');
+            tbody.innerHTML += `
+                <tr class="total-row">
+                    <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
+                    <td class="mes-coluna"></td>
+                    <td class="mes-coluna"></td>
+                    <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
+                </tr>
+            `;
+
+            registrarUltimaAtualizacao();
+        } catch (e) {
+            console.error('Erro inesperado:', e);
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        }
+    }
+
     // ===================== DC CARDS =====================
     async function carregarDCCards() {
         const container = document.getElementById('dc-cards-container');
@@ -2286,7 +2841,7 @@
                 return;
             }
 
-            // Buscar status para obter cores
+            // Buscar status
             const { data: statusList } = await supabaseClient
                 .from('status_dc')
                 .select('id, codigo, nome, motivo, responsavel, cor');
@@ -2332,23 +2887,21 @@
                 if (diffDays >= 4 && diffDays <= 6) { agingClass = 'amarelo'; }
                 else if (diffDays > 6) { agingClass = 'vermelho'; }
 
-                // Obter status completo
                 const statusInfo = c.status_id ? statusMap[c.status_id] : null;
                 const statusNome = statusInfo ? `${statusInfo.codigo} - ${statusInfo.nome}` : (c.status_dc || 'Sem status');
                 const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
                 const statusResponsavel = statusInfo ? statusInfo.responsavel : (c.responsavel || '');
                 const statusCor = statusInfo ? statusInfo.cor : '#3498DB';
                 
-                // Determinar classe do responsavel
                 const respClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
                 const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
                 
-                // Tipo de medição
                 const tipoMedicao = c.tipo_medicao || 'PA';
                 const tipoClass = tipoMedicao === 'FI' ? 'final' : '';
+                const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
 
                 container.innerHTML += `
-                    <div class="dc-card" onclick="irParaConsumo('${c.dc}')" style="border-left-color: ${statusCor};">
+                    <div class="dc-card" onclick="irParaConsumo('${c.dc}')" style="border-left-color: ${borderColor};">
                         <div class="dc-badge">#${c.id}</div>
                         <div class="dc-number">DC ${c.dc}</div>
                         <div class="dc-status ${statusClass}">${statusNome}</div>
@@ -2359,6 +2912,7 @@
                         <div class="dc-updated">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</div>
                         <div style="font-size:11px;color:var(--text-soft);margin-top:4px;">${c.projeto || 'N/A'} • ${c.gestor_logictel || 'N/A'}</div>
                         ${c.pedido ? `<div style="font-size:11px;color:var(--text-soft);">Pedido: ${c.pedido}</div>` : ''}
+                        ${c.fr ? `<div style="font-size:11px;color:var(--text-soft);">FR: ${c.fr}</div>` : ''}
                     </div>
                 `;
             });
@@ -2372,279 +2926,6 @@
         mudarAba('cad-consumo');
         document.getElementById('dc-numero').value = dc;
         carregarConsumos();
-    }
-
-    // ===================== DASHBOARD PRINCIPAL =====================
-    async function carregarDashboard() {
-        const tbody = document.getElementById('tabela-dashboard-corpo');
-        if (!tbody) return;
-        
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>`;
-
-        try {
-            // Usar a view criada no banco
-            const { data, error } = await supabaseClient
-                .from('vw_dashboard_saldos')
-                .select('*')
-                .order('ano', { ascending: false })
-                .order('mes', { ascending: false });
-
-            if (error) {
-                console.error('Erro ao carregar dashboard:', error);
-                // Fallback: carregar manualmente
-                await carregarDashboardManual();
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>`;
-                document.getElementById('stat-total-medido').innerText = 'R$ 0,00';
-                document.getElementById('stat-total-consumido').innerText = 'R$ 0,00';
-                document.getElementById('stat-saldo-total').innerText = 'R$ 0,00';
-                return;
-            }
-
-            let somaMedido = 0, somaConsumido = 0, totalGeral = 0;
-            const grupos = {};
-
-            data.forEach(row => {
-                const key = `${row.gestor_logictel_id}|${row.projeto_id}|${row.empresa_id}|${row.diretor_id}|${row.ano}`;
-                if (!grupos[key]) {
-                    grupos[key] = {
-                        gestor: row.gestor_logictel || 'N/A',
-                        projeto: row.projeto || 'N/A',
-                        descricao: row.projeto || '',
-                        empresa: row.empresa || 'N/A',
-                        diretor: row.diretor || 'N/A',
-                        ano: row.ano || 'N/A',
-                        totalMedido: 0,
-                        totalConsumido: 0,
-                        meses: {}
-                    };
-                }
-                grupos[key].totalMedido += row.valor_medicao || 0;
-                grupos[key].totalConsumido += row.total_consumido || 0;
-                if (row.mes) {
-                    grupos[key].meses[row.mes] = (grupos[key].meses[row.mes] || 0) + (row.saldo || 0);
-                }
-            });
-
-            tbody.innerHTML = '';
-            Object.values(grupos).forEach(g => {
-                const saldo = g.totalMedido - g.totalConsumido;
-                totalGeral += saldo;
-                somaMedido += g.totalMedido;
-                somaConsumido += g.totalConsumido;
-                
-                const valorClass = saldo < 0 ? 'valor-negativo' : 'valor-positivo';
-                const mesesStr = Object.entries(g.meses)
-                    .filter(([_, val]) => val !== 0)
-                    .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
-                    .join('; ');
-                
-                tbody.innerHTML += `
-                    <tr class="td-row">
-                        <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
-                        <td>${g.projeto}</td>
-                        <td>${g.descricao}</td>
-                        <td>${g.empresa}</td>
-                        <td>${g.diretor}</td>
-                        <td class="text-right">${g.ano}</td>
-                        <td class="text-right mono font-bold ${valorClass}">${saldo.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                        <td class="text-right" style="font-size:11px;color:var(--text-soft);">${mesesStr || 'Sem saldo'}</td>
-                    </tr>
-                `;
-            });
-
-            if (Object.values(grupos).length > 0) {
-                const totalClass = totalGeral < 0 ? 'valor-negativo' : 'valor-positivo';
-                tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalClass}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
-            }
-
-            document.getElementById('stat-total-medido').innerText = 'R$ ' + somaMedido.toLocaleString('pt-BR', {minFractionDigits: 2});
-            document.getElementById('stat-total-consumido').innerText = 'R$ ' + somaConsumido.toLocaleString('pt-BR', {minFractionDigits: 2});
-            const saldoTotal = somaMedido - somaConsumido;
-            const statSaldo = document.getElementById('stat-saldo-total');
-            statSaldo.innerText = 'R$ ' + saldoTotal.toLocaleString('pt-BR', {minFractionDigits: 2});
-            statSaldo.style.color = saldoTotal < 0 ? 'var(--danger)' : 'var(--success)';
-
-            registrarUltimaAtualizacao();
-        } catch (e) {
-            console.error('Erro inesperado:', e);
-            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
-        }
-    }
-
-    // Fallback manual
-    async function carregarDashboardManual() {
-        const tbody = document.getElementById('tabela-dashboard-corpo');
-        // ... código manual similar ao anterior
-    }
-
-    // ===================== DASHBOARD APROPRIAÇÃO =====================
-    async function carregarDashApropriacao() {
-        const tbody = document.getElementById('tabela-dash-apropriacao');
-        if (!tbody) return;
-        
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('vw_dashboard_apropriacao')
-                .select('*')
-                .order('ano', { ascending: false })
-                .order('mes', { ascending: false });
-
-            if (error) {
-                console.error('Erro ao carregar dashboard apropriação:', error);
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
-                return;
-            }
-
-            const grupos = {};
-            let totalGeral = 0;
-
-            data.forEach(row => {
-                const key = `${row.gestor_logictel_id}|${row.projeto_id}|${row.empresa_id}|${row.diretor_id}|${row.ano}`;
-                if (!grupos[key]) {
-                    grupos[key] = {
-                        gestor: row.gestor_logictel || 'N/A',
-                        projeto: row.projeto || 'N/A',
-                        descricao: row.projeto || '',
-                        empresa: row.empresa || 'N/A',
-                        diretor: row.diretor || 'N/A',
-                        ano: row.ano || 'N/A',
-                        total: 0,
-                        meses: {}
-                    };
-                }
-                grupos[key].total += row.total_apropriado || 0;
-                if (row.mes) {
-                    grupos[key].meses[row.mes] = (grupos[key].meses[row.mes] || 0) + (row.total_apropriado || 0);
-                }
-            });
-
-            tbody.innerHTML = '';
-            Object.values(grupos).forEach(g => {
-                totalGeral += g.total;
-                const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-                const mesesStr = Object.entries(g.meses)
-                    .filter(([_, val]) => val !== 0)
-                    .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
-                    .join('; ');
-                
-                tbody.innerHTML += `
-                    <tr class="td-row">
-                        <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
-                        <td>${g.projeto}</td>
-                        <td>${g.descricao}</td>
-                        <td>${g.empresa}</td>
-                        <td>${g.diretor}</td>
-                        <td class="text-right">${g.ano}</td>
-                        <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                        <td class="text-right" style="font-size:11px;color:var(--text-soft);">${mesesStr || 'Sem meses'}</td>
-                    </tr>
-                `;
-            });
-
-            if (Object.values(grupos).length > 0) {
-                const totalClass = totalGeral < 0 ? 'valor-negativo' : 'valor-positivo';
-                tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalClass}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
-            }
-
-            registrarUltimaAtualizacao();
-        } catch (e) {
-            console.error('Erro inesperado:', e);
-            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
-        }
-    }
-
-    // ===================== DASHBOARD DON =====================
-    async function carregarDashDON() {
-        const tbody = document.getElementById('tabela-dash-don');
-        if (!tbody) return;
-        
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('vw_dashboard_don')
-                .select('*')
-                .order('ano', { ascending: false })
-                .order('mes', { ascending: false });
-
-            if (error) {
-                console.error('Erro ao carregar dashboard DON:', error);
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo cadastrado.</td></tr>`;
-                return;
-            }
-
-            const grupos = {};
-            let totalGeral = 0;
-
-            data.forEach(row => {
-                const key = `${row.gestor_logictel_id}|${row.projeto_id}|${row.empresa_id}|${row.diretor_id}|${row.ano}`;
-                if (!grupos[key]) {
-                    grupos[key] = {
-                        gestor: row.gestor_logictel || 'N/A',
-                        projeto: row.projeto || 'N/A',
-                        descricao: row.projeto || '',
-                        empresa: row.empresa || 'N/A',
-                        diretor: row.diretor || 'N/A',
-                        ano: row.ano || 'N/A',
-                        total: 0,
-                        meses: {}
-                    };
-                }
-                grupos[key].total += row.total_medido || 0;
-                if (row.mes) {
-                    grupos[key].meses[row.mes] = (grupos[key].meses[row.mes] || 0) + (row.total_medido || 0);
-                }
-            });
-
-            tbody.innerHTML = '';
-            Object.values(grupos).forEach(g => {
-                totalGeral += g.total;
-                const valorClass = g.total < 0 ? 'valor-negativo' : 'valor-positivo';
-                const mesesStr = Object.entries(g.meses)
-                    .filter(([_, val]) => val !== 0)
-                    .map(([mes, val]) => `${mes}: ${val.toLocaleString('pt-BR', {minFractionDigits: 2})}`)
-                    .join('; ');
-                
-                tbody.innerHTML += `
-                    <tr class="td-row">
-                        <td class="font-medium" style="color:var(--text)">${g.gestor}</td>
-                        <td>${g.projeto}</td>
-                        <td>${g.descricao}</td>
-                        <td>${g.empresa}</td>
-                        <td>${g.diretor}</td>
-                        <td class="text-right">${g.ano}</td>
-                        <td class="text-right mono font-bold ${valorClass}">${g.total.toLocaleString('pt-BR', {minFractionDigits: 2})}</td>
-                        <td class="text-right" style="font-size:11px;color:var(--text-soft);">${mesesStr || 'Sem meses'}</td>
-                    </tr>
-                `;
-            });
-
-            if (Object.values(grupos).length > 0) {
-                const totalClass = totalGeral < 0 ? 'valor-negativo' : 'valor-positivo';
-                tbody.innerHTML += `<tr class="td-row" style="background:var(--primary-100); font-weight:700;"><td colspan="6" class="font-bold" style="color:var(--text); text-align:right;">TOTAL GERAL</td><td class="text-right mono font-bold ${totalClass}">${totalGeral.toLocaleString('pt-BR', {minFractionDigits: 2})}</td><td></td></tr>`;
-            }
-
-            registrarUltimaAtualizacao();
-        } catch (e) {
-            console.error('Erro inesperado:', e);
-            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
-        }
     }
 
     // ===================== FUNÇÕES AUXILIARES =====================
@@ -2938,7 +3219,6 @@
         const diretorId = document.getElementById('dc-diretor').value || null;
         const statusId = document.getElementById('dc-status-dc').value;
         
-        // Validar campos obrigatórios
         if (!empresaId || !projetoId || !gestorId) {
             alert('Empresa, Projeto e Gestor são obrigatórios!');
             return;
@@ -2968,7 +3248,6 @@
             ultima_atualizacao: agora
         };
         
-        // Validar DC obrigatório
         if (!dados.dc) {
             alert('Número da DC é obrigatório!');
             return;
@@ -3067,7 +3346,6 @@
             document.getElementById('dc-item').value = data.item || '';
             document.getElementById('dc-po').value = data.po || '';
             
-            // Carregar gestores por projeto
             if (data.projeto_id) {
                 await carregarGestoresPorProjeto();
                 document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
@@ -3885,28 +4163,33 @@
         const tbody = document.getElementById('tabela-statusdc');
         if (!tbody) return;
         
-        tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
         
         try {
             const { data, error } = await supabaseClient
                 .from('status_dc')
                 .select('*')
-                .order('id', { ascending: true });
+                .order('codigo', { ascending: true });
             
             if (error) { 
-                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; 
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`; 
                 return; 
             }
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status DC cadastrado.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Nenhum status DC cadastrado.</td></tr>';
                 return;
             }
             tbody.innerHTML = '';
             data.forEach(s => {
+                const corPreview = s.cor || '#3498DB';
                 tbody.innerHTML += `
                     <tr class="td-row">
                         <td>${s.id}</td>
-                        <td>${s.codigo} - ${s.nome}</td>
+                        <td><strong>${s.codigo}</strong></td>
+                        <td>${s.nome}</td>
+                        <td style="font-size:11px;max-width:200px;">${s.motivo || '-'}</td>
+                        <td><span style="background:${s.responsavel === 'V.tal' ? '#FF6B35' : '#3498DB'};color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;">${s.responsavel}</span></td>
+                        <td><span style="display:inline-block;width:24px;height:24px;border-radius:4px;background:${corPreview};border:1px solid #ddd;"></span></td>
                         <td class="text-right">
                             <div class="table-actions" style="justify-content:flex-end;">
                                 <button onclick="editarStatusDC(${s.id})" class="btn-edit">Editar</button>
@@ -3917,7 +4200,7 @@
             });
         } catch (e) {
             console.error('Erro inesperado:', e);
-            tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
         }
     }
 
@@ -3928,7 +4211,7 @@
             codigo: document.getElementById('statusdc-codigo').value.trim().toUpperCase(),
             nome: document.getElementById('statusdc-nome').value.trim(),
             motivo: document.getElementById('statusdc-motivo').value.trim(),
-            responsavel: document.getElementById('statusdc-responsavel').value.trim(),
+            responsavel: document.getElementById('statusdc-responsavel').value,
             cor: document.getElementById('statusdc-cor').value || '#3498DB'
         };
         
@@ -3964,6 +4247,7 @@
             carregarSelectStatus('dc-status-dc', 'status_dc');
             carregarSelectStatus('filt-dcs-status', 'status_dc');
             carregarStatusDCCustom();
+            carregarFiltroStatus();
         } catch (err) {
             console.error('Erro ao salvar status DC:', err);
             alert('Erro ao salvar status DC.');
@@ -3988,7 +4272,7 @@
             document.getElementById('statusdc-codigo').value = data.codigo || '';
             document.getElementById('statusdc-nome').value = data.nome || '';
             document.getElementById('statusdc-motivo').value = data.motivo || '';
-            document.getElementById('statusdc-responsavel').value = data.responsavel || '';
+            document.getElementById('statusdc-responsavel').value = data.responsavel || 'Logictel';
             document.getElementById('statusdc-cor').value = data.cor || '#3498DB';
             document.getElementById('statusdc-cancel-btn').style.display = 'inline-block';
             
@@ -4017,6 +4301,7 @@
             carregarSelectStatus('dc-status-dc', 'status_dc');
             carregarSelectStatus('filt-dcs-status', 'status_dc');
             carregarStatusDCCustom();
+            carregarFiltroStatus();
         } catch (e) {
             console.error('Erro ao excluir status DC:', e);
             alert('Erro ao excluir status DC.');
