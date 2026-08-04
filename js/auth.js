@@ -126,7 +126,7 @@ export function gerarSenhaForte() {
 }
 
 // =====================================================
-// LOGIN - VERSÃO CORRIGIDA
+// LOGIN - VERSÃO MAIS SIMPLES E DIRETA
 // =====================================================
 export async function fazerLogin() {
     console.log('🔐 Iniciando login...');
@@ -138,13 +138,18 @@ export async function fazerLogin() {
 
     if (!userInput || !passInput) {
         console.error('❌ Elementos de login não encontrados');
+        if (errorEl) {
+            errorEl.textContent = 'Erro no sistema. Contate o administrador.';
+            errorEl.classList.add('show');
+        }
         return;
     }
 
     const user = userInput.value.trim();
     const pass = passInput.value.trim();
 
-    console.log('👤 Usuário:', user);
+    console.log('👤 Usuário digitado:', user);
+    console.log('🔑 Senha digitada:', '***');
 
     if (!user || !pass) {
         console.warn('⚠️ Campos vazios');
@@ -155,6 +160,7 @@ export async function fazerLogin() {
         return;
     }
 
+    // Feedback visual
     if (loginBtn) {
         loginBtn.textContent = '⏳ Entrando...';
         loginBtn.disabled = true;
@@ -162,15 +168,16 @@ export async function fazerLogin() {
 
     try {
         console.log('📡 Buscando usuário no Supabase...');
+        console.log('📡 URL:', supabaseClient.supabaseUrl);
         
+        // Usando .eq com filtro simples
         const { data, error } = await supabaseClient
             .from('usuarios')
             .select('*')
-            .eq('nome', user)
-            .eq('senha', pass);
+            .eq('nome', user);
 
-        console.log('📊 Dados recebidos:', data);
-        console.log('❌ Erro:', error);
+        console.log('📊 Dados retornados:', data);
+        console.log('❌ Erro retornado:', error);
 
         if (error) {
             console.error('❌ Erro na consulta:', error);
@@ -185,6 +192,7 @@ export async function fazerLogin() {
             return;
         }
 
+        // Verifica se encontrou o usuário
         if (!data || data.length === 0) {
             console.warn('❌ Usuário não encontrado');
             if (errorEl) {
@@ -198,22 +206,46 @@ export async function fazerLogin() {
             return;
         }
 
+        // Verifica a senha
         const usuario = data[0];
         console.log('✅ Usuário encontrado:', usuario.nome);
+        console.log('🔑 Senha no banco:', usuario.senha);
+        console.log('🔑 Senha digitada:', pass);
+        console.log('🔑 Comparação:', usuario.senha === pass ? '✅ IGUAIS' : '❌ DIFERENTES');
 
+        if (usuario.senha !== pass) {
+            console.warn('❌ Senha incorreta');
+            if (errorEl) {
+                errorEl.textContent = 'Usuário ou senha incorretos. Tente novamente.';
+                errorEl.classList.add('show');
+            }
+            if (loginBtn) {
+                loginBtn.textContent = 'Entrar';
+                loginBtn.disabled = false;
+            }
+            return;
+        }
+
+        // LOGIN BEM-SUCEDIDO!
+        console.log('🎉 LOGIN BEM-SUCEDIDO!');
+
+        // Salva na sessão
         salvarUsuarioLogado(usuario);
         if (errorEl) errorEl.classList.remove('show');
 
+        // Esconde login e mostra app
         const overlay = document.getElementById('loginOverlay');
         const appShell = document.getElementById('appShell');
         if (overlay) overlay.classList.add('hidden');
         if (appShell) appShell.style.display = 'flex';
 
+        // Atualiza avatar
         const avatar = document.getElementById('userAvatar');
         const nomeDisplay = document.getElementById('userNameDisplay');
         if (avatar) avatar.textContent = usuario.nome.charAt(0).toUpperCase();
         if (nomeDisplay) nomeDisplay.textContent = usuario.nome;
 
+        // Carrega o sistema
         console.log('📋 Carregando menu...');
         gerarMenu(usuario.permissoes || []);
         
@@ -223,6 +255,7 @@ export async function fazerLogin() {
         carregarTodasListas();
         aplicarMascaras();
 
+        // Inicia timeout
         iniciarMonitorInatividade();
 
         if (loginBtn) {
@@ -284,7 +317,7 @@ export function verificarSessao() {
         if (avatar) avatar.textContent = usuario.nome.charAt(0).toUpperCase();
         if (nomeDisplay) nomeDisplay.textContent = usuario.nome;
         
-        gerarMenu(usuario.permissores || []);
+        gerarMenu(usuario.permissoes || []);
         iniciarMonitorInatividade();
         
         return true;
