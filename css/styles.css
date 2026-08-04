@@ -795,21 +795,14 @@ nav.sidenav{
 }
 
 /* =====================================================
-   DASHBOARD STATUS - Fundo e tabela em cinza
+   FORÇAR CORES NA DASHBOARD STATUS
    ===================================================== */
-#tab-dash-apropriacao {
-  filter: grayscale(1);
-}
-
-/* Remove o filtro apenas das fontes dos valores */
 #tab-dash-apropriacao .valor-positivo,
 #tab-dash-apropriacao .mes-coluna.valor-positivo,
 #tabela-dash-apropriacao .valor-positivo,
 #tabela-dash-apropriacao .mes-coluna.valor-positivo {
   color: #00AA00 !important;
   font-weight: 600;
-  filter: grayscale(0) !important;
-  -webkit-filter: grayscale(0) !important;
 }
 
 #tab-dash-apropriacao .valor-negativo,
@@ -818,8 +811,6 @@ nav.sidenav{
 #tabela-dash-apropriacao .mes-coluna.valor-negativo {
   color: #FF0000 !important;
   font-weight: 600;
-  filter: grayscale(0) !important;
-  -webkit-filter: grayscale(0) !important;
 }
 
 #tab-dash-apropriacao .valor-zero,
@@ -828,8 +819,13 @@ nav.sidenav{
 #tabela-dash-apropriacao .mes-coluna.valor-zero {
   color: #000000 !important;
   font-weight: 400;
-  filter: grayscale(0) !important;
-  -webkit-filter: grayscale(0) !important;
+}
+
+/* Remove qualquer filtro que possa estar aplicado na dashboard status */
+#tab-dash-apropriacao,
+#tab-dash-apropriacao * {
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
 .dash-table-container .gestor-coluna {
