@@ -812,8 +812,35 @@ nav.sidenav{
    cores originais do sistema). Escopo somente na aba
    #tab-dash-apropriacao, então não afeta mais nada.
    ===================================================== */
+/*#tab-dash-apropriacao { -- apagar aqui o comentário para voltar
+  filter: grayscale(1);
+}*/
+
+/* Aplica tons de cinza a tudo, exceto aos valores */
 #tab-dash-apropriacao {
   filter: grayscale(1);
+}
+
+/* Remove o filtro apenas dos valores numéricos */
+#tab-dash-apropriacao td[data-valor] {
+  filter: grayscale(0) !important;
+}
+
+#tab-dash-apropriacao .valor-positivo {
+  color: var(--success) !important;
+  font-weight: 600;
+  filter: grayscale(0) !important;
+}
+
+#tab-dash-apropriacao .valor-negativo {
+  color: var(--danger) !important;
+  font-weight: 600;
+  filter: grayscale(0) !important;
+}
+
+#tab-dash-apropriacao .valor-zero {
+  color: var(--text) !important;
+  filter: grayscale(0) !important;
 }
 
 /* =====================================================
