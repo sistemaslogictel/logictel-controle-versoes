@@ -2,7 +2,7 @@ import { temPermissao } from './session.js';
 import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
 
-import { carregarDashApropriacao, carregarDashDON } from './dashboards.js';
+import { carregarDashboard, carregarDashApropriacao, carregarDashDON } from './dashboards.js';
 import { carregarDCCards } from './dccards.js';
 import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom } from './selects.js';
 import { carregarApropriacaoHist, carregarMedicaoHist } from './historico.js';
@@ -23,9 +23,10 @@ export function gerarMenu(permissoes) {
     const mobileNav = document.getElementById('mobileNav');
 
     const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', area: 'dash-don', type: 'flyout', children: [
-            { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' },
-            { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' }
+        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', area: 'dashboard', type: 'flyout', children: [
+            { id: 'dashboard', label: 'Visão Geral de Saldos', area: 'dashboard' },
+            { id: 'dash-apropriacao', label: 'Dashboard Apropriação', area: 'dash-apropriacao' },
+            { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' }
         ]},
         { id: 'dcs', label: 'DC\'s', icon: 'dcs', area: 'dcs', type: 'link' },
         { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
@@ -57,6 +58,7 @@ export function gerarMenu(permissoes) {
     ];
 
     function temAcesso(item) {
+        if (item.area === 'dashboard') return true;
         if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
         if (item.type === 'link') return permissoes.includes(item.area);
         if (item.type === 'flyout') return item.children.some(child => permissoes.includes(child.area));
@@ -140,6 +142,7 @@ export function gerarMenu(permissoes) {
     }
 
     const desktopItems = menuItems.filter(item => {
+        if (item.area === 'dashboard') return true;
         if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
         if (item.type === 'link') return permissoes.includes(item.area);
         if (item.type === 'flyout') return item.children.some(child => permissoes.includes(child.area));
@@ -149,44 +152,35 @@ export function gerarMenu(permissoes) {
     buildMenuHTML(desktopNav, desktopItems, false);
     buildMenuHTML(mobileNav, desktopItems, true);
 
-    // Reativa os flyouts (hover/click) para o menu recém-gerado
     initFlyouts();
 }
-
-// =====================================================
-// MAPA DE ABAS -> ÁREA DE PERMISSÃO
-// =====================================================
-const AREA_MAP = {
-    'dash-don': 'dash-don',
-    'dash-apropriacao': 'dash-apropriacao',
-    'dcs': 'dcs',
-    'cad-medicao': 'medicoes',
-    'cad-consumo': 'consumos',
-    'apropriacao-hist': 'historico-aprop',
-    'medicao-gestor-hist': 'historico-gestor',
-    'adm-user': 'adm-user',
-    'adm-empresa': 'adm-cliente',
-    'adm-diretor': 'adm-cliente',
-    'adm-contrato': 'adm-cliente',
-    'adm-projeto': 'adm-logictel',
-    'adm-gestor': 'adm-logictel',
-    'adm-status-dc': 'adm-status',
-    'adm-status-med': 'adm-status',
-    'adm-status-nf': 'adm-status',
-    'atualizacoes': 'atualizacoes'
-};
-
-// Ordem de prioridade usada para decidir em qual aba cair logo após o login
-// (a antiga "Visão Geral de Saldos" servia de tela inicial universal; agora
-// caímos na primeira aba, nessa ordem, que o usuário tiver permissão de ver)
-const ORDEM_ABAS_PADRAO = Object.keys(AREA_MAP);
 
 // =====================================================
 // NAVEGAÇÃO ENTRE ABAS
 // =====================================================
 export function mudarAba(nomeAba) {
-    const area = AREA_MAP[nomeAba] || nomeAba;
-    if (!temPermissao(area)) {
+    const areaMap = {
+        'dashboard': 'dashboard',
+        'dash-apropriacao': 'dash-apropriacao',
+        'dash-don': 'dash-don',
+        'dcs': 'dcs',
+        'cad-medicao': 'medicoes',
+        'cad-consumo': 'consumos',
+        'apropriacao-hist': 'historico-aprop',
+        'medicao-gestor-hist': 'historico-gestor',
+        'adm-user': 'adm-user',
+        'adm-empresa': 'adm-cliente',
+        'adm-diretor': 'adm-cliente',
+        'adm-contrato': 'adm-cliente',
+        'adm-projeto': 'adm-logictel',
+        'adm-gestor': 'adm-logictel',
+        'adm-status-dc': 'adm-status',
+        'adm-status-med': 'adm-status',
+        'adm-status-nf': 'adm-status',
+        'atualizacoes': 'atualizacoes'
+    };
+    const area = areaMap[nomeAba] || nomeAba;
+    if (area !== 'dashboard' && !temPermissao(area)) {
         alert('Você não tem permissão para acessar esta área.');
         return;
     }
@@ -202,7 +196,8 @@ export function mudarAba(nomeAba) {
 }
 
 export function carregarDadosAba(nomeAba) {
-    if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
+    if (nomeAba === 'dashboard') carregarDashboard();
+    else if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
     else if (nomeAba === 'dcs') { carregarDCCards(); carregarFiltroStatus(); }
     else if (nomeAba === 'apropriacao-hist') carregarApropriacaoHist();
@@ -227,21 +222,6 @@ export function carregarDadosAba(nomeAba) {
     else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
     else if (nomeAba === 'adm-status-nf') carregarStatusNF();
     else if (nomeAba === 'atualizacoes') carregarLogsAtualizacoes();
-}
-
-// =====================================================
-// PRIMEIRA ABA ACESSÍVEL (usada no login/restauração de sessão,
-// já que não existe mais uma dashboard universal como tela inicial)
-// =====================================================
-export function irParaPrimeiraAbaAcessivel() {
-    for (const nomeAba of ORDEM_ABAS_PADRAO) {
-        const area = AREA_MAP[nomeAba];
-        if (temPermissao(area)) {
-            mudarAba(nomeAba);
-            return;
-        }
-    }
-    // Nenhuma área liberada: não força nenhuma aba (usuário sem permissões)
 }
 
 export function carregarTodasListas() {
@@ -282,7 +262,7 @@ export function carregarTodasListas() {
 }
 
 // =====================================================
-// CANCELAR EDIÇÃO (genérico para todos os formulários)
+// CANCELAR EDIÇÃO
 // =====================================================
 export function cancelarEdicao(tipo) {
     const prefixos = {
