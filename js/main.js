@@ -4,7 +4,7 @@
 
 import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte } from './auth.js';
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
-import { mudarAba, carregarTodasListas, cancelarEdicao } from './navigation.js';
+import { mudarAba, carregarTodasListas, cancelarEdicao, gerarMenu } from './navigation.js';
 
 import { carregarDashboard, carregarDashApropriacao, carregarDashDON } from './dashboards.js';
 import { carregarDCCards, irParaConsumo } from './dccards.js';
@@ -32,7 +32,7 @@ Object.assign(window, {
     // auth
     fazerLogin, fazerLogout, validarSenha, gerarSenhaForte,
     // navegação
-    mudarAba, cancelarEdicao, toggleSidebar,
+    mudarAba, cancelarEdicao, toggleSidebar, gerarMenu,
     limparFiltros: (tipo) => limparFiltros(tipo, {
         dash: carregarDashboard,
         aprop: carregarDashApropriacao,
@@ -84,32 +84,65 @@ function initFormListeners() {
 function configurarBotaoLogin() {
     const loginBtn = document.getElementById('loginButton');
     if (loginBtn) {
-        // Remove listeners antigos para evitar duplicação
+        // Remove listeners antigos
         const novoBtn = loginBtn.cloneNode(true);
         loginBtn.parentNode.replaceChild(novoBtn, loginBtn);
         novoBtn.addEventListener('click', fazerLogin);
         console.log('✅ Botão de login configurado via addEventListener');
+        return true;
     } else {
         console.error('❌ Botão de login não encontrado!');
+        return false;
+    }
+}
+
+// =====================================================
+// CONFIGURA A TECLA ENTER NO LOGIN
+// =====================================================
+function configurarEnterLogin() {
+    const passInput = document.getElementById('loginPassword');
+    if (passInput) {
+        passInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                fazerLogin();
+            }
+        });
+        console.log('✅ Enter configurado no login');
     }
 }
 
 // =====================================================
 // BOOTSTRAP DA APLICAÇÃO
 // =====================================================
-function iniciarApp() {
+async function iniciarApp() {
     console.log('🚀 Iniciando aplicação...');
     
+    // Inicializa os formulários
     initFormListeners();
+    
+    // Configura o botão de login e Enter
     configurarBotaoLogin();
-
-    if (verificarSessao()) {
+    configurarEnterLogin();
+    
+    // Verifica se já está logado
+    const logado = verificarSessao();
+    console.log('🔐 Sessão ativa:', logado);
+    
+    if (logado) {
+        console.log('📊 Carregando dados iniciais...');
         mudarAba('dashboard');
-        carregarDashboard();
+        try {
+            await carregarDashboard();
+        } catch (e) {
+            console.error('Erro ao carregar dashboard:', e);
+        }
         carregarTodasListas();
         aplicarMascaras();
+    } else {
+        console.log('👤 Usuário não logado. Aguardando login...');
     }
 }
 
-// Scripts com type="module" já são deferidos
+// Inicia a aplicação
 iniciarApp();
