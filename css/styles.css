@@ -22,6 +22,18 @@
   --shadow:0 8px 32px rgba(8,16,32,0.15);
   --logictel-color:#3498DB;
   --vtal-color:#FF6B35;
+  
+  /* Cores para Dashboard Status (tons de cinza) */
+  --gray-50:#F9FAFB;
+  --gray-100:#F3F4F6;
+  --gray-200:#E5E7EB;
+  --gray-300:#D1D5DB;
+  --gray-400:#9CA3AF;
+  --gray-500:#6B7280;
+  --gray-600:#4B5563;
+  --gray-700:#374151;
+  --gray-800:#1F2937;
+  --gray-900:#111827;
 }
 *{box-sizing:border-box;}
 body{
@@ -799,6 +811,109 @@ nav.sidenav{
 
 .dash-table-container .empresa-coluna {
   color: var(--text-muted);
+}
+
+/* =====================================================
+   DASHBOARD STATUS - TONS DE CINZA (grayscale)
+   ===================================================== */
+.dash-status-container .dash-table-container thead th {
+  background: var(--gray-700);
+  color: var(--gray-100);
+}
+
+.dash-status-container .dash-table-container .total-row td {
+  background: var(--gray-200);
+  border-top: 2px solid var(--gray-400);
+}
+
+.dash-status-container .dash-table-container .valor-positivo {
+  color: var(--gray-700);
+}
+
+.dash-status-container .dash-table-container .valor-negativo {
+  color: var(--gray-500);
+}
+
+.dash-status-container .dash-table-container .valor-zero {
+  color: var(--gray-300);
+}
+
+.dash-status-container .dash-table-container tbody tr:hover {
+  background: var(--gray-100);
+}
+
+.dash-status-container .dash-table-container .gestor-coluna {
+  color: var(--gray-800);
+}
+
+.dash-status-container .dash-table-container .projeto-coluna {
+  color: var(--gray-700);
+}
+
+.dash-status-container .dash-table-container .descricao-coluna {
+  color: var(--gray-500);
+}
+
+.dash-status-container .dash-table-container .empresa-coluna {
+  color: var(--gray-600);
+}
+
+/* Badge de Status em tons de cinza */
+.dash-status-container .status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+/* Cards de Status em tons de cinza */
+.dash-status-container .dc-card {
+  border-left-color: var(--gray-400) !important;
+}
+
+.dash-status-container .dc-card .dc-status.logictel {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.dash-status-container .dc-card .dc-status.vtal {
+  background: var(--gray-300);
+  color: var(--gray-800);
+}
+
+.dash-status-container .dc-card .dc-responsavel.logictel {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.dash-status-container .dc-card .dc-responsavel.vtal {
+  background: var(--gray-300);
+  color: var(--gray-800);
+}
+
+.dash-status-container .dc-card .dc-aging.verde {
+  color: var(--gray-600);
+}
+
+.dash-status-container .dc-card .dc-aging.amarelo {
+  color: var(--gray-500);
+}
+
+.dash-status-container .dc-card .dc-aging.vermelho {
+  color: var(--gray-700);
+}
+
+.dash-status-container .dc-card .dc-tipo-medicao {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.dash-status-container .dc-card .dc-tipo-medicao.final {
+  background: var(--gray-300);
+  color: var(--gray-800);
 }
 
 /* =====================================================
