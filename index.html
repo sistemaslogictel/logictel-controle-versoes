@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.4 - Controle de Medições e DCs - Logictel</title>
+<title>V.5 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -26,11 +26,12 @@
 
     <div class="login-error" id="loginError">Usuário ou senha incorretos. Tente novamente.</div>
 
-    <form id="loginForm" onsubmit="return fazerLogin(event)">
+    <!-- ALTERADO: removido onsubmit, usando onclick no botão -->
+    <div id="loginForm">
       <input type="text" id="loginUser" class="input" placeholder="Usuário" required autofocus>
       <input type="password" id="loginPassword" class="input" placeholder="Senha" required>
-      <button type="submit" class="btn-primary">Entrar</button>
-    </form>
+      <button type="button" id="loginButton" class="btn-primary" onclick="fazerLogin()">Entrar</button>
+    </div>
   </div>
 </div>
 
@@ -88,45 +89,56 @@
       </div>
     </div>
 
-    <!-- ===================== DASHBOARD DON ===================== -->
-    <div id="tab-dash-don" class="tab-content active space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Medições pendentes (negativo) abatidas pelos consumos de DC, usando o Mês Medido como referência.</p>
+    <!-- ===================== DASHBOARD ===================== -->
+    <div id="tab-dashboard" class="tab-content active space-y-6">
+      <div class="flex justify-between items-center flex-wrap gap-3">
+        <div>
+          <h2 class="text-2xl font-bold" style="color:var(--text)">Visão Geral de Saldos</h2>
+          <p class="text-sm mt-0.5" style="color:var(--text-muted)">Acompanhamento do saldo por mês após consumo das DCs.</p>
+        </div>
+        <button onclick="carregarDashboard()" class="btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Atualizar
+        </button>
       </div>
+
       <div class="filters-bar">
-        <select id="filt-don-gestor" class="input" onchange="carregarDashDON()"><option value="">Todos os Gestores</option></select>
-        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
-        <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
-        <div class="flex gap-2"><button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button></div>
+        <select id="filt-dash-gestor" class="input" onchange="carregarDashboard()"><option value="">Todos os Gestores</option></select>
+        <select id="filt-dash-projeto" class="input" onchange="carregarDashboard()"><option value="">Todos os Projetos</option></select>
+        <select id="filt-dash-ano" class="input" onchange="carregarDashboard()"><option value="">Todos os Anos</option></select>
+        <div class="flex gap-2">
+          <button onclick="carregarDashboard()" class="btn-primary flex-1">Filtrar</button>
+          <button onclick="limparFiltros('dash')" class="btn-clear-filters">Limpar</button>
+        </div>
       </div>
+
       <div class="card">
         <div class="dash-table-container">
           <table>
-            <thead id="don-header">
+            <thead id="dash-header">
               <tr>
                 <th>Gestão</th>
                 <th>Projeto</th>
                 <th>Descrição</th>
                 <th>Empresa</th>
-                <th class="mes-header" id="header-don-mes1">Mês 1</th>
-                <th class="mes-header" id="header-don-mes2">Mês 2</th>
+                <th class="mes-header" id="header-mes1">Mês 1</th>
+                <th class="mes-header" id="header-mes2">Mês 2</th>
                 <th>Total Geral</th>
               </tr>
             </thead>
-            <tbody id="tabela-dash-don">
-              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            <tbody id="tabela-dashboard-corpo">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando dados...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ===================== DASHBOARD STATUS (antiga Apropriação) ===================== -->
+    <!-- ===================== DASHBOARD APROPRIAÇÃO ===================== -->
     <div id="tab-dash-apropriacao" class="tab-content space-y-6">
       <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Status</h2>
-        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Medições pendentes (negativo) abatidas pelos consumos de DC, usando o Mês Apropriação como referência.</p>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Apropriação</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores faturados conforme Mês de Apropriação.</p>
       </div>
       <div class="filters-bar">
         <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
@@ -149,6 +161,40 @@
               </tr>
             </thead>
             <tbody id="tabela-dash-apropriacao">
+              <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== DASHBOARD DON ===================== -->
+    <div id="tab-dash-don" class="tab-content space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Valores descontados conforme Mês Medido.</p>
+      </div>
+      <div class="filters-bar">
+        <select id="filt-don-gestor" class="input" onchange="carregarDashDON()"><option value="">Todos os Gestores</option></select>
+        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
+        <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
+        <div class="flex gap-2"><button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button></div>
+      </div>
+      <div class="card">
+        <div class="dash-table-container">
+          <table>
+            <thead id="don-header">
+              <tr>
+                <th>Gestão</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th>Empresa</th>
+                <th class="mes-header" id="header-don-mes1">Mês 1</th>
+                <th class="mes-header" id="header-don-mes2">Mês 2</th>
+                <th>Total Geral</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dash-don">
               <tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
             </tbody>
           </table>
@@ -358,8 +404,9 @@
             <label class="label" style="font-size:13px; color:var(--text);">Permissões de Acesso</label>
             <p class="text-xs text-muted mb-2" style="color:var(--text-soft);">Selecione as áreas que este usuário terá acesso</p>
             <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" value="dashboard" class="permission-check"><span>Dashboard</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Apropriação</span></label>
               <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Status</span></label>
               <label class="checkbox-item"><input type="checkbox" value="dcs" class="permission-check"><span>DC's</span></label>
               <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
               <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
