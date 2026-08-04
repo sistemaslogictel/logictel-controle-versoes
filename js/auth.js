@@ -16,36 +16,28 @@ export function resetarTimeout() {
     if (timeoutId) {
         clearTimeout(timeoutId);
     }
-    // Só inicia o timeout se o usuário estiver logado
     if (getUsuarioLogado()) {
         timeoutId = setTimeout(() => {
             if (getUsuarioLogado()) {
-                const msg = `Sessão expirada por inatividade de ${TIMEOUT_MINUTES} minutos.`;
-                alert(msg);
+                alert(`Sessão expirada por inatividade de ${TIMEOUT_MINUTES} minutos.`);
                 fazerLogout(true);
             }
         }, TIMEOUT_MS);
     }
 }
 
-// Lista de eventos que resetam o timeout
 const EVENTOS_RESET = [
     'click', 'mousemove', 'keydown', 'scroll', 
     'touchstart', 'touchmove', 'wheel', 'focus'
 ];
 
 export function iniciarMonitorInatividade() {
-    // Remove listeners antigos para evitar duplicação
     EVENTOS_RESET.forEach(evento => {
         document.removeEventListener(evento, resetarTimeout);
     });
-    
-    // Adiciona os listeners
     EVENTOS_RESET.forEach(evento => {
         document.addEventListener(evento, resetarTimeout);
     });
-    
-    // Inicia o timeout
     resetarTimeout();
 }
 
@@ -60,16 +52,19 @@ export function pararMonitorInatividade() {
 }
 
 // =====================================================
-// VALIDAÇÃO DE SENHA (força da senha no cadastro de usuário)
+// VALIDAÇÃO DE SENHA
 // =====================================================
 export function validarSenha() {
-    const senha = document.getElementById('user-senha').value;
+    const senha = document.getElementById('user-senha');
+    if (!senha) return false;
+    
+    const valor = senha.value;
     const criterios = {
-        tamanho: senha.length >= 8,
-        maiuscula: /[A-Z]/.test(senha),
-        minuscula: /[a-z]/.test(senha),
-        numero: /[0-9]/.test(senha),
-        especial: /[!@#$%^&*(),.?":{}|<>]/.test(senha)
+        tamanho: valor.length >= 8,
+        maiuscula: /[A-Z]/.test(valor),
+        minuscula: /[a-z]/.test(valor),
+        numero: /[0-9]/.test(valor),
+        especial: /[!@#$%^&*(),.?":{}|<>]/.test(valor)
     };
 
     const ids = {
@@ -91,7 +86,7 @@ export function validarSenha() {
     }
 
     const btn = document.getElementById('user-submit-btn');
-    if (btn) btn.disabled = !todosAtendidos || !senha;
+    if (btn) btn.disabled = !todosAtendidos || !valor;
     return todosAtendidos;
 }
 
@@ -131,105 +126,122 @@ export function gerarSenhaForte() {
 }
 
 // =====================================================
-// LOGIN (CORRIGIDO)
+// LOGIN - VERSÃO CORRIGIDA
 // =====================================================
-export async function fazerLogin(event) {
-    // Previne o comportamento padrão do formulário
-    if (event && event.preventDefault) {
-        event.preventDefault();
-    }
-
+export async function fazerLogin() {
+    console.log('🔐 Iniciando login...');
+    
     const userInput = document.getElementById('loginUser');
     const passInput = document.getElementById('loginPassword');
     const errorEl = document.getElementById('loginError');
+    const loginBtn = document.getElementById('loginButton');
 
     if (!userInput || !passInput) {
-        console.error('Elementos de login não encontrados');
-        return false;
+        console.error('❌ Elementos de login não encontrados');
+        return;
     }
 
     const user = userInput.value.trim();
     const pass = passInput.value.trim();
 
+    console.log('👤 Usuário:', user);
+
     if (!user || !pass) {
+        console.warn('⚠️ Campos vazios');
         if (errorEl) {
             errorEl.textContent = 'Preencha usuário e senha.';
             errorEl.classList.add('show');
         }
-        return false;
+        return;
     }
 
-    // Mostra loading no botão
-    const submitBtn = document.querySelector('.login-card .btn-primary');
-    const originalText = submitBtn ? submitBtn.textContent : 'Entrar';
-    if (submitBtn) {
-        submitBtn.textContent = 'Entrando...';
-        submitBtn.disabled = true;
+    if (loginBtn) {
+        loginBtn.textContent = '⏳ Entrando...';
+        loginBtn.disabled = true;
     }
 
     try {
+        console.log('📡 Buscando usuário no Supabase...');
+        
         const { data, error } = await supabaseClient
             .from('usuarios')
             .select('*')
             .eq('nome', user)
-            .eq('senha', pass)
-            .single();
+            .eq('senha', pass);
 
-        if (error || !data) {
+        console.log('📊 Dados recebidos:', data);
+        console.log('❌ Erro:', error);
+
+        if (error) {
+            console.error('❌ Erro na consulta:', error);
+            if (errorEl) {
+                errorEl.textContent = 'Erro ao conectar ao banco: ' + error.message;
+                errorEl.classList.add('show');
+            }
+            if (loginBtn) {
+                loginBtn.textContent = 'Entrar';
+                loginBtn.disabled = false;
+            }
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            console.warn('❌ Usuário não encontrado');
             if (errorEl) {
                 errorEl.textContent = 'Usuário ou senha incorretos. Tente novamente.';
                 errorEl.classList.add('show');
             }
-            if (submitBtn) {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
+            if (loginBtn) {
+                loginBtn.textContent = 'Entrar';
+                loginBtn.disabled = false;
             }
-            return false;
+            return;
         }
 
-        // Login bem-sucedido
-        salvarUsuarioLogado(data);
+        const usuario = data[0];
+        console.log('✅ Usuário encontrado:', usuario.nome);
+
+        salvarUsuarioLogado(usuario);
         if (errorEl) errorEl.classList.remove('show');
 
-        // Esconde overlay de login e mostra app
         const overlay = document.getElementById('loginOverlay');
         const appShell = document.getElementById('appShell');
         if (overlay) overlay.classList.add('hidden');
         if (appShell) appShell.style.display = 'flex';
 
-        // Atualiza avatar e nome
         const avatar = document.getElementById('userAvatar');
         const nomeDisplay = document.getElementById('userNameDisplay');
-        if (avatar) avatar.textContent = data.nome.charAt(0).toUpperCase();
-        if (nomeDisplay) nomeDisplay.textContent = data.nome;
+        if (avatar) avatar.textContent = usuario.nome.charAt(0).toUpperCase();
+        if (nomeDisplay) nomeDisplay.textContent = usuario.nome;
 
-        // Gera menu e carrega dados
-        gerarMenu(data.permissoes || []);
+        console.log('📋 Carregando menu...');
+        gerarMenu(usuario.permissoes || []);
+        
+        console.log('📊 Carregando dashboard...');
         mudarAba('dashboard');
         carregarDashboard();
         carregarTodasListas();
         aplicarMascaras();
 
-        // Inicia monitor de inatividade
         iniciarMonitorInatividade();
 
-        if (submitBtn) {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+        if (loginBtn) {
+            loginBtn.textContent = 'Entrar';
+            loginBtn.disabled = false;
         }
 
-        return false;
+        console.log('✅ Login concluído com sucesso!');
+
     } catch (e) {
-        console.error('Erro no login:', e);
+        console.error('💥 Erro crítico:', e);
         if (errorEl) {
-            errorEl.textContent = 'Erro ao conectar ao servidor.';
+            errorEl.textContent = 'Erro no sistema: ' + e.message;
             errorEl.classList.add('show');
         }
-        if (submitBtn) {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+        if (loginBtn) {
+            loginBtn.textContent = 'Entrar';
+            loginBtn.disabled = false;
         }
-        return false;
     }
 }
 
@@ -251,6 +263,12 @@ export function fazerLogout(silencioso = false) {
     if (userInput) userInput.value = '';
     if (passInput) passInput.value = '';
     if (errorEl) errorEl.classList.remove('show');
+    
+    const loginBtn = document.getElementById('loginButton');
+    if (loginBtn) {
+        loginBtn.textContent = 'Entrar';
+        loginBtn.disabled = false;
+    }
 }
 
 export function verificarSessao() {
@@ -266,7 +284,7 @@ export function verificarSessao() {
         if (avatar) avatar.textContent = usuario.nome.charAt(0).toUpperCase();
         if (nomeDisplay) nomeDisplay.textContent = usuario.nome;
         
-        gerarMenu(usuario.permissoes || []);
+        gerarMenu(usuario.permissores || []);
         iniciarMonitorInatividade();
         
         return true;
