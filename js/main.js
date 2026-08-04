@@ -8,9 +8,9 @@
 
 import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte } from './auth.js';
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
-import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessivel } from './navigation.js';
+import { mudarAba, carregarTodasListas, cancelarEdicao } from './navigation.js';
 
-import { carregarDashApropriacao, carregarDashDON } from './dashboards.js';
+import { carregarDashboard, carregarDashApropriacao, carregarDashDON } from './dashboards.js';
 import { carregarDCCards, irParaConsumo } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel } from './consumo.js';
 import { initFormMedicao, editarMedicao, excluirMedicao } from './medicoes.js';
@@ -38,11 +38,12 @@ Object.assign(window, {
     // navegação
     mudarAba, cancelarEdicao, toggleSidebar,
     limparFiltros: (tipo) => limparFiltros(tipo, {
+        dash: carregarDashboard,
         aprop: carregarDashApropriacao,
         don: carregarDashDON
     }),
     // dashboards
-    carregarDashApropriacao, carregarDashDON,
+    carregarDashboard, carregarDashApropriacao, carregarDashDON,
     // DC cards
     carregarDCCards, irParaConsumo,
     // consumo
@@ -65,8 +66,7 @@ Object.assign(window, {
 });
 
 // =====================================================
-// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO (equivalente aos
-// addEventListener que existiam soltos no script original)
+// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO
 // =====================================================
 function initFormListeners() {
     initFormMedicao();
@@ -89,7 +89,8 @@ function iniciarApp() {
     initFormListeners();
 
     if (verificarSessao()) {
-        irParaPrimeiraAbaAcessivel();
+        mudarAba('dashboard');
+        carregarDashboard();
         carregarTodasListas();
         aplicarMascaras();
     }
