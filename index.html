@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.5.1 - Controle de Medições e DCs - Logictel</title>
+<title>V.6 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -26,11 +26,11 @@
 
     <div class="login-error" id="loginError">Usuário ou senha incorretos. Tente novamente.</div>
 
-    <!-- ALTERADO: removido onsubmit, usando onclick no botão -->
+    <!-- VERSÃO SIMPLIFICADA - USANDO addEventListener DIRETO -->
     <div id="loginForm">
       <input type="text" id="loginUser" class="input" placeholder="Usuário" required autofocus>
       <input type="password" id="loginPassword" class="input" placeholder="Senha" required>
-      <button type="button" id="loginButton" class="btn-primary" onclick="fazerLogin()">Entrar</button>
+      <button type="button" id="loginButton" class="btn-primary">Entrar</button>
     </div>
   </div>
 </div>
