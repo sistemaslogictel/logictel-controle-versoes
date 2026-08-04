@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.1 - Controle de Medições e DCs - Logictel</title>
+<title>V.2 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -183,7 +183,22 @@
           <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
           <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
           <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
-          <div><label class="label">Valor Total *</label><input type="text" id="med-valor" required placeholder="0,00" class="input money-input"></div>
+          
+          <!-- Valor DON -->
+          <div><label class="label">Valor DON *</label><input type="text" id="med-valor-don" required placeholder="0,00" class="input money-input"></div>
+          
+          <!-- Checkbox para manter valor -->
+          <div class="md:col-span-3 flex items-center gap-2" style="margin-top: -8px;">
+            <input type="checkbox" id="med-manter-status" checked onchange="toggleValorStatus()">
+            <label for="med-manter-status" class="text-sm" style="color:var(--text);">Manter valor para Status</label>
+          </div>
+          
+          <!-- Valor Status (visível apenas se checkbox desmarcado) -->
+          <div id="med-valor-status-container" style="display:none;">
+            <label class="label">Valor Status</label>
+            <input type="text" id="med-valor-status" placeholder="0,00" class="input money-input">
+          </div>
+          
           <div><label class="label">Data E-mail</label><input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input"></div>
           <div><label class="label">Status Medição *</label><select id="med-status" required class="input"><option value="">Selecione...</option></select></div>
           <div class="md:col-span-3 flex justify-end pt-2 gap-2">
@@ -195,8 +210,8 @@
       <div class="card">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th>Projeto</th><th>Gestor Logictel</th><th>Diretor Cliente</th><th>Mês</th><th>Ano</th><th>Status</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-medicoes"><tr><td colspan="10" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th>Projeto</th><th>Gestor Logictel</th><th>Diretor Cliente</th><th>Mês</th><th>Ano</th><th>Status</th><th class="text-right">Valor DON</th><th class="text-right">Valor Status</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-medicoes"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
