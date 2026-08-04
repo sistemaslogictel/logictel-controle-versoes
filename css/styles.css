@@ -777,11 +777,11 @@ nav.sidenav{
 }
 
 .dash-table-container .valor-positivo {
-  color: var(--success);
+  color: #00AA00;  /* Verde mais vibrante */
 }
 
 .dash-table-container .valor-negativo {
-  color: var(--danger);
+  color: #FF0000;  /* Vermelho puro */
 }
 
 .dash-table-container .valor-zero {
