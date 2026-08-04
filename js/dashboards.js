@@ -7,7 +7,14 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 // =====================================================
 // CÁLCULO COMPARTILHADO DE SALDO POR MÊS
 // =====================================================
-function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValorMedicao) {
+// Regra de negócio:
+//   - Medições entram como valor NEGATIVO (é o que falta receber).
+//   - Consumos DC abatem (somam, reduzindo o negativo) no mês indicado
+//     pelo campo de referência escolhido (mes_medido para DON,
+//     mes_apropriacao para Status).
+//   - saldo do mês = -(total medido no mês) + (total consumido no mês
+//     de referência)
+function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
     const grupos = {};
     const todosMeses = new Set();
 
@@ -30,8 +37,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValorMedi
         const g = garantirGrupo(key, med);
         todosMeses.add(med.mes);
         if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
-        // Usa o campo de valor específico (valor ou valor_status)
-        g.meses[med.mes].medicao += Number(med[campoValorMedicao] || 0);
+        g.meses[med.mes].medicao += Number(med.valor || 0);
     });
 
     consumos.forEach(c => {
@@ -44,7 +50,6 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValorMedi
         g.meses[mes].consumo += Number(c.valor || 0);
     });
 
-    // Calcular saldos
     Object.values(grupos).forEach(g => {
         let total = 0;
         Object.keys(g.meses).forEach(mes => {
@@ -64,7 +69,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValorMedi
 // =====================================================
 // RENDERIZAÇÃO COMPARTILHADA DA TABELA
 // =====================================================
-function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, isStatusDashboard = false) {
+function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
         let html = '<tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>';
@@ -79,37 +84,8 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, isStatusDas
     if (!tbody) return;
 
     const linhas = Object.values(grupos);
-    
-    // =====================================================
-    // FILTRAR MESES QUE SÓ TEM ZEROS
-    // =====================================================
-    // Para cada mês, verificar se todos os grupos têm saldo zero ou undefined
-    const mesesComDados = mesesExibir.filter(mes => {
-        // Verifica se algum grupo tem saldo diferente de 0 para este mês
-        return linhas.some(g => {
-            const saldo = g.meses[mes]?.saldo;
-            return saldo !== undefined && saldo !== 0;
-        });
-    });
-
-    // Se não houver meses com dados, mostrar mensagem
-    if (mesesComDados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${4 + mesesExibir.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro com valores encontrado.</td></tr>`;
-        return;
-    }
-
-    // Reconstruir cabeçalho com apenas os meses que têm dados
-    if (headerRow) {
-        let html = '<tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>';
-        mesesComDados.forEach(mes => {
-            html += `<th class="mes-header">${mes}</th>`;
-        });
-        html += '<th>Total Geral</th></tr>';
-        headerRow.innerHTML = html;
-    }
-
     if (linhas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${4 + mesesComDados.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${4 + mesesExibir.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
         return;
     }
 
@@ -127,17 +103,21 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, isStatusDas
                 <td class="empresa-coluna">${g.empresa}</td>
         `;
 
-        mesesComDados.forEach(mes => {
+        mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
             const temValor = saldo !== undefined;
             
-            let valorClass = 'valor-zero';
+            // =====================================================
+            // LÓGICA DE CORES - DEFINE AS CLASSES
+            // =====================================================
+            let valorClass = 'valor-zero'; // padrão: preto
             if (temValor) {
                 if (saldo < 0) {
-                    valorClass = 'valor-negativo';
+                    valorClass = 'valor-negativo';  // vermelho
                 } else if (saldo > 0) {
-                    valorClass = 'valor-positivo';
+                    valorClass = 'valor-positivo';  // verde
                 }
+                // se for zero, mantém 'valor-zero' (preto)
             }
             
             const displayValor = temValor && saldo !== 0 ? 
@@ -147,6 +127,9 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, isStatusDas
             html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
         });
 
+        // =====================================================
+        // CORES PARA O TOTAL DA LINHA
+        // =====================================================
         let totalClass = 'valor-zero';
         if (g.total < 0) {
             totalClass = 'valor-negativo';
@@ -162,7 +145,9 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, isStatusDas
         tbody.innerHTML += html;
     });
 
-    // Total Geral
+    // =====================================================
+    // CORES PARA O TOTAL GERAL
+    // =====================================================
     let totalClass = 'valor-zero';
     if (totalGeral < 0) {
         totalClass = 'valor-negativo';
@@ -175,12 +160,15 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, isStatusDas
             <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
     `;
 
-    mesesComDados.forEach(mes => {
+    mesesExibir.forEach(mes => {
         let totalMes = 0;
         linhas.forEach(g => { 
             totalMes += g.meses[mes]?.saldo || 0; 
         });
         
+        // =====================================================
+        // CORES PARA O TOTAL POR MÊS
+        // =====================================================
         let mesClass = 'valor-zero';
         if (totalMes < 0) {
             mesClass = 'valor-negativo';
@@ -199,8 +187,12 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, isStatusDas
 }
 
 // =====================================================
-// FILTROS
+// FILTROS (Gestor, Projeto, Ano) - aplicados antes de agrupar
 // =====================================================
+// Os <select> de filtro guardam o NOME do gestor/projeto como value
+// (ver js/selects.js -> carregarFiltros), e não o id. Por isso o
+// filtro compara com gestores_logictel.nome / projetos.nome vindos
+// do join, e não com gestor_logictel_id / projeto_id.
 function lerFiltrosDashboard(prefixo) {
     return {
         gestor: document.getElementById(`filt-${prefixo}-gestor`)?.value || '',
@@ -223,7 +215,7 @@ async function buscarMedicoesEConsumos() {
     const { data: medicoes, error: errorMed } = await supabaseClient
         .from('medicoes')
         .select(`
-            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor, valor_status,
+            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor,
             empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
         `);
     if (errorMed) throw errorMed;
@@ -241,7 +233,8 @@ async function buscarMedicoesEConsumos() {
 }
 
 // =====================================================
-// DASHBOARD STATUS (usa valor_status da medição e mes_apropriacao do consumo)
+// DASHBOARD STATUS (antiga "Apropriação")
+// Abate consumo pelo Mês Apropriação
 // =====================================================
 export async function carregarDashApropriacao() {
     const tbody = document.getElementById('tabela-dash-apropriacao');
@@ -254,14 +247,8 @@ export async function carregarDashApropriacao() {
         const { medicoes, consumos } = await buscarMedicoesEConsumos();
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
         const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        // Usa valor_status para medições e mes_apropriacao para consumos
-        const { grupos, mesesExibir } = calcularGruposSaldo(
-            medicoesFiltradas, 
-            consumosFiltrados, 
-            'mes_apropriacao',
-            'valor_status'  // campo de valor da medição para Status
-        );
-        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, true);
+        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_apropriacao');
+        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir);
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
@@ -270,7 +257,8 @@ export async function carregarDashApropriacao() {
 }
 
 // =====================================================
-// DASHBOARD DON (usa valor da medição e mes_medido do consumo)
+// DASHBOARD DON
+// Abate consumo pelo Mês Medido
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
@@ -283,14 +271,8 @@ export async function carregarDashDON() {
         const { medicoes, consumos } = await buscarMedicoesEConsumos();
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
         const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        // Usa valor para medições (DON) e mes_medido para consumos
-        const { grupos, mesesExibir } = calcularGruposSaldo(
-            medicoesFiltradas, 
-            consumosFiltrados, 
-            'mes_medido',
-            'valor'  // campo de valor da medição para DON
-        );
-        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, false);
+        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_medido');
+        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir);
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
