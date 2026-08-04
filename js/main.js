@@ -1,10 +1,6 @@
 // =====================================================
 // PONTO DE ENTRADA DA APLICAÇÃO
 // =====================================================
-// Este arquivo importa todos os módulos e expõe no `window` apenas
-// as funções que o HTML precisa chamar via onclick/onchange/oninput
-// (o próprio index.html continua usando esses atributos inline,
-// então as funções precisam existir no escopo global do navegador).
 
 import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte } from './auth.js';
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
@@ -13,7 +9,7 @@ import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessiv
 import { carregarDashApropriacao, carregarDashDON } from './dashboards.js';
 import { carregarDCCards, irParaConsumo } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel } from './consumo.js';
-import { initFormMedicao, editarMedicao, excluirMedicao } from './medicoes.js';
+import { initFormMedicao, editarMedicao, excluirMedicao, toggleValorStatus } from './medicoes.js';
 import { carregarApropriacaoHist, carregarMedicaoHist } from './historico.js';
 
 import {
@@ -48,7 +44,7 @@ Object.assign(window, {
     // consumo
     carregarGestoresPorProjeto, controlarCamposNF, editarConsumo, excluirConsumo, exportarExcel,
     // medições
-    editarMedicao, excluirMedicao,
+    editarMedicao, excluirMedicao, toggleValorStatus,
     // histórico
     carregarApropriacaoHist, carregarMedicaoHist,
     // cadastros
@@ -65,8 +61,7 @@ Object.assign(window, {
 });
 
 // =====================================================
-// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO (equivalente aos
-// addEventListener que existiam soltos no script original)
+// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO
 // =====================================================
 function initFormListeners() {
     initFormMedicao();
@@ -95,6 +90,4 @@ function iniciarApp() {
     }
 }
 
-// Scripts com type="module" já são deferidos (equivalente a colocar no fim do body),
-// então o DOM já está pronto quando este código roda.
 iniciarApp();
