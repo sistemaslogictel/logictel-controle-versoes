@@ -780,17 +780,17 @@ nav.sidenav{
    CORES PARA VALORES NAS DASHBOARDS
    ===================================================== */
 .dash-table-container .valor-positivo {
-  color: #00AA00 !important;  /* Verde vibrante */
+  color: #00AA00 !important;
   font-weight: 600;
 }
 
 .dash-table-container .valor-negativo {
-  color: #FF0000 !important;  /* Vermelho puro */
+  color: #FF0000 !important;
   font-weight: 600;
 }
 
 .dash-table-container .valor-zero {
-  color: #000000 !important;  /* Preto */
+  color: #000000 !important;
   font-weight: 400;
 }
 
