@@ -1,10 +1,6 @@
 // =====================================================
 // PONTO DE ENTRADA DA APLICAÇÃO
 // =====================================================
-// Este arquivo importa todos os módulos e expõe no `window` apenas
-// as funções que o HTML precisa chamar via onclick/onchange/oninput
-// (o próprio index.html continua usando esses atributos inline,
-// então as funções precisam existir no escopo global do navegador).
 
 import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte } from './auth.js';
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
@@ -30,7 +26,7 @@ import {
 import { initFormUsuario, editarUsuario, excluirUsuario } from './usuarios.js';
 
 // =====================================================
-// EXPOSIÇÃO DAS FUNÇÕES USADAS EM ATRIBUTOS onclick/onchange/oninput DO HTML
+// EXPOSIÇÃO DAS FUNÇÕES USADAS EM ATRIBUTOS DO HTML
 // =====================================================
 Object.assign(window, {
     // auth
@@ -83,10 +79,29 @@ function initFormListeners() {
 }
 
 // =====================================================
+// CONFIGURA O BOTÃO DE LOGIN VIA addEventListener
+// =====================================================
+function configurarBotaoLogin() {
+    const loginBtn = document.getElementById('loginButton');
+    if (loginBtn) {
+        // Remove listeners antigos para evitar duplicação
+        const novoBtn = loginBtn.cloneNode(true);
+        loginBtn.parentNode.replaceChild(novoBtn, loginBtn);
+        novoBtn.addEventListener('click', fazerLogin);
+        console.log('✅ Botão de login configurado via addEventListener');
+    } else {
+        console.error('❌ Botão de login não encontrado!');
+    }
+}
+
+// =====================================================
 // BOOTSTRAP DA APLICAÇÃO
 // =====================================================
 function iniciarApp() {
+    console.log('🚀 Iniciando aplicação...');
+    
     initFormListeners();
+    configurarBotaoLogin();
 
     if (verificarSessao()) {
         mudarAba('dashboard');
@@ -96,6 +111,5 @@ function iniciarApp() {
     }
 }
 
-// Scripts com type="module" já são deferidos (equivalente a colocar no fim do body),
-// então o DOM já está pronto quando este código roda.
+// Scripts com type="module" já são deferidos
 iniciarApp();
