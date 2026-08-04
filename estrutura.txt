@@ -1,22 +1,92 @@
-logictel-sistema/
-├── index.html
-├── assets/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       ├── config.js
-│       ├── auth.js
-│       ├── database.js
-│       ├── components.js
-│       ├── dashboard.js
-│       ├── medicoes.js
-│       ├── consumo.js
-│       ├── cadastros.js
-│       ├── gestores.js
-│       ├── projetos.js
-│       ├── status.js
-│       ├── historico.js
-│       ├── logs.js
-│       └── main.js
+ESTRUTURA DO PROJETO - LOGICTEL (Controle de Medições e DCs)
+================================================================
+Antes: 1 único arquivo index.html com tudo (HTML + CSS + ~3000 linhas de JS)
+Depois: HTML puro + CSS separado + 16 módulos JS, cada um com uma responsabilidade
+
+ARVORE DE ARQUIVOS
+------------------
+logictel/
+├── index.html                 -> HTML puro (estrutura das telas, sem <style> nem <script> de lógica)
+├── README.md                  -> Instruções de uso e observações
+│
+├── css/
+│   └── styles.css              -> Todo o CSS que estava no <style> do arquivo original
+│
+├── js/
+│   ├── config.js               -> Cria o cliente do Supabase (URL + anon key)
+│   ├── session.js              -> Estado da sessão: usuário logado, permissões, localStorage
+│   ├── utils.js                 -> Máscaras (moeda/data), formatação de valores,
+│   │                              toggle da sidebar mobile, flyouts do menu, limpar filtros
+│   ├── auth.js                  -> Login, logout, verificação de sessão, força/geração de senha
+│   ├── selects.js               -> Carregamento de todos os combos (empresas, projetos,
+│   │                              diretores, gestores, status) e filtros dos dashboards
+│   ├── dashboards.js            -> Os 3 dashboards: Saldos, Apropriação e DON
+│   ├── dccards.js               -> Cards de visão geral das DCs (aging, status, cores)
+│   ├── medicoes.js              -> CRUD completo de Medições (aba "Cadastro de Medição")
+│   ├── consumo.js               -> CRUD de Consumo DC, campos condicionais de NF,
+│   │                              exportação para Excel
+│   ├── cadastros.js             -> CRUD de: Empresa, Diretor Cliente, Contrato, Projeto,
+│   │                              Gestor Logictel, Status DC, Status Medição, Status NF
+│   ├── historico.js             -> Histórico de Apropriação e Histórico do Gestor
+│   ├── usuarios.js              -> CRUD de usuários e permissões de acesso
+│   ├── logs.js                  -> Aba "Atualizações do sistema" (logs do banco)
+│   ├── navigation.js            -> Menu lateral dinâmico, troca de abas (mudarAba),
+│   │                              cancelarEdicao (genérico p/ todos os formulários)
+│   └── main.js                  -> Ponto de entrada: importa tudo, inicializa a página
+│                                    e expõe no "window" só as funções que o HTML
+│                                    chama via onclick/onchange (ex: mudarAba, editarMedicao)
+│
 └── assets/
-    └── logo.png
+    └── (colocar aqui a logo.png, mesmo caminho usado no HTML: assets/logo.png)
+
+COMO OS ARQUIVOS SE CONECTAM
+-----------------------------
+index.html
+  -> carrega css/styles.css (visual)
+  -> carrega js/main.js como <script type="module"> (lógica)
+
+main.js
+  -> importa as funções de todos os outros módulos
+  -> inicializa os listeners de formulário (submit dos cadastros)
+  -> verifica se já existe sessão salva e monta a tela inicial
+  -> expõe no "window" as funções referenciadas nos onclick="..." do HTML
+     (isso foi necessário para manter o HTML idêntico ao original,
+     sem reescrever todos os botões)
+
+Os módulos entre si se importam conforme a necessidade. Exemplo:
+  navigation.js  -> importa de dashboards.js, medicoes.js, consumo.js, cadastros.js,
+                     usuarios.js, historico.js, logs.js, selects.js
+                     (porque é ele quem decide o que carregar ao trocar de aba)
+  consumo.js     -> importa de dccards.js (atualiza os cards após salvar/excluir)
+  cadastros.js   -> importa de selects.js (recarrega os combos após CRUD)
+
+O QUE MUDOU E O QUE NÃO MUDOU
+-------------------------------
+MUDOU:
+  - Organização física do código (16 arquivos ao invés de 1)
+  - Fica mais fácil achar e alterar uma funcionalidade específica
+  - Fica mais fácil dar manutenção sem risco de quebrar outra parte do sistema
+
+NÃO MUDOU (de propósito, nada de lógica foi alterado):
+  - Nenhum comportamento da aplicação
+  - A chave anônima do Supabase continua em js/config.js, visível no navegador
+    (isso é esperado e normal em apps Supabase - não é uma falha desta reorganização)
+  - Login ainda compara senha em texto puro direto do client
+  - Senhas ainda aparecem em texto puro na tela de Cadastro de Usuário
+  - Permissões ainda são checadas só no JavaScript (sem RLS no banco)
+
+Esses últimos 3 pontos são de SEGURANÇA, não de organização, e continuam
+pendentes para quando você quiser atacar essa frente (RLS + Supabase Auth).
+
+COMO TESTAR/PUBLICAR
+----------------------
+Como agora o HTML usa <script type="module">, NÃO dá para abrir o index.html
+direto do disco (file://) - o navegador bloqueia por segurança.
+
+Opção 1 - Publicar num host estático (Vercel, Netlify, GitHub Pages, S3...):
+  basta subir a pasta "logictel" inteira.
+
+Opção 2 - Testar localmente:
+  cd logictel
+  python3 -m http.server 8080
+  abrir http://localhost:8080
