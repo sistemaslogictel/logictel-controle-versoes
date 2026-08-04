@@ -106,12 +106,37 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
         mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
             const temValor = saldo !== undefined;
-            const valorClass = !temValor ? 'valor-zero' : (saldo < 0 ? 'valor-negativo' : (saldo > 0 ? 'valor-positivo' : 'valor-zero'));
-            const displayValor = temValor && saldo !== 0 ? saldo.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-';
+            
+            // =====================================================
+            // LÓGICA DE CORES - DEFINE AS CLASSES
+            // =====================================================
+            let valorClass = 'valor-zero'; // padrão: preto
+            if (temValor) {
+                if (saldo < 0) {
+                    valorClass = 'valor-negativo';  // vermelho
+                } else if (saldo > 0) {
+                    valorClass = 'valor-positivo';  // verde
+                }
+                // se for zero, mantém 'valor-zero' (preto)
+            }
+            
+            const displayValor = temValor && saldo !== 0 ? 
+                saldo.toLocaleString('pt-BR', { minFractionDigits: 2 }) : 
+                '-';
+            
             html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
         });
 
-        const totalClass = g.total < 0 ? 'valor-negativo' : (g.total > 0 ? 'valor-positivo' : 'valor-zero');
+        // =====================================================
+        // CORES PARA O TOTAL DA LINHA
+        // =====================================================
+        let totalClass = 'valor-zero';
+        if (g.total < 0) {
+            totalClass = 'valor-negativo';
+        } else if (g.total > 0) {
+            totalClass = 'valor-positivo';
+        }
+        
         html += `
                 <td class="${totalClass}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
             </tr>
@@ -120,7 +145,16 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
         tbody.innerHTML += html;
     });
 
-    const totalClass = totalGeral < 0 ? 'valor-negativo' : (totalGeral > 0 ? 'valor-positivo' : 'valor-zero');
+    // =====================================================
+    // CORES PARA O TOTAL GERAL
+    // =====================================================
+    let totalClass = 'valor-zero';
+    if (totalGeral < 0) {
+        totalClass = 'valor-negativo';
+    } else if (totalGeral > 0) {
+        totalClass = 'valor-positivo';
+    }
+    
     let totalHtml = `
         <tr class="total-row">
             <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
@@ -128,8 +162,20 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
 
     mesesExibir.forEach(mes => {
         let totalMes = 0;
-        linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
-        const mesClass = totalMes < 0 ? 'valor-negativo' : (totalMes > 0 ? 'valor-positivo' : 'valor-zero');
+        linhas.forEach(g => { 
+            totalMes += g.meses[mes]?.saldo || 0; 
+        });
+        
+        // =====================================================
+        // CORES PARA O TOTAL POR MÊS
+        // =====================================================
+        let mesClass = 'valor-zero';
+        if (totalMes < 0) {
+            mesClass = 'valor-negativo';
+        } else if (totalMes > 0) {
+            mesClass = 'valor-positivo';
+        }
+        
         totalHtml += `<td class="mes-coluna ${mesClass}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
     });
 
