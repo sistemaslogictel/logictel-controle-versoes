@@ -140,6 +140,31 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
     tbody.innerHTML += totalHtml;
 }
 
+// =====================================================
+// FILTROS (Gestor, Projeto, Ano) - aplicados antes de agrupar
+// =====================================================
+// Os <select> de filtro guardam o NOME do gestor/projeto como value
+// (ver js/selects.js -> carregarFiltros), e não o id. Por isso o
+// filtro compara com gestores_logictel.nome / projetos.nome vindos
+// do join, e não com gestor_logictel_id / projeto_id.
+function lerFiltrosDashboard(prefixo) {
+    return {
+        gestor: document.getElementById(`filt-${prefixo}-gestor`)?.value || '',
+        projeto: document.getElementById(`filt-${prefixo}-projeto`)?.value || '',
+        ano: document.getElementById(`filt-${prefixo}-ano`)?.value || ''
+    };
+}
+
+function aplicarFiltrosDashboard(lista, filtros) {
+    if (!filtros.gestor && !filtros.projeto && !filtros.ano) return lista;
+    return lista.filter(item => {
+        if (filtros.gestor && item.gestores_logictel?.nome !== filtros.gestor) return false;
+        if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
+        if (filtros.ano && String(item.ano) !== String(filtros.ano)) return false;
+        return true;
+    });
+}
+
 async function buscarMedicoesEConsumos() {
     const { data: medicoes, error: errorMed } = await supabaseClient
         .from('medicoes')
@@ -172,8 +197,11 @@ export async function carregarDashApropriacao() {
     tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
     try {
+        const filtros = lerFiltrosDashboard('aprop');
         const { medicoes, consumos } = await buscarMedicoesEConsumos();
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoes, consumos, 'mes_apropriacao');
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
+        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_apropriacao');
         renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir);
         registrarUltimaAtualizacao();
     } catch (e) {
@@ -193,8 +221,11 @@ export async function carregarDashDON() {
     tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
     try {
+        const filtros = lerFiltrosDashboard('don');
         const { medicoes, consumos } = await buscarMedicoesEConsumos();
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoes, consumos, 'mes_medido');
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
+        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_medido');
         renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir);
         registrarUltimaAtualizacao();
     } catch (e) {
