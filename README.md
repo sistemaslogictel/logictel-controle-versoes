@@ -13,7 +13,7 @@ logictel/
 │   ├── utils.js             # Máscaras, formatação de valores, sidebar mobile, flyouts
 │   ├── auth.js              # Login, logout, verificação de sessão, força de senha
 │   ├── selects.js           # Carregamento de combos (empresas, projetos, status, etc.)
-│   ├── dashboards.js        # 3 dashboards (Saldos, Apropriação, DON)
+│   ├── dashboards.js        # 2 dashboards: DON e Status (medição negativa abatida por consumo)
 │   ├── dccards.js           # Cards de visão geral das DCs
 │   ├── medicoes.js          # CRUD de Medições
 │   ├── consumo.js           # CRUD de Consumo DC + exportação Excel
