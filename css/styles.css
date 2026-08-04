@@ -123,6 +123,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   border:1px solid #F5C6CB;
 }
 .login-error.show { display:block; }
+.login-error.info {
+  background:var(--gold-bg);
+  color:var(--gold);
+  border-color:var(--gold);
+}
 .login-card .input {
   margin-bottom:16px;
 }
@@ -799,6 +804,16 @@ nav.sidenav{
 
 .dash-table-container .empresa-coluna {
   color: var(--text-muted);
+}
+
+/* =====================================================
+   DASHBOARD STATUS EM TONS DE CINZA
+   Diferencia visualmente da Dashboard DON (que mantém as
+   cores originais do sistema). Escopo somente na aba
+   #tab-dash-apropriacao, então não afeta mais nada.
+   ===================================================== */
+#tab-dash-apropriacao {
+  filter: grayscale(1);
 }
 
 /* =====================================================
