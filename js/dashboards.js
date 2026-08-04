@@ -7,14 +7,7 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 // =====================================================
 // CÁLCULO COMPARTILHADO DE SALDO POR MÊS
 // =====================================================
-// Regra de negócio:
-//   - Medições entram como valor NEGATIVO (é o que falta receber).
-//   - Consumos DC abatem (somam, reduzindo o negativo) no mês indicado
-//     pelo campo de referência escolhido (mes_medido para DON,
-//     mes_apropriacao para Status).
-//   - saldo do mês = -(total medido no mês) + (total consumido no mês
-//     de referência)
-function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
+function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValorMedicao = 'valor') {
     const grupos = {};
     const todosMeses = new Set();
 
@@ -37,7 +30,8 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
         const g = garantirGrupo(key, med);
         todosMeses.add(med.mes);
         if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
-        g.meses[med.mes].medicao += Number(med.valor || 0);
+        // Usa o campo específico (valor para DON, valor_status para Status)
+        g.meses[med.mes].medicao += Number(med[campoValorMedicao] || 0);
     });
 
     consumos.forEach(c => {
@@ -62,7 +56,17 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
         g.total = total;
     });
 
-    const mesesExibir = Array.from(todosMeses).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
+    // Filtra apenas meses que têm valores não-zero em pelo menos um grupo
+    let mesesExibir = Array.from(todosMeses).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
+    
+    // Remove meses onde todos os grupos têm saldo zero ou undefined
+    mesesExibir = mesesExibir.filter(mes => {
+        return Object.values(grupos).some(g => {
+            const saldo = g.meses[mes]?.saldo;
+            return saldo !== undefined && saldo !== 0;
+        });
+    });
+
     return { grupos, mesesExibir };
 }
 
@@ -84,7 +88,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
     if (!tbody) return;
 
     const linhas = Object.values(grupos);
-    if (linhas.length === 0) {
+    if (linhas.length === 0 || mesesExibir.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${4 + mesesExibir.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
         return;
     }
@@ -107,17 +111,13 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
             const saldo = g.meses[mes]?.saldo;
             const temValor = saldo !== undefined;
             
-            // =====================================================
-            // LÓGICA DE CORES - DEFINE AS CLASSES
-            // =====================================================
-            let valorClass = 'valor-zero'; // padrão: preto
+            let valorClass = 'valor-zero';
             if (temValor) {
                 if (saldo < 0) {
-                    valorClass = 'valor-negativo';  // vermelho
+                    valorClass = 'valor-negativo';
                 } else if (saldo > 0) {
-                    valorClass = 'valor-positivo';  // verde
+                    valorClass = 'valor-positivo';
                 }
-                // se for zero, mantém 'valor-zero' (preto)
             }
             
             const displayValor = temValor && saldo !== 0 ? 
@@ -127,9 +127,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
             html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
         });
 
-        // =====================================================
-        // CORES PARA O TOTAL DA LINHA
-        // =====================================================
         let totalClass = 'valor-zero';
         if (g.total < 0) {
             totalClass = 'valor-negativo';
@@ -145,9 +142,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
         tbody.innerHTML += html;
     });
 
-    // =====================================================
-    // CORES PARA O TOTAL GERAL
-    // =====================================================
     let totalClass = 'valor-zero';
     if (totalGeral < 0) {
         totalClass = 'valor-negativo';
@@ -166,9 +160,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
             totalMes += g.meses[mes]?.saldo || 0; 
         });
         
-        // =====================================================
-        // CORES PARA O TOTAL POR MÊS
-        // =====================================================
         let mesClass = 'valor-zero';
         if (totalMes < 0) {
             mesClass = 'valor-negativo';
@@ -187,12 +178,8 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
 }
 
 // =====================================================
-// FILTROS (Gestor, Projeto, Ano) - aplicados antes de agrupar
+// FILTROS
 // =====================================================
-// Os <select> de filtro guardam o NOME do gestor/projeto como value
-// (ver js/selects.js -> carregarFiltros), e não o id. Por isso o
-// filtro compara com gestores_logictel.nome / projetos.nome vindos
-// do join, e não com gestor_logictel_id / projeto_id.
 function lerFiltrosDashboard(prefixo) {
     return {
         gestor: document.getElementById(`filt-${prefixo}-gestor`)?.value || '',
@@ -215,7 +202,7 @@ async function buscarMedicoesEConsumos() {
     const { data: medicoes, error: errorMed } = await supabaseClient
         .from('medicoes')
         .select(`
-            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor,
+            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor, valor_status,
             empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
         `);
     if (errorMed) throw errorMed;
@@ -233,8 +220,7 @@ async function buscarMedicoesEConsumos() {
 }
 
 // =====================================================
-// DASHBOARD STATUS (antiga "Apropriação")
-// Abate consumo pelo Mês Apropriação
+// DASHBOARD STATUS - Usa valor_status das medições
 // =====================================================
 export async function carregarDashApropriacao() {
     const tbody = document.getElementById('tabela-dash-apropriacao');
@@ -247,7 +233,8 @@ export async function carregarDashApropriacao() {
         const { medicoes, consumos } = await buscarMedicoesEConsumos();
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
         const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_apropriacao');
+        // Usa valor_status para a Dashboard Status
+        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_apropriacao', 'valor_status');
         renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir);
         registrarUltimaAtualizacao();
     } catch (e) {
@@ -257,8 +244,7 @@ export async function carregarDashApropriacao() {
 }
 
 // =====================================================
-// DASHBOARD DON
-// Abate consumo pelo Mês Medido
+// DASHBOARD DON - Usa valor das medições
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
@@ -271,7 +257,8 @@ export async function carregarDashDON() {
         const { medicoes, consumos } = await buscarMedicoesEConsumos();
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
         const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_medido');
+        // Usa valor para a Dashboard DON
+        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_medido', 'valor');
         renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir);
         registrarUltimaAtualizacao();
     } catch (e) {
