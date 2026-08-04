@@ -1,7 +1,62 @@
 import { supabaseClient } from './config.js';
 import { salvarUsuarioLogado, limparUsuarioLogado, getUsuarioLogado } from './session.js';
 import { aplicarMascaras } from './utils.js';
-import { gerarMenu, irParaPrimeiraAbaAcessivel, carregarTodasListas } from './navigation.js';
+import { gerarMenu } from './navigation.js';
+import { mudarAba, carregarTodasListas } from './navigation.js';
+import { carregarDashboard } from './dashboards.js';
+
+// =====================================================
+// TIMEOUT DE INATIVIDADE (30 minutos)
+// =====================================================
+let timeoutId = null;
+const TIMEOUT_MINUTES = 30;
+const TIMEOUT_MS = TIMEOUT_MINUTES * 60 * 1000;
+
+export function resetarTimeout() {
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+    }
+    // Só inicia o timeout se o usuário estiver logado
+    if (getUsuarioLogado()) {
+        timeoutId = setTimeout(() => {
+            if (getUsuarioLogado()) {
+                alert(`Sessão expirada por inatividade de ${TIMEOUT_MINUTES} minutos.`);
+                fazerLogout(true);
+            }
+        }, TIMEOUT_MS);
+    }
+}
+
+// Lista de eventos que resetam o timeout
+const EVENTOS_RESET = [
+    'click', 'mousemove', 'keydown', 'scroll', 
+    'touchstart', 'touchmove', 'wheel', 'focus'
+];
+
+export function iniciarMonitorInatividade() {
+    // Remove listeners antigos para evitar duplicação
+    EVENTOS_RESET.forEach(evento => {
+        document.removeEventListener(evento, resetarTimeout);
+    });
+    
+    // Adiciona os listeners
+    EVENTOS_RESET.forEach(evento => {
+        document.addEventListener(evento, resetarTimeout);
+    });
+    
+    // Inicia o timeout
+    resetarTimeout();
+}
+
+export function pararMonitorInatividade() {
+    EVENTOS_RESET.forEach(evento => {
+        document.removeEventListener(evento, resetarTimeout);
+    });
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+    }
+}
 
 // =====================================================
 // VALIDAÇÃO DE SENHA (força da senha no cadastro de usuário)
@@ -113,10 +168,14 @@ export async function fazerLogin(event) {
 
         gerarMenu(data.permissoes || []);
 
-        irParaPrimeiraAbaAcessivel();
+        mudarAba('dashboard');
 
+        carregarDashboard();
         carregarTodasListas();
         aplicarMascaras();
+
+        // INICIA O MONITOR DE INATIVIDADE APÓS LOGIN
+        iniciarMonitorInatividade();
 
         return false;
     } catch (e) {
@@ -126,15 +185,17 @@ export async function fazerLogin(event) {
     }
 }
 
-export function fazerLogout() {
-    if (confirm('Tem certeza que deseja sair?')) {
-        limparUsuarioLogado();
-        document.getElementById('appShell').style.display = 'none';
-        document.getElementById('loginOverlay').classList.remove('hidden');
-        document.getElementById('loginUser').value = '';
-        document.getElementById('loginPassword').value = '';
-        document.getElementById('loginError').classList.remove('show');
+export function fazerLogout(silencioso = false) {
+    if (!silencioso && !confirm('Tem certeza que deseja sair?')) {
+        return;
     }
+    pararMonitorInatividade();
+    limparUsuarioLogado();
+    document.getElementById('appShell').style.display = 'none';
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').classList.remove('show');
 }
 
 export function verificarSessao() {
@@ -147,6 +208,10 @@ export function verificarSessao() {
         avatar.textContent = usuario.nome.charAt(0).toUpperCase();
         nomeDisplay.textContent = usuario.nome;
         gerarMenu(usuario.permissoes || []);
+        
+        // INICIA O MONITOR DE INATIVIDADE SE JÁ LOGADO
+        iniciarMonitorInatividade();
+        
         return true;
     }
     return false;
