@@ -794,6 +794,40 @@ nav.sidenav{
   font-weight: 400;
 }
 
+/* =====================================================
+   FORÇAR CORES NA DASHBOARD STATUS
+   ===================================================== */
+#tab-dash-apropriacao .valor-positivo,
+#tab-dash-apropriacao .mes-coluna.valor-positivo,
+#tabela-dash-apropriacao .valor-positivo,
+#tabela-dash-apropriacao .mes-coluna.valor-positivo {
+  color: #00AA00 !important;
+  font-weight: 600;
+}
+
+#tab-dash-apropriacao .valor-negativo,
+#tab-dash-apropriacao .mes-coluna.valor-negativo,
+#tabela-dash-apropriacao .valor-negativo,
+#tabela-dash-apropriacao .mes-coluna.valor-negativo {
+  color: #FF0000 !important;
+  font-weight: 600;
+}
+
+#tab-dash-apropriacao .valor-zero,
+#tab-dash-apropriacao .mes-coluna.valor-zero,
+#tabela-dash-apropriacao .valor-zero,
+#tabela-dash-apropriacao .mes-coluna.valor-zero {
+  color: #000000 !important;
+  font-weight: 400;
+}
+
+/* Remove qualquer filtro que possa estar aplicado na dashboard status */
+#tab-dash-apropriacao,
+#tab-dash-apropriacao * {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
 .dash-table-container .gestor-coluna {
   font-weight: 600;
   color: var(--text);
