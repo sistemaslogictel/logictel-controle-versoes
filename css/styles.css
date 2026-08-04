@@ -1,281 +1,1165 @@
-import { supabaseClient } from './config.js';
-import { registrarUltimaAtualizacao } from './utils.js';
-
-const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-// =====================================================
-// CÁLCULO COMPARTILHADO DE SALDO POR MÊS
-// =====================================================
-// Regra de negócio:
-//   - Medições entram como valor NEGATIVO (é o que falta receber).
-//   - Consumos DC abatem (somam, reduzindo o negativo) no mês indicado
-//     pelo campo de referência escolhido (mes_medido para DON,
-//     mes_apropriacao para Status).
-//   - saldo do mês = -(total medido no mês) + (total consumido no mês
-//     de referência)
-function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
-    const grupos = {};
-    const todosMeses = new Set();
-
-    function garantirGrupo(key, origem) {
-        if (!grupos[key]) {
-            grupos[key] = {
-                gestor: origem.gestores_logictel?.nome || 'N/A',
-                projeto: origem.projetos?.nome || 'N/A',
-                descricao: origem.projetos?.nome || '',
-                empresa: origem.empresas?.nome || 'N/A',
-                meses: {},
-                total: 0
-            };
-        }
-        return grupos[key];
-    }
-
-    medicoes.forEach(med => {
-        const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.empresa_id}|${med.ano}`;
-        const g = garantirGrupo(key, med);
-        todosMeses.add(med.mes);
-        if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
-        g.meses[med.mes].medicao += Number(med.valor || 0);
-    });
-
-    consumos.forEach(c => {
-        const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
-        const mes = c[campoMesConsumo];
-        if (!mes) return;
-        const g = garantirGrupo(key, c);
-        todosMeses.add(mes);
-        if (!g.meses[mes]) g.meses[mes] = { medicao: 0, consumo: 0 };
-        g.meses[mes].consumo += Number(c.valor || 0);
-    });
-
-    Object.values(grupos).forEach(g => {
-        let total = 0;
-        Object.keys(g.meses).forEach(mes => {
-            const medicaoVal = g.meses[mes].medicao || 0;
-            const consumoVal = g.meses[mes].consumo || 0;
-            const saldo = -medicaoVal + consumoVal;
-            g.meses[mes].saldo = saldo;
-            total += saldo;
-        });
-        g.total = total;
-    });
-
-    const mesesExibir = Array.from(todosMeses).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
-    return { grupos, mesesExibir };
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-sidebar: #0f172a;
+  --bg-sidebar-hover: #1e293b;
+  --bg-topbar: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --text-soft: #94a3b8;
+  --text-white: #f1f5f9;
+  --border: #e2e8f0;
+  --gold: #b8860b;
+  --primary: #3498DB;
+  --primary-hover: #2980b9;
+  --danger: #e74c3c;
+  --success: #2ecc71;
+  --warning: #f39c12;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
+  --transition: all 0.2s ease;
 }
 
-// =====================================================
-// RENDERIZAÇÃO COMPARTILHADA DA TABELA
-// =====================================================
-function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
-    const headerRow = document.querySelector(`#${headerId}`);
-    if (headerRow) {
-        let html = '<tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>';
-        mesesExibir.forEach(mes => {
-            html += `<th class="mes-header">${mes}</th>`;
-        });
-        html += '<th>Total Geral</th></tr>';
-        headerRow.innerHTML = html;
-    }
-
-    const tbody = document.getElementById(tbodyId);
-    if (!tbody) return;
-
-    const linhas = Object.values(grupos);
-    if (linhas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${4 + mesesExibir.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = '';
-    let totalGeral = 0;
-
-    linhas.forEach(g => {
-        totalGeral += g.total;
-
-        let html = `
-            <tr class="td-row">
-                <td class="gestor-coluna">${g.gestor}</td>
-                <td class="projeto-coluna">${g.projeto}</td>
-                <td class="descricao-coluna">${g.descricao}</td>
-                <td class="empresa-coluna">${g.empresa}</td>
-        `;
-
-        mesesExibir.forEach(mes => {
-            const saldo = g.meses[mes]?.saldo;
-            const temValor = saldo !== undefined;
-            
-            // =====================================================
-            // LÓGICA DE CORES - DEFINE AS CLASSES
-            // =====================================================
-            let valorClass = 'valor-zero'; // padrão: preto
-            if (temValor) {
-                if (saldo < 0) {
-                    valorClass = 'valor-negativo';  // vermelho
-                } else if (saldo > 0) {
-                    valorClass = 'valor-positivo';  // verde
-                }
-                // se for zero, mantém 'valor-zero' (preto)
-            }
-            
-            const displayValor = temValor && saldo !== 0 ? 
-                saldo.toLocaleString('pt-BR', { minFractionDigits: 2 }) : 
-                '-';
-            
-            html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
-        });
-
-        // =====================================================
-        // CORES PARA O TOTAL DA LINHA
-        // =====================================================
-        let totalClass = 'valor-zero';
-        if (g.total < 0) {
-            totalClass = 'valor-negativo';
-        } else if (g.total > 0) {
-            totalClass = 'valor-positivo';
-        }
-        
-        html += `
-                <td class="${totalClass}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
-            </tr>
-        `;
-
-        tbody.innerHTML += html;
-    });
-
-    // =====================================================
-    // CORES PARA O TOTAL GERAL
-    // =====================================================
-    let totalClass = 'valor-zero';
-    if (totalGeral < 0) {
-        totalClass = 'valor-negativo';
-    } else if (totalGeral > 0) {
-        totalClass = 'valor-positivo';
-    }
-    
-    let totalHtml = `
-        <tr class="total-row">
-            <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
-    `;
-
-    mesesExibir.forEach(mes => {
-        let totalMes = 0;
-        linhas.forEach(g => { 
-            totalMes += g.meses[mes]?.saldo || 0; 
-        });
-        
-        // =====================================================
-        // CORES PARA O TOTAL POR MÊS
-        // =====================================================
-        let mesClass = 'valor-zero';
-        if (totalMes < 0) {
-            mesClass = 'valor-negativo';
-        } else if (totalMes > 0) {
-            mesClass = 'valor-positivo';
-        }
-        
-        totalHtml += `<td class="mes-coluna ${mesClass}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
-    });
-
-    totalHtml += `
-            <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
-        </tr>
-    `;
-    tbody.innerHTML += totalHtml;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-// =====================================================
-// FILTROS (Gestor, Projeto, Ano) - aplicados antes de agrupar
-// =====================================================
-// Os <select> de filtro guardam o NOME do gestor/projeto como value
-// (ver js/selects.js -> carregarFiltros), e não o id. Por isso o
-// filtro compara com gestores_logictel.nome / projetos.nome vindos
-// do join, e não com gestor_logictel_id / projeto_id.
-function lerFiltrosDashboard(prefixo) {
-    return {
-        gestor: document.getElementById(`filt-${prefixo}-gestor`)?.value || '',
-        projeto: document.getElementById(`filt-${prefixo}-projeto`)?.value || '',
-        ano: document.getElementById(`filt-${prefixo}-ano`)?.value || ''
-    };
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
 }
 
-function aplicarFiltrosDashboard(lista, filtros) {
-    if (!filtros.gestor && !filtros.projeto && !filtros.ano) return lista;
-    return lista.filter(item => {
-        if (filtros.gestor && item.gestores_logictel?.nome !== filtros.gestor) return false;
-        if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
-        if (filtros.ano && String(item.ano) !== String(filtros.ano)) return false;
-        return true;
-    });
+/* =====================================================
+   LOGIN
+   ===================================================== */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
 }
 
-async function buscarMedicoesEConsumos() {
-    const { data: medicoes, error: errorMed } = await supabaseClient
-        .from('medicoes')
-        .select(`
-            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor,
-            empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
-        `);
-    if (errorMed) throw errorMed;
-
-    const { data: consumos, error: errorCons } = await supabaseClient
-        .from('consumo_dc')
-        .select(`
-            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id,
-            mes_apropriacao, mes_medido, ano, valor,
-            empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
-        `);
-    if (errorCons) throw errorCons;
-
-    return { medicoes: medicoes || [], consumos: consumos || [] };
+.login-overlay.hidden {
+  display: none;
 }
 
-// =====================================================
-// DASHBOARD STATUS (antiga "Apropriação")
-// Abate consumo pelo Mês Apropriação
-// =====================================================
-export async function carregarDashApropriacao() {
-    const tbody = document.getElementById('tabela-dash-apropriacao');
-    if (!tbody) return;
-
-    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
-
-    try {
-        const filtros = lerFiltrosDashboard('aprop');
-        const { medicoes, consumos } = await buscarMedicoesEConsumos();
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_apropriacao');
-        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir);
-        registrarUltimaAtualizacao();
-    } catch (e) {
-        console.error('Erro ao carregar dashboard Status:', e);
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
-    }
+.login-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 40px 32px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
 }
 
-// =====================================================
-// DASHBOARD DON
-// Abate consumo pelo Mês Medido
-// =====================================================
-export async function carregarDashDON() {
-    const tbody = document.getElementById('tabela-dash-don');
-    if (!tbody) return;
+.login-logo {
+  margin-bottom: 12px;
+}
 
-    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+.login-logo img {
+  max-height: 48px;
+  width: auto;
+}
 
-    try {
-        const filtros = lerFiltrosDashboard('don');
-        const { medicoes, consumos } = await buscarMedicoesEConsumos();
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_medido');
-        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir);
-        registrarUltimaAtualizacao();
-    } catch (e) {
-        console.error('Erro ao carregar dashboard DON:', e);
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
-    }
+.login-system-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.login-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.login-error {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: none;
+  text-align: left;
+}
+
+.login-error.show {
+  display: block;
+}
+
+.login-card .input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--bg-primary);
+  color: var(--text);
+  transition: var(--transition);
+  margin-bottom: 12px;
+}
+
+.login-card .input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+.login-card .btn-primary {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+/* =====================================================
+   APP SHELL
+   ===================================================== */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* =====================================================
+   SIDEBAR
+   ===================================================== */
+.sidebar {
+  width: 260px;
+  background: var(--bg-sidebar);
+  color: var(--text-white);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+  padding: 16px 0;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.brand-box {
+  padding: 0 20px 20px 20px;
+  border-bottom: 1px solid #1e293b;
+  margin-bottom: 16px;
+}
+
+.brand-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-chip img {
+  height: 32px;
+  width: auto;
+}
+
+.brand-chip .brand-fallback {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: white;
+}
+
+.brand-chip .brand-fallback em {
+  font-style: normal;
+  color: var(--primary);
+}
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748b;
+  padding: 0 20px;
+  margin-bottom: 8px;
+}
+
+.sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 12px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-link:hover {
+  background: var(--bg-sidebar-hover);
+  color: white;
+}
+
+.sidebar-link.is-active {
+  background: var(--bg-sidebar-hover);
+  color: white;
+}
+
+.sidebar-link svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  font-size: 10px;
+  color: #475569;
+  text-align: center;
+  padding: 20px 16px 0 16px;
+  margin-top: auto;
+  border-top: 1px solid #1e293b;
+  padding-top: 16px;
+  letter-spacing: 0.3px;
+}
+
+/* =====================================================
+   FLYOUTS
+   ===================================================== */
+.flyout-wrap {
+  position: relative;
+}
+
+.flyout-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.flyout-trigger .lbl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flyout-trigger .chev {
+  transition: transform 0.2s;
+  font-size: 10px;
+}
+
+.flyout-wrap.is-open .flyout-trigger .chev {
+  transform: rotate(180deg);
+}
+
+.flyout-trigger:hover {
+  background: var(--bg-sidebar-hover);
+  color: white;
+}
+
+.flyout {
+  display: none;
+  padding: 6px 0 6px 28px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.flyout-wrap.is-open .flyout {
+  display: flex;
+}
+
+.flyout-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  padding: 6px 14px 4px 14px;
+}
+
+.flyout-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+  text-align: left;
+}
+
+.flyout-link:hover {
+  background: #1e293b;
+  color: white;
+}
+
+.flyout-link.is-active {
+  background: #1e293b;
+  color: white;
+}
+
+/* =====================================================
+   SIDEBAR MOBILE
+   ===================================================== */
+.sidebar-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: none;
+}
+
+.sidebar-mobile-overlay.active {
+  display: block;
+}
+
+.sidebar-mobile {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-sidebar);
+  color: var(--text-white);
+  z-index: 300;
+  transition: left 0.3s ease;
+  padding: 16px 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-mobile.active {
+  left: 0;
+}
+
+.sidebar-mobile .brand-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-sidebar-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.close-sidebar-btn:hover {
+  background: #1e293b;
+  color: white;
+}
+
+.sidebar-mobile .sidenav {
+  padding: 0 12px;
+}
+
+.sidebar-mobile .sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+}
+
+.mobile-menu-toggle {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.mobile-menu-toggle:hover {
+  background: var(--bg-primary);
+}
+
+/* =====================================================
+   CONTENT AREA
+   ===================================================== */
+.content-area {
+  flex: 1;
+  padding: 24px 28px;
+  overflow-x: hidden;
+  max-width: calc(100% - 260px);
+}
+
+@media (max-width: 768px) {
+  .content-area {
+    padding: 16px;
+    max-width: 100%;
+  }
+}
+
+/* =====================================================
+   TOPBAR
+   ===================================================== */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--bg-topbar);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  display: inline-block;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.logout-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.logout-btn:hover {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+/* =====================================================
+   TAB CONTENT
+   ===================================================== */
+.tab-content {
+  display: none;
+  animation: fadeIn 0.25s ease;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================================================
+   CARDS
+   ===================================================== */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.card-pad {
+  padding: 20px 24px;
+}
+
+/* =====================================================
+   FILTERS BAR
+   ===================================================== */
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--bg-card);
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  align-items: flex-end;
+}
+
+.filters-bar .input {
+  min-width: 140px;
+  flex: 1 1 140px;
+}
+
+.filters-bar .btn-primary {
+  flex-shrink: 0;
+}
+
+/* =====================================================
+   FORM ELEMENTS
+   ===================================================== */
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text);
+  transition: var(--transition);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background: #e2e8f0;
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-cancel:hover {
+  background: #cbd5e1;
+}
+
+.btn-edit {
+  padding: 4px 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-edit:hover {
+  background: var(--primary-hover);
+}
+
+.btn-danger {
+  padding: 4px 12px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+}
+
+.btn-excel {
+  padding: 4px 12px;
+  background: #217346;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-excel:hover {
+  background: #1a5c38;
+}
+
+.btn-clear-filters {
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-clear-filters:hover {
+  background: var(--bg-primary);
+  border-color: var(--text-muted);
+}
+
+.btn-generate {
+  padding: 10px 16px;
+  background: var(--warning);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+
+.btn-generate:hover {
+  background: #e67e22;
+}
+
+/* =====================================================
+   TABLES
+   ===================================================== */
+.dash-table-container {
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 600px;
+}
+
+.th-row {
+  background: var(--bg-primary);
+  border-bottom: 2px solid var(--border);
+}
+
+.th-row th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.td-row {
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.td-row:hover {
+  background: var(--bg-primary);
+}
+
+.td-row td {
+  padding: 10px 14px;
+  vertical-align: middle;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-xs {
+  font-size: 11px;
+}
+
+.text-sm {
+  font-size: 13px;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* =====================================================
+   MES HEADER
+   ===================================================== */
+.mes-header {
+  text-align: center;
+  min-width: 80px;
+}
+
+.mes-coluna {
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  padding: 8px 6px;
+}
+
+.gestor-coluna {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+.projeto-coluna {
+  min-width: 80px;
+}
+
+.descricao-coluna {
+  min-width: 80px;
+}
+
+.empresa-coluna {
+  min-width: 100px;
+}
+
+/* =====================================================
+   CORES DOS VALORES - DASHBOARD DON (PADRÃO ORIGINAL)
+   ===================================================== */
+#tab-dash-don .valor-negativo {
+  color: #e74c3c !important; /* vermelho para negativo */
+}
+
+#tab-dash-don .valor-positivo {
+  color: #2ecc71 !important; /* verde para positivo */
+}
+
+#tab-dash-don .valor-zero {
+  color: #2d3436 !important; /* preto para neutro */
+}
+
+/* =====================================================
+   CORES DOS VALORES - DASHBOARD STATUS (CINZA)
+   ===================================================== */
+#tab-dash-apropriacao .valor-negativo {
+  color: #e74c3c !important; /* vermelho para negativo */
+}
+
+#tab-dash-apropriacao .valor-positivo {
+  color: #2ecc71 !important; /* verde para positivo */
+}
+
+#tab-dash-apropriacao .valor-zero {
+  color: #95a5a6 !important; /* cinza para neutro */
+}
+
+/* =====================================================
+   TOTAL ROW
+   ===================================================== */
+.total-row {
+  background: var(--bg-primary);
+  font-weight: 600;
+  border-top: 2px solid var(--border);
+}
+
+.total-row td {
+  padding: 12px 14px;
+}
+
+/* =====================================================
+   DC CARDS
+   ===================================================== */
+.dc-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.dc-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.dc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.dc-badge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.dc-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.dc-status {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.dc-status.logictel {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.dc-status.vtal {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.dc-tipo-medicao {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 6px;
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.dc-tipo-medicao.final {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.dc-motivo {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.dc-responsavel {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.dc-responsavel.logictel {
+  color: #1d4ed8;
+}
+
+.dc-responsavel.vtal {
+  color: #c2410c;
+}
+
+.dc-aging {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.dc-aging.verde {
+  color: var(--success);
+}
+
+.dc-aging.amarelo {
+  color: var(--warning);
+}
+
+.dc-aging.vermelho {
+  color: var(--danger);
+}
+
+.dc-updated {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+/* =====================================================
+   CHECKBOX GROUP
+   ===================================================== */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.permissions-badge {
+  display: inline-block;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin: 2px 2px;
+  border: 1px solid var(--border);
+}
+
+/* =====================================================
+   PASSWORD STRENGTH
+   ===================================================== */
+.password-strength {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+}
+
+.criteria {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+}
+
+.criteria .check {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.criteria.met {
+  color: var(--success);
+}
+
+.criteria.unmet {
+  color: var(--danger);
+}
+
+/* =====================================================
+   CAMPOS EXTRAS
+   ===================================================== */
+.campos-extras {
+  display: none;
+}
+
+.campos-extras.visible {
+  display: block;
+}
+
+/* =====================================================
+   RESPONSIVIDADE
+   ===================================================== */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .content-area {
+    max-width: 100%;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters-bar .input {
+    min-width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .dc-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-pad {
+    padding: 16px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .user-info {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  .content-area {
+    padding: 12px;
+  }
+
+  .dash-table-container table {
+    font-size: 11px;
+  }
+
+  .dash-table-container th,
+  .dash-table-container td {
+    padding: 6px 8px;
+  }
+
+  .table-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
 }
