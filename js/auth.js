@@ -1,9 +1,7 @@
 import { supabaseClient } from './config.js';
 import { salvarUsuarioLogado, limparUsuarioLogado, getUsuarioLogado } from './session.js';
 import { aplicarMascaras } from './utils.js';
-import { gerarMenu } from './navigation.js';
-import { mudarAba, carregarTodasListas } from './navigation.js';
-import { carregarDashboard } from './dashboards.js';
+import { mudarAba, carregarTodasListas, gerarMenu } from './navigation.js';
 
 // =====================================================
 // TIMEOUT DE INATIVIDADE (30 minutos)
@@ -126,7 +124,7 @@ export function gerarSenhaForte() {
 }
 
 // =====================================================
-// LOGIN - VERSÃO MAIS SIMPLES E DIRETA
+// LOGIN - VERSÃO CORRIGIDA
 // =====================================================
 export async function fazerLogin() {
     console.log('🔐 Iniciando login...');
@@ -149,7 +147,6 @@ export async function fazerLogin() {
     const pass = passInput.value.trim();
 
     console.log('👤 Usuário digitado:', user);
-    console.log('🔑 Senha digitada:', '***');
 
     if (!user || !pass) {
         console.warn('⚠️ Campos vazios');
@@ -160,7 +157,6 @@ export async function fazerLogin() {
         return;
     }
 
-    // Feedback visual
     if (loginBtn) {
         loginBtn.textContent = '⏳ Entrando...';
         loginBtn.disabled = true;
@@ -168,9 +164,8 @@ export async function fazerLogin() {
 
     try {
         console.log('📡 Buscando usuário no Supabase...');
-        console.log('📡 URL:', supabaseClient.supabaseUrl);
         
-        // Usando .eq com filtro simples
+        // Usa o supabaseClient importado
         const { data, error } = await supabaseClient
             .from('usuarios')
             .select('*')
@@ -192,7 +187,6 @@ export async function fazerLogin() {
             return;
         }
 
-        // Verifica se encontrou o usuário
         if (!data || data.length === 0) {
             console.warn('❌ Usuário não encontrado');
             if (errorEl) {
@@ -206,12 +200,8 @@ export async function fazerLogin() {
             return;
         }
 
-        // Verifica a senha
         const usuario = data[0];
         console.log('✅ Usuário encontrado:', usuario.nome);
-        console.log('🔑 Senha no banco:', usuario.senha);
-        console.log('🔑 Senha digitada:', pass);
-        console.log('🔑 Comparação:', usuario.senha === pass ? '✅ IGUAIS' : '❌ DIFERENTES');
 
         if (usuario.senha !== pass) {
             console.warn('❌ Senha incorreta');
@@ -229,33 +219,42 @@ export async function fazerLogin() {
         // LOGIN BEM-SUCEDIDO!
         console.log('🎉 LOGIN BEM-SUCEDIDO!');
 
-        // Salva na sessão
         salvarUsuarioLogado(usuario);
         if (errorEl) errorEl.classList.remove('show');
 
-        // Esconde login e mostra app
         const overlay = document.getElementById('loginOverlay');
         const appShell = document.getElementById('appShell');
         if (overlay) overlay.classList.add('hidden');
         if (appShell) appShell.style.display = 'flex';
 
-        // Atualiza avatar
         const avatar = document.getElementById('userAvatar');
         const nomeDisplay = document.getElementById('userNameDisplay');
         if (avatar) avatar.textContent = usuario.nome.charAt(0).toUpperCase();
         if (nomeDisplay) nomeDisplay.textContent = usuario.nome;
 
-        // Carrega o sistema
         console.log('📋 Carregando menu...');
         gerarMenu(usuario.permissoes || []);
         
+        // Importa dinamicamente o dashboard para evitar erro de importação circular
         console.log('📊 Carregando dashboard...');
-        mudarAba('dashboard');
-        carregarDashboard();
-        carregarTodasListas();
+        try {
+            const { carregarDashboard } = await import('./dashboards.js');
+            mudarAba('dashboard');
+            carregarDashboard();
+        } catch (e) {
+            console.error('Erro ao carregar dashboard:', e);
+            mudarAba('dashboard');
+        }
+        
+        // Carrega as listas
+        try {
+            const { carregarTodasListas } = await import('./navigation.js');
+            carregarTodasListas();
+        } catch (e) {
+            console.error('Erro ao carregar listas:', e);
+        }
+        
         aplicarMascaras();
-
-        // Inicia timeout
         iniciarMonitorInatividade();
 
         if (loginBtn) {
@@ -319,6 +318,11 @@ export function verificarSessao() {
         
         gerarMenu(usuario.permissoes || []);
         iniciarMonitorInatividade();
+        
+        // Carrega dashboard
+        import('./dashboards.js').then(module => {
+            module.carregarDashboard();
+        }).catch(e => console.error('Erro ao carregar dashboard:', e));
         
         return true;
     }
