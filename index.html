@@ -94,23 +94,39 @@
         <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2>
         <p class="text-sm mt-0.5" style="color:var(--text-muted)">Medições pendentes (negativo) abatidas pelos consumos de DC, usando o Mês Medido como referência.</p>
       </div>
-      <div class="filters-bar">
-        <select id="filt-don-gestor" class="input" onchange="carregarDashDON()"><option value="">Todos os Gestores</option></select>
-        <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
-        <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
-        <div class="flex gap-2"><button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button></div>
+      <div class="filters-bar-don">
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Diretor</label>
+          <select id="filt-don-diretor" class="input" onchange="carregarDashDON()"><option value="">Todos os Diretores</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Ano</label>
+          <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Mês</label>
+          <select id="filt-don-mes" class="input" onchange="carregarDashDON()"><option value="">Todos os Meses</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="carregarDashDON()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button>
+        </div>
       </div>
       <div class="card">
         <div class="dash-table-container">
           <table>
             <thead id="don-header" class="don-header">
               <tr>
-                <th>Gestão</th>
                 <th>Projeto</th>
+                <th>Diretor</th>
                 <th>Descrição</th>
                 <th class="mes-header">Mês 1</th>
                 <th class="mes-header">Mês 2</th>
-                <th>Total Geral</th>
+                <th>Total</th>
               </tr>
             </thead>
             <tbody id="tabela-dash-don">
@@ -128,11 +144,27 @@
         <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Status</h2>
         <p class="text-sm mt-0.5" style="color:var(--text-muted)">Medições pendentes (negativo) abatidas pelos consumos de DC, usando o Mês Apropriação como referência.</p>
       </div>
-      <div class="filters-bar">
-        <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
-        <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
-        <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Anos</option></select>
-        <div class="flex gap-2"><button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button></div>
+      <div class="filters-bar-status">
+        <div class="filter-group">
+          <label class="filter-label">Gestor</label>
+          <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Ano</label>
+          <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Anos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Mês</label>
+          <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Meses</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="carregarDashApropriacao()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
+        </div>
       </div>
       <div class="card">
         <div class="dash-table-container">
@@ -144,7 +176,7 @@
                 <th>Descrição</th>
                 <th class="mes-header">Mês 1</th>
                 <th class="mes-header">Mês 2</th>
-                <th>Total Geral</th>
+                <th>Total</th>
               </tr>
             </thead>
             <tbody id="tabela-dash-apropriacao">
@@ -155,7 +187,7 @@
       </div>
       <div id="aprop-total-geral" class="total-geral-card theme-status"></div>
     </div>
-
+    
     <!-- ===================== DC CARDS ===================== -->
     <div id="tab-dcs" class="tab-content space-y-6">
       <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p></div>
