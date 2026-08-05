@@ -75,7 +75,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA - LAYOUT IDÊNTICO ÀS IMAGENS
+// RENDERIZAÇÃO DA TABELA
 // =====================================================
 function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -103,7 +103,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     tbody.innerHTML = '';
     let totalGeral = 0;
 
-    // Acumula totais por mês para a linha de TOTAL GERAL
     const totaisPorMes = {};
     mesesExibir.forEach(mes => { totaisPorMes[mes] = 0; });
 
@@ -138,7 +137,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
                 displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
             }
             
-            html += `<td style="text-align:center;padding:8px 12px;font-family:\'IBM Plex Mono\',monospace;font-size:13px;${colorStyle}">${displayValor}</td>`;
+            html += `<td style="text-align:center;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;${colorStyle}">${displayValor}</td>`;
         });
 
         let totalColor = '';
@@ -149,16 +148,13 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
         }
         
         html += `
-                <td style="text-align:center;padding:8px 12px;font-family:\'IBM Plex Mono\',monospace;font-weight:700;font-size:13px;${totalColor}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                <td style="text-align:center;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;${totalColor}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
             </tr>
         `;
 
         tbody.innerHTML += html;
     });
 
-    // =====================================================
-    // LINHA TOTAL GERAL - IDÊNTICA À IMAGEM
-    // =====================================================
     let totalHtml = `
         <tr style="background:var(--primary-100);font-weight:700;border-top:2px solid var(--primary);border-bottom:2px solid var(--primary);">
             <td colspan="3" style="text-align:right;padding:8px 12px;font-size:13px;font-weight:700;">TOTAL GERAL</td>
@@ -174,7 +170,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
             mesColor = 'color:#00AA00;';
         }
         
-        totalHtml += `<td style="text-align:center;padding:8px 12px;font-family:\'IBM Plex Mono\',monospace;font-size:13px;font-weight:700;${mesColor}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
+        totalHtml += `<td style="text-align:center;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;${mesColor}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
     });
 
     let totalColor = '';
@@ -185,7 +181,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     }
 
     totalHtml += `
-            <td style="text-align:center;padding:8px 12px;font-family:\'IBM Plex Mono\',monospace;font-size:14px;font-weight:700;${totalColor}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+            <td style="text-align:center;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;${totalColor}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
         </tr>
     `;
     tbody.innerHTML += totalHtml;
@@ -222,27 +218,65 @@ export async function carregarDashApropriacao() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
-        const filtros = lerFiltrosDashboard('aprop');
+        console.log('🔄 Carregando Dashboard Status...');
         
+        const filtros = lerFiltrosDashboard('aprop');
+        console.log('📋 Filtros:', filtros);
+
+        // Buscar medições
+        console.log('📡 Buscando medições...');
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
             .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_status,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
+                id, 
+                projeto_id, 
+                gestor_logictel_id, 
+                diretor_id, 
+                mes, 
+                ano, 
+                valor_status,
+                projetos:nome,
+                gestores_logictel:nome,
+                diretores:nome
             `);
-        if (errorMed) throw errorMed;
+        
+        if (errorMed) {
+            console.error('❌ Erro ao buscar medições:', errorMed);
+            tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar medições: ${errorMed.message}</td></tr>`;
+            return;
+        }
+        console.log('✅ Medições carregadas:', medicoes?.length || 0);
 
+        // Buscar consumos
+        console.log('📡 Buscando consumos...');
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
+                id, 
+                projeto_id, 
+                gestor_logictel_id, 
+                diretor_id,
+                mes_apropriacao, 
+                mes_medido, 
+                ano, 
+                valor,
+                projetos:nome,
+                gestores_logictel:nome,
+                diretores:nome
             `);
-        if (errorCons) throw errorCons;
+        
+        if (errorCons) {
+            console.error('❌ Erro ao buscar consumos:', errorCons);
+            tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar consumos: ${errorCons.message}</td></tr>`;
+            return;
+        }
+        console.log('✅ Consumos carregados:', consumos?.length || 0);
 
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
         const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
+        
+        console.log('📊 Medições filtradas:', medicoesFiltradas.length);
+        console.log('📊 Consumos filtrados:', consumosFiltrados.length);
         
         const { grupos, mesesExibir } = calcularGruposSaldo(
             medicoesFiltradas, 
@@ -251,11 +285,14 @@ export async function carregarDashApropriacao() {
             'valor_status'
         );
         
+        console.log('📈 Grupos encontrados:', Object.keys(grupos).length);
+        console.log('📅 Meses a exibir:', mesesExibir);
+        
         renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, 'status-header');
         registrarUltimaAtualizacao();
     } catch (e) {
-        console.error('Erro ao carregar dashboard Status:', e);
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+        console.error('💥 Erro inesperado no Dashboard Status:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados: ${e.message}</td></tr>`;
     }
 }
 
@@ -269,27 +306,65 @@ export async function carregarDashDON() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
-        const filtros = lerFiltrosDashboard('don');
+        console.log('🔄 Carregando Dashboard DON...');
         
+        const filtros = lerFiltrosDashboard('don');
+        console.log('📋 Filtros:', filtros);
+
+        // Buscar medições
+        console.log('📡 Buscando medições...');
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
             .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_don,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
+                id, 
+                projeto_id, 
+                gestor_logictel_id, 
+                diretor_id, 
+                mes, 
+                ano, 
+                valor_don,
+                projetos:nome,
+                gestores_logictel:nome,
+                diretores:nome
             `);
-        if (errorMed) throw errorMed;
+        
+        if (errorMed) {
+            console.error('❌ Erro ao buscar medições:', errorMed);
+            tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar medições: ${errorMed.message}</td></tr>`;
+            return;
+        }
+        console.log('✅ Medições carregadas:', medicoes?.length || 0);
 
+        // Buscar consumos
+        console.log('📡 Buscando consumos...');
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
+                id, 
+                projeto_id, 
+                gestor_logictel_id, 
+                diretor_id,
+                mes_apropriacao, 
+                mes_medido, 
+                ano, 
+                valor,
+                projetos:nome,
+                gestores_logictel:nome,
+                diretores:nome
             `);
-        if (errorCons) throw errorCons;
+        
+        if (errorCons) {
+            console.error('❌ Erro ao buscar consumos:', errorCons);
+            tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar consumos: ${errorCons.message}</td></tr>`;
+            return;
+        }
+        console.log('✅ Consumos carregados:', consumos?.length || 0);
 
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
         const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
+        
+        console.log('📊 Medições filtradas:', medicoesFiltradas.length);
+        console.log('📊 Consumos filtrados:', consumosFiltrados.length);
         
         const { grupos, mesesExibir } = calcularGruposSaldo(
             medicoesFiltradas, 
@@ -298,10 +373,13 @@ export async function carregarDashDON() {
             'valor_don'
         );
         
+        console.log('📈 Grupos encontrados:', Object.keys(grupos).length);
+        console.log('📅 Meses a exibir:', mesesExibir);
+        
         renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-header');
         registrarUltimaAtualizacao();
     } catch (e) {
-        console.error('Erro ao carregar dashboard DON:', e);
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+        console.error('💥 Erro inesperado no Dashboard DON:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados: ${e.message}</td></tr>`;
     }
 }
