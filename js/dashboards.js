@@ -395,21 +395,43 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
 // FILTROS
 // =====================================================
 function lerFiltrosDashboard(prefixo) {
-    return {
-        gestor: document.getElementById(`filt-${prefixo}-gestor`)?.value || '',
-        projeto: document.getElementById(`filt-${prefixo}-projeto`)?.value || '',
-        ano: document.getElementById(`filt-${prefixo}-ano`)?.value || ''
-    };
+    if (prefixo === 'don') {
+        return {
+            projeto: document.getElementById('filt-don-projeto')?.value || '',
+            diretor: document.getElementById('filt-don-diretor')?.value || '',
+            ano: document.getElementById('filt-don-ano')?.value || '',
+            mes: document.getElementById('filt-don-mes')?.value || ''
+        };
+    } else {
+        // 'aprop' (Status)
+        return {
+            gestor: document.getElementById('filt-aprop-gestor')?.value || '',
+            projeto: document.getElementById('filt-aprop-projeto')?.value || '',
+            ano: document.getElementById('filt-aprop-ano')?.value || '',
+            mes: document.getElementById('filt-aprop-mes')?.value || ''
+        };
+    }
 }
 
-function aplicarFiltrosDashboard(lista, filtros) {
-    if (!filtros.gestor && !filtros.projeto && !filtros.ano) return lista;
-    return lista.filter(item => {
-        if (filtros.gestor && item.gestores_logictel?.nome !== filtros.gestor) return false;
-        if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
-        if (filtros.ano && String(item.ano) !== String(filtros.ano)) return false;
-        return true;
-    });
+function aplicarFiltrosDashboard(lista, filtros, prefixo) {
+    if (prefixo === 'don') {
+        return lista.filter(item => {
+            if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
+            if (filtros.diretor && item.diretores?.nome !== filtros.diretor) return false;
+            if (filtros.ano && String(item.ano) !== String(filtros.ano)) return false;
+            if (filtros.mes && item.mes !== filtros.mes) return false;
+            return true;
+        });
+    } else {
+        // 'aprop' (Status)
+        return lista.filter(item => {
+            if (filtros.gestor && item.gestores_logictel?.nome !== filtros.gestor) return false;
+            if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
+            if (filtros.ano && String(item.ano) !== String(filtros.ano)) return false;
+            if (filtros.mes && item.mes !== filtros.mes) return false;
+            return true;
+        });
+    }
 }
 
 // =====================================================
@@ -441,8 +463,8 @@ export async function carregarDashApropriacao() {
             `);
         if (errorCons) throw errorCons;
 
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros, 'aprop');
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'aprop');
         
         const { grupos, mesesExibir } = calcularGruposSaldo(
             medicoesFiltradas, 
@@ -484,22 +506,4 @@ export async function carregarDashDON() {
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
                 mes_apropriacao, mes_medido, ano, valor,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
-            `);
-        if (errorCons) throw errorCons;
-
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
-        
-        const { grupos, mesesExibir } = calcularGruposSaldoDON(
-            medicoesFiltradas, 
-            consumosFiltrados
-        );
-        
-        renderizarDashboardDON('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-total-geral');
-        registrarUltimaAtualizacao();
-    } catch (e) {
-        console.error('Erro ao carregar dashboard DON:', e);
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
-    }
-}
+                projetos(nome), gestores_logictel(nome), dire
