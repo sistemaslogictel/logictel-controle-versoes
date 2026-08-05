@@ -75,19 +75,19 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 }
 
 // =====================================================
-// RENDERIZAÇÃO COMPARTILHADA DA TABELA
+// RENDERIZAÇÃO DA TABELA - ALINHAMENTO CENTRALIZADO
 // =====================================================
 function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass) {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
         let html = `<tr class="${headerClass}">
-            <th style="text-align:left;">Gestão</th>
-            <th style="text-align:left;">Projeto</th>
-            <th style="text-align:left;">Descrição</th>`;
+            <th style="text-align:left;padding:10px 12px;">Gestão</th>
+            <th style="text-align:left;padding:10px 12px;">Projeto</th>
+            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
         mesesExibir.forEach(mes => {
-            html += `<th class="mes-header" style="text-align:center;">${mes}</th>`;
+            html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
-        html += '<th style="text-align:right;">Total Geral</th></tr>';
+        html += '<th style="text-align:center;padding:10px 12px;">Total</th></tr>';
         headerRow.innerHTML = html;
     }
 
@@ -96,7 +96,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
 
     const linhas = Object.values(grupos);
     if (linhas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" style="padding:20px;text-align:center;color:var(--text-soft);">Nenhum registro encontrado.</td></tr>`;
         return;
     }
 
@@ -107,40 +107,46 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
         totalGeral += g.total;
 
         let html = `
-            <tr class="td-row">
-                <td class="gestor-coluna" style="text-align:left;">${g.gestor}</td>
-                <td class="projeto-coluna" style="text-align:left;">${g.projeto}</td>
-                <td class="descricao-coluna" style="text-align:left;">${g.descricao}</td>
+            <tr>
+                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
+                <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
         `;
 
         mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
             const temValor = saldo !== undefined && saldo !== 0;
             
-            let valorClass = 'valor-zero';
+            let valorClass = '';
             let displayValor = '-';
+            let colorStyle = '';
             
             if (temValor) {
                 if (saldo < 0) {
                     valorClass = 'valor-negativo';
+                    colorStyle = 'color:#FF0000;';
                 } else if (saldo > 0) {
                     valorClass = 'valor-positivo';
+                    colorStyle = 'color:#00AA00;';
                 }
                 displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
             }
             
-            html += `<td class="mes-coluna ${valorClass}" style="text-align:center;">${displayValor}</td>`;
+            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${colorStyle}">${displayValor}</td>`;
         });
 
-        let totalClass = 'valor-zero';
+        let totalClass = '';
+        let totalColor = '';
         if (g.total < 0) {
             totalClass = 'valor-negativo';
+            totalColor = 'color:#FF0000;';
         } else if (g.total > 0) {
             totalClass = 'valor-positivo';
+            totalColor = 'color:#00AA00;';
         }
         
         html += `
-                <td class="${totalClass}" style="text-align:right;">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
             </tr>
         `;
 
@@ -148,16 +154,16 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     });
 
     // TOTAL GERAL - CORRIGIDO
-    let totalClass = 'valor-zero';
+    let totalColor = '';
     if (totalGeral < 0) {
-        totalClass = 'valor-negativo';
+        totalColor = 'color:#FF0000;';
     } else if (totalGeral > 0) {
-        totalClass = 'valor-positivo';
+        totalColor = 'color:#00AA00;';
     }
     
     let totalHtml = `
-        <tr class="total-row">
-            <td colspan="3" style="font-weight:700;text-align:right;background:var(--primary-100);">TOTAL GERAL</td>
+        <tr style="background:var(--primary-100);font-weight:700;border-top:2px solid var(--primary);border-bottom:2px solid var(--primary);">
+            <td colspan="3" style="text-align:right;padding:10px 12px;">TOTAL GERAL</td>
     `;
 
     mesesExibir.forEach(mes => {
@@ -166,18 +172,18 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
             totalMes += g.meses[mes]?.saldo || 0; 
         });
         
-        let mesClass = 'valor-zero';
+        let mesColor = '';
         if (totalMes < 0) {
-            mesClass = 'valor-negativo';
+            mesColor = 'color:#FF0000;';
         } else if (totalMes > 0) {
-            mesClass = 'valor-positivo';
+            mesColor = 'color:#00AA00;';
         }
         
-        totalHtml += `<td class="mes-coluna ${mesClass}" style="text-align:center;background:var(--primary-100);">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
+        totalHtml += `<td style="text-align:center;padding:10px 12px;${mesColor}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
     });
 
     totalHtml += `
-            <td class="${totalClass}" style="text-align:right;font-weight:700;background:var(--primary-100);">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+            <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
         </tr>
     `;
     tbody.innerHTML += totalHtml;
@@ -211,7 +217,7 @@ export async function carregarDashApropriacao() {
     const tbody = document.getElementById('tabela-dash-apropriacao');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
         const filtros = lerFiltrosDashboard('aprop');
@@ -247,7 +253,7 @@ export async function carregarDashApropriacao() {
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -258,7 +264,7 @@ export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
         const filtros = lerFiltrosDashboard('don');
@@ -294,6 +300,6 @@ export async function carregarDashDON() {
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
     }
 }
