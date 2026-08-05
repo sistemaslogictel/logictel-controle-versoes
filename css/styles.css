@@ -714,12 +714,6 @@ nav.sidenav{
 }
 
 .dash-table-container thead th {
-  background: var(--primary);
-  color: #fff;
-  font-weight: 600;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   padding: 10px 14px;
   text-align: left;
   white-space: nowrap;
@@ -774,6 +768,42 @@ nav.sidenav{
 .dash-table-container .total-row td:last-child {
   font-weight: 700;
   font-size: 14px;
+}
+
+/* =====================================================
+   CABEÇALHO DA DASHBOARD DON (AZUL)
+   ===================================================== */
+.don-header th {
+  background: var(--primary) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 14px !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+}
+
+/* =====================================================
+   CABEÇALHO DA DASHBOARD STATUS (CINZA)
+   ===================================================== */
+.status-header th {
+  background: #6B7280 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 14px !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
 }
 
 /* =====================================================
