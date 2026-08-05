@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.4 - Controle de Medições e DCs - Logictel</title>
+<title>V.5 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -178,7 +178,6 @@
         <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input type="hidden" id="med-edit-id" value="">
           
-          <div><label class="label">Empresa *</label><select id="med-empresa" required class="input"><option value="">Selecione...</option></select></div>
           <div><label class="label">Projeto *</label><select id="med-projeto" required class="input"><option value="">Selecione...</option></select></div>
           <div><label class="label">Gestor Logictel *</label><select id="med-gestor" required class="input"><option value="">Selecione...</option></select></div>
           <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
@@ -203,7 +202,12 @@
             <input type="text" id="med-valor-status" placeholder="0,00" class="input money-input">
           </div>
           
-          <!-- Data E-mail -->
+          <!-- Obs -->
+          <div>
+            <label class="label">Observação</label>
+            <textarea id="med-observacao" rows="2" placeholder="Observações sobre a medição..." class="input"></textarea>
+          </div>
+          
           <div>
             <label class="label">Data E-mail</label>
             <input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input">
@@ -225,7 +229,6 @@
           <table class="w-full text-left border-collapse">
             <thead><tr class="th-row">
               <th>ID</th>
-              <th>Empresa</th>
               <th>Projeto</th>
               <th>Gestor Logictel</th>
               <th>Diretor Cliente</th>
@@ -233,10 +236,12 @@
               <th>Ano</th>
               <th class="text-right">Valor DON</th>
               <th class="text-right">Valor Status</th>
+              <th>Manter</th>
+              <th>Obs</th>
               <th>Status</th>
               <th class="text-right">Ações</th>
             </tr></thead>
-            <tbody id="tabela-medicoes"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            <tbody id="tabela-medicoes"><tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
