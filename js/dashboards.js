@@ -223,22 +223,11 @@ export async function carregarDashApropriacao() {
         const filtros = lerFiltrosDashboard('aprop');
         console.log('📋 Filtros:', filtros);
 
-        // Buscar medições
+        // Buscar medições - SEM joins, vamos buscar separadamente
         console.log('📡 Buscando medições...');
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
-            .select(`
-                id, 
-                projeto_id, 
-                gestor_logictel_id, 
-                diretor_id, 
-                mes, 
-                ano, 
-                valor_status,
-                projetos:nome,
-                gestores_logictel:nome,
-                diretores:nome
-            `);
+            .select('*');
         
         if (errorMed) {
             console.error('❌ Erro ao buscar medições:', errorMed);
@@ -247,23 +236,11 @@ export async function carregarDashApropriacao() {
         }
         console.log('✅ Medições carregadas:', medicoes?.length || 0);
 
-        // Buscar consumos
+        // Buscar consumos - SEM joins
         console.log('📡 Buscando consumos...');
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
-            .select(`
-                id, 
-                projeto_id, 
-                gestor_logictel_id, 
-                diretor_id,
-                mes_apropriacao, 
-                mes_medido, 
-                ano, 
-                valor,
-                projetos:nome,
-                gestores_logictel:nome,
-                diretores:nome
-            `);
+            .select('*');
         
         if (errorCons) {
             console.error('❌ Erro ao buscar consumos:', errorCons);
@@ -272,8 +249,62 @@ export async function carregarDashApropriacao() {
         }
         console.log('✅ Consumos carregados:', consumos?.length || 0);
 
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
+        // Buscar projetos para mapear IDs -> Nomes
+        console.log('📡 Buscando projetos...');
+        const { data: projetos, error: errorProj } = await supabaseClient
+            .from('projetos')
+            .select('id, nome');
+        if (errorProj) console.error('Erro ao buscar projetos:', errorProj);
+        
+        const projetosMap = {};
+        if (projetos) {
+            projetos.forEach(p => { projetosMap[p.id] = p.nome; });
+        }
+        console.log('📋 Projetos mapeados:', Object.keys(projetosMap).length);
+
+        // Buscar gestores para mapear IDs -> Nomes
+        console.log('📡 Buscando gestores...');
+        const { data: gestores, error: errorGest } = await supabaseClient
+            .from('gestores_logictel')
+            .select('id, nome');
+        if (errorGest) console.error('Erro ao buscar gestores:', errorGest);
+        
+        const gestoresMap = {};
+        if (gestores) {
+            gestores.forEach(g => { gestoresMap[g.id] = g.nome; });
+        }
+        console.log('📋 Gestores mapeados:', Object.keys(gestoresMap).length);
+
+        // Buscar diretores para mapear IDs -> Nomes
+        console.log('📡 Buscando diretores...');
+        const { data: diretores, error: errorDir } = await supabaseClient
+            .from('diretores')
+            .select('id, nome');
+        if (errorDir) console.error('Erro ao buscar diretores:', errorDir);
+        
+        const diretoresMap = {};
+        if (diretores) {
+            diretores.forEach(d => { diretoresMap[d.id] = d.nome; });
+        }
+        console.log('📋 Diretores mapeados:', Object.keys(diretoresMap).length);
+
+        // Enriquecer os dados com os nomes
+        const medicoesComNomes = (medicoes || []).map(med => ({
+            ...med,
+            projetos: { nome: projetosMap[med.projeto_id] || 'N/A' },
+            gestores_logictel: { nome: gestoresMap[med.gestor_logictel_id] || 'N/A' },
+            diretores: { nome: diretoresMap[med.diretor_id] || 'N/A' }
+        }));
+
+        const consumosComNomes = (consumos || []).map(c => ({
+            ...c,
+            projetos: { nome: projetosMap[c.projeto_id] || 'N/A' },
+            gestores_logictel: { nome: gestoresMap[c.gestor_logictel_id] || 'N/A' },
+            diretores: { nome: diretoresMap[c.diretor_id] || 'N/A' }
+        }));
+
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoesComNomes || [], filtros);
+        const consumosFiltrados = aplicarFiltrosDashboard(consumosComNomes || [], filtros);
         
         console.log('📊 Medições filtradas:', medicoesFiltradas.length);
         console.log('📊 Consumos filtrados:', consumosFiltrados.length);
@@ -311,22 +342,11 @@ export async function carregarDashDON() {
         const filtros = lerFiltrosDashboard('don');
         console.log('📋 Filtros:', filtros);
 
-        // Buscar medições
+        // Buscar medições - SEM joins
         console.log('📡 Buscando medições...');
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
-            .select(`
-                id, 
-                projeto_id, 
-                gestor_logictel_id, 
-                diretor_id, 
-                mes, 
-                ano, 
-                valor_don,
-                projetos:nome,
-                gestores_logictel:nome,
-                diretores:nome
-            `);
+            .select('*');
         
         if (errorMed) {
             console.error('❌ Erro ao buscar medições:', errorMed);
@@ -335,23 +355,11 @@ export async function carregarDashDON() {
         }
         console.log('✅ Medições carregadas:', medicoes?.length || 0);
 
-        // Buscar consumos
+        // Buscar consumos - SEM joins
         console.log('📡 Buscando consumos...');
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
-            .select(`
-                id, 
-                projeto_id, 
-                gestor_logictel_id, 
-                diretor_id,
-                mes_apropriacao, 
-                mes_medido, 
-                ano, 
-                valor,
-                projetos:nome,
-                gestores_logictel:nome,
-                diretores:nome
-            `);
+            .select('*');
         
         if (errorCons) {
             console.error('❌ Erro ao buscar consumos:', errorCons);
@@ -360,8 +368,62 @@ export async function carregarDashDON() {
         }
         console.log('✅ Consumos carregados:', consumos?.length || 0);
 
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
+        // Buscar projetos para mapear IDs -> Nomes
+        console.log('📡 Buscando projetos...');
+        const { data: projetos, error: errorProj } = await supabaseClient
+            .from('projetos')
+            .select('id, nome');
+        if (errorProj) console.error('Erro ao buscar projetos:', errorProj);
+        
+        const projetosMap = {};
+        if (projetos) {
+            projetos.forEach(p => { projetosMap[p.id] = p.nome; });
+        }
+        console.log('📋 Projetos mapeados:', Object.keys(projetosMap).length);
+
+        // Buscar gestores para mapear IDs -> Nomes
+        console.log('📡 Buscando gestores...');
+        const { data: gestores, error: errorGest } = await supabaseClient
+            .from('gestores_logictel')
+            .select('id, nome');
+        if (errorGest) console.error('Erro ao buscar gestores:', errorGest);
+        
+        const gestoresMap = {};
+        if (gestores) {
+            gestores.forEach(g => { gestoresMap[g.id] = g.nome; });
+        }
+        console.log('📋 Gestores mapeados:', Object.keys(gestoresMap).length);
+
+        // Buscar diretores para mapear IDs -> Nomes
+        console.log('📡 Buscando diretores...');
+        const { data: diretores, error: errorDir } = await supabaseClient
+            .from('diretores')
+            .select('id, nome');
+        if (errorDir) console.error('Erro ao buscar diretores:', errorDir);
+        
+        const diretoresMap = {};
+        if (diretores) {
+            diretores.forEach(d => { diretoresMap[d.id] = d.nome; });
+        }
+        console.log('📋 Diretores mapeados:', Object.keys(diretoresMap).length);
+
+        // Enriquecer os dados com os nomes
+        const medicoesComNomes = (medicoes || []).map(med => ({
+            ...med,
+            projetos: { nome: projetosMap[med.projeto_id] || 'N/A' },
+            gestores_logictel: { nome: gestoresMap[med.gestor_logictel_id] || 'N/A' },
+            diretores: { nome: diretoresMap[med.diretor_id] || 'N/A' }
+        }));
+
+        const consumosComNomes = (consumos || []).map(c => ({
+            ...c,
+            projetos: { nome: projetosMap[c.projeto_id] || 'N/A' },
+            gestores_logictel: { nome: gestoresMap[c.gestor_logictel_id] || 'N/A' },
+            diretores: { nome: diretoresMap[c.diretor_id] || 'N/A' }
+        }));
+
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoesComNomes || [], filtros);
+        const consumosFiltrados = aplicarFiltrosDashboard(consumosComNomes || [], filtros);
         
         console.log('📊 Medições filtradas:', medicoesFiltradas.length);
         console.log('📊 Consumos filtrados:', consumosFiltrados.length);
