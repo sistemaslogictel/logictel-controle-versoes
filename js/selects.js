@@ -160,11 +160,44 @@ export async function carregarFiltroStatus() {
 // FILTROS DOS DASHBOARDS
 // =====================================================
 export async function carregarFiltros() {
-    const { data: projetos } = await supabaseClient.from('projetos').select('nome');
-    const { data: gestores } = await supabaseClient.from('gestores_logictel').select('nome');
+    // Filtros da Dashboard Status (com Gestor)
+    const { data: projetos } = await supabaseClient.from('projetos').select('nome').order('nome');
+    const { data: gestores } = await supabaseClient.from('gestores_logictel').select('nome').order('nome');
+    
+    // Filtros da Dashboard DON (com Diretor)
+    const { data: diretores } = await supabaseClient.from('diretores').select('nome').order('nome');
+
     const projetosSet = new Set();
     const gestoresSet = new Set();
-    const anos = new Set([2025, 2026, 2027]);
+    const diretoresSet = new Set();
+    const anosSet = new Set();
+    const mesesSet = new Set();
+
+    // Buscar anos e meses disponíveis nas medições
+    const { data: anosMeses } = await supabaseClient
+        .from('medicoes')
+        .select('ano, mes')
+        .order('ano', { ascending: true });
+
+    if (anosMeses) {
+        anosMeses.forEach(item => {
+            if (item.ano) anosSet.add(item.ano);
+            if (item.mes) mesesSet.add(item.mes);
+        });
+    }
+
+    // Também buscar anos e meses dos consumos
+    const { data: anosMesesConsumo } = await supabaseClient
+        .from('consumo_dc')
+        .select('ano, mes_apropriacao')
+        .order('ano', { ascending: true });
+
+    if (anosMesesConsumo) {
+        anosMesesConsumo.forEach(item => {
+            if (item.ano) anosSet.add(item.ano);
+            if (item.mes_apropriacao) mesesSet.add(item.mes_apropriacao);
+        });
+    }
 
     if (projetos) {
         projetos.forEach(p => {
@@ -176,14 +209,30 @@ export async function carregarFiltros() {
             if (g.nome) gestoresSet.add(g.nome);
         });
     }
+    if (diretores) {
+        diretores.forEach(d => {
+            if (d.nome) diretoresSet.add(d.nome);
+        });
+    }
 
+    // Ordenar meses na ordem correta
+    const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const mesesFiltrados = Array.from(mesesSet).sort((a, b) => mesesOrdenados.indexOf(a) - mesesOrdenados.indexOf(b));
+
+    // Configuração dos filtros
     const filtrosConfig = [
+        // Dashboard Status
         { id: 'filt-aprop-gestor', values: gestoresSet },
         { id: 'filt-aprop-projeto', values: projetosSet },
-        { id: 'filt-aprop-ano', values: anos },
-        { id: 'filt-don-gestor', values: gestoresSet },
+        { id: 'filt-aprop-ano', values: anosSet },
+        { id: 'filt-aprop-mes', values: mesesFiltrados },
+        // Dashboard DON
         { id: 'filt-don-projeto', values: projetosSet },
-        { id: 'filt-don-ano', values: anos },
+        { id: 'filt-don-diretor', values: diretoresSet },
+        { id: 'filt-don-ano', values: anosSet },
+        { id: 'filt-don-mes', values: mesesFiltrados },
+        // DC Cards
         { id: 'filt-dcs-projeto', values: projetosSet },
         { id: 'filt-dcs-gestor', values: gestoresSet }
     ];
