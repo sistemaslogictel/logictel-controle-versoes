@@ -5,7 +5,7 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 // =====================================================
-// CÁLCULO COMPARTILHADO DE SALDO POR MÊS
+// CÁLCULO COMPARTILHADO DE SALDO POR MÊS (para STATUS)
 // =====================================================
 function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
     const grupos = {};
@@ -75,7 +75,77 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 }
 
 // =====================================================
-// ÍCONE DO CARD "TOTAL GERAL" (seta de tendência)
+// CÁLCULO DE SALDO PARA DON - AGRUPADO POR PROJETO E DIRETOR
+// =====================================================
+function calcularGruposSaldoDON(medicoes, consumos) {
+    const grupos = {};
+    const todosMeses = new Set();
+
+    function garantirGrupo(key, origem) {
+        if (!grupos[key]) {
+            grupos[key] = {
+                projeto: origem.projetos?.nome || 'N/A',
+                diretor: origem.diretores?.nome || 'N/A',
+                descricao: origem.projetos?.nome || '',
+                meses: {},
+                total: 0
+            };
+        }
+        return grupos[key];
+    }
+
+    medicoes.forEach(med => {
+        const key = `${med.projeto_id}|${med.diretor_id || 'sem'}`;
+        const g = garantirGrupo(key, med);
+        todosMeses.add(med.mes);
+        if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
+        const valor = -Math.abs(Number(med.valor_don || 0));
+        g.meses[med.mes].medicao += valor;
+    });
+
+    consumos.forEach(c => {
+        const mes = c.mes_medido;
+        if (!mes) return;
+        const key = `${c.projeto_id}|${c.diretor_id || 'sem'}`;
+        const g = garantirGrupo(key, c);
+        todosMeses.add(mes);
+        if (!g.meses[mes]) g.meses[mes] = { medicao: 0, consumo: 0 };
+        const valor = Math.abs(Number(c.valor || 0));
+        g.meses[mes].consumo += valor;
+    });
+
+    Object.values(grupos).forEach(g => {
+        let total = 0;
+        Object.keys(g.meses).forEach(mes => {
+            const medicaoVal = g.meses[mes].medicao || 0;
+            const consumoVal = g.meses[mes].consumo || 0;
+            const saldo = medicaoVal + consumoVal;
+            g.meses[mes].saldo = saldo;
+            total += saldo;
+        });
+        g.total = total;
+    });
+
+    const mesesComSaldo = new Set();
+    Object.values(grupos).forEach(g => {
+        Object.keys(g.meses).forEach(mes => {
+            if (g.meses[mes].saldo !== 0) {
+                mesesComSaldo.add(mes);
+            }
+        });
+    });
+
+    if (mesesComSaldo.size === 0 && todosMeses.size > 0) {
+        const primeiroMes = Array.from(todosMeses).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b))[0];
+        if (primeiroMes) mesesComSaldo.add(primeiroMes);
+    }
+
+    const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
+    return { grupos, mesesExibir };
+}
+
+// =====================================================
+// ÍCONE DO CARD "TOTAL GERAL"
 // =====================================================
 const ICONE_TOTAL_GERAL = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>`;
 
@@ -86,7 +156,7 @@ function classeValor(v) {
 }
 
 // =====================================================
-// CARD "TOTAL GERAL" (fora da tabela, no rodapé da dashboard)
+// CARD "TOTAL GERAL"
 // =====================================================
 function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalGeral) {
     const container = document.getElementById(containerId);
@@ -129,15 +199,25 @@ function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalG
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA - ALINHAMENTO CENTRALIZADO
+// RENDERIZAÇÃO DA TABELA - COM MODO DON/STATUS
 // =====================================================
-function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass, totalCardId, tema) {
+function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass, totalCardId, tema, modo = 'status') {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
-        let html = `<tr class="${headerClass}">
-            <th style="text-align:left;padding:10px 12px;">Gestão</th>
-            <th style="text-align:left;padding:10px 12px;">Projeto</th>
-            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+        let html = `<tr class="${headerClass}">`;
+        
+        if (modo === 'don') {
+            // DON: Projeto e Diretor
+            html += `<th style="text-align:left;padding:10px 12px;">Projeto</th>`;
+            html += `<th style="text-align:left;padding:10px 12px;">Diretor</th>`;
+        } else {
+            // Status: Gestão e Projeto
+            html += `<th style="text-align:left;padding:10px 12px;">Gestão</th>`;
+            html += `<th style="text-align:left;padding:10px 12px;">Projeto</th>`;
+        }
+        
+        html += `<th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+        
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -161,12 +241,19 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     linhas.forEach(g => {
         totalGeral += g.total;
 
-        let html = `
-            <tr>
-                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
-                <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
-        `;
+        let html = `<tr>`;
+        
+        if (modo === 'don') {
+            // DON: Projeto e Diretor
+            html += `<td style="text-align:left;padding:10px 12px;font-weight:600;">${g.projeto}</td>`;
+            html += `<td style="text-align:left;padding:10px 12px;font-weight:500;">${g.diretor || 'N/A'}</td>`;
+        } else {
+            // Status: Gestão e Projeto
+            html += `<td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>`;
+            html += `<td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>`;
+        }
+        
+        html += `<td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>`;
 
         mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
@@ -202,7 +289,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
         tbody.innerHTML += html;
     });
 
-    // Card "TOTAL GERAL" renderizado separadamente, fora da tabela (ver imagens de referência)
     renderizarTotalGeralCard(totalCardId, tema, mesesExibir, linhas, totalGeral);
 }
 
@@ -275,7 +361,7 @@ export async function carregarDashApropriacao() {
 }
 
 // =====================================================
-// DASHBOARD DON (AZUL)
+// DASHBOARD DON (AZUL) - COM PROJETO E DIRETOR
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
@@ -306,14 +392,12 @@ export async function carregarDashDON() {
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
         const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
         
-        const { grupos, mesesExibir } = calcularGruposSaldo(
+        const { grupos, mesesExibir } = calcularGruposSaldoDON(
             medicoesFiltradas, 
-            consumosFiltrados, 
-            'mes_medido',
-            'valor_don'
+            consumosFiltrados
         );
         
-        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-header', 'don-total-geral', 'don');
+        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-header', 'don-total-geral', 'don', 'don');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
