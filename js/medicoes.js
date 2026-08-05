@@ -6,14 +6,13 @@ export async function carregarMedicoes() {
     const tbody = document.getElementById('tabela-medicoes');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
 
     try {
         const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
                 id,
-                empresa_id,
                 projeto_id,
                 gestor_logictel_id,
                 diretor_id,
@@ -22,9 +21,9 @@ export async function carregarMedicoes() {
                 valor_don,
                 valor_status,
                 manter_valor_status,
+                observacao,
                 data_email_medicao,
                 status_medicao,
-                empresas(nome),
                 projetos(nome),
                 gestores_logictel(nome),
                 diretores(nome)
@@ -33,11 +32,11 @@ export async function carregarMedicoes() {
 
         if (error) {
             console.error('Erro ao carregar medições:', error);
-            tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
             return;
         }
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>';
             return;
         }
         tbody.innerHTML = '';
@@ -48,7 +47,6 @@ export async function carregarMedicoes() {
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td>${m.id}</td>
-                    <td>${m.empresas?.nome || '-'}</td>
                     <td>${m.projetos?.nome || '-'}</td>
                     <td>${m.gestores_logictel?.nome || '-'}</td>
                     <td>${m.diretores?.nome || '-'}</td>
@@ -56,6 +54,8 @@ export async function carregarMedicoes() {
                     <td>${m.ano}</td>
                     <td class="text-right mono">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td class="text-right mono">R$ ${valorStatus.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    <td>${m.manter_valor_status ? 'Sim' : 'Não'}</td>
+                    <td>${m.observacao || '-'}</td>
                     <td>${m.status_medicao || '-'}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
@@ -67,7 +67,7 @@ export async function carregarMedicoes() {
         });
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -78,21 +78,12 @@ export function initFormMedicao() {
     const campoValorDon = document.getElementById('med-valor-don');
     const containerValorStatus = document.getElementById('med-valor-status-container');
     
-    console.log('Inicializando formulário de medição...');
-    console.log('checkboxManter:', checkboxManter);
-    console.log('campoValorStatus:', campoValorStatus);
-    console.log('campoValorDon:', campoValorDon);
-    console.log('containerValorStatus:', containerValorStatus);
-    
     // Função para controlar visibilidade do campo valor Status
     function controlarCampoValorStatus() {
-        console.log('Controlar campo valor Status - checkbox checked:', checkboxManter ? checkboxManter.checked : 'checkbox não encontrado');
-        
         if (checkboxManter && checkboxManter.checked) {
             // Manter valor: esconde o campo valor Status
             if (containerValorStatus) {
                 containerValorStatus.style.display = 'none';
-                console.log('Container valor Status ocultado');
             }
             if (campoValorStatus) {
                 campoValorStatus.disabled = true;
@@ -105,7 +96,6 @@ export function initFormMedicao() {
             // Mostrar campo valor Status
             if (containerValorStatus) {
                 containerValorStatus.style.display = 'block';
-                console.log('Container valor Status exibido');
             }
             if (campoValorStatus) {
                 campoValorStatus.disabled = false;
@@ -116,7 +106,6 @@ export function initFormMedicao() {
     // Evento para quando o checkbox mudar
     if (checkboxManter) {
         checkboxManter.addEventListener('change', function() {
-            console.log('Checkbox mudou para:', this.checked);
             controlarCampoValorStatus();
         });
     }
@@ -134,19 +123,13 @@ export function initFormMedicao() {
         e.preventDefault();
         const editId = document.getElementById('med-edit-id').value;
 
-        const empresaId = document.getElementById('med-empresa').value;
         const projetoId = document.getElementById('med-projeto').value;
         const gestorId = document.getElementById('med-gestor').value;
         const diretorId = document.getElementById('med-diretor').value || null;
         
-        console.log('Edit ID:', editId);
-        console.log('Empresa:', empresaId);
-        console.log('Projeto:', projetoId);
-        console.log('Gestor:', gestorId);
-        
         // Validar campos obrigatórios
-        if (!empresaId || !projetoId || !gestorId) {
-            alert('Empresa, Projeto e Gestor são obrigatórios!');
+        if (!projetoId || !gestorId) {
+            alert('Projeto e Gestor são obrigatórios!');
             return;
         }
         
@@ -160,13 +143,8 @@ export function initFormMedicao() {
         } else {
             valorStatus = valorParaNumero(campoValorStatus ? campoValorStatus.value : '0');
         }
-        
-        console.log('Valor DON:', valorDon);
-        console.log('Valor Status:', valorStatus);
-        console.log('Manter valor:', manterValorStatus);
 
         const dados = {
-            empresa_id: parseInt(empresaId),
             projeto_id: parseInt(projetoId),
             gestor_logictel_id: parseInt(gestorId),
             diretor_id: diretorId ? parseInt(diretorId) : null,
@@ -175,11 +153,10 @@ export function initFormMedicao() {
             valor_don: valorDon,
             valor_status: valorStatus,
             manter_valor_status: manterValorStatus,
+            observacao: document.getElementById('med-observacao').value || null,
             data_email_medicao: document.getElementById('med-data-email').value || null,
             status_medicao: document.getElementById('med-status').value
         };
-
-        console.log('Dados a serem salvos:', dados);
 
         try {
             let result;
@@ -222,13 +199,10 @@ export function initFormMedicao() {
 
 export async function editarMedicao(id) {
     try {
-        console.log('Editando medição ID:', id);
-        
         const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
                 id,
-                empresa_id,
                 projeto_id,
                 gestor_logictel_id,
                 diretor_id,
@@ -237,6 +211,7 @@ export async function editarMedicao(id) {
                 valor_don,
                 valor_status,
                 manter_valor_status,
+                observacao,
                 data_email_medicao,
                 status_medicao
             `)
@@ -253,11 +228,8 @@ export async function editarMedicao(id) {
             return;
         }
 
-        console.log('Dados carregados:', data);
-
         // Preencher os campos do formulário
         document.getElementById('med-edit-id').value = id;
-        document.getElementById('med-empresa').value = data.empresa_id || '';
         document.getElementById('med-projeto').value = data.projeto_id || '';
         document.getElementById('med-gestor').value = data.gestor_logictel_id || '';
         document.getElementById('med-diretor').value = data.diretor_id || '';
@@ -266,6 +238,7 @@ export async function editarMedicao(id) {
         document.getElementById('med-valor-don').value = Number(data.valor_don || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
         document.getElementById('med-valor-status').value = Number(data.valor_status || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
         document.getElementById('med-manter-valor-status').checked = data.manter_valor_status !== false;
+        document.getElementById('med-observacao').value = data.observacao || '';
         document.getElementById('med-data-email').value = data.data_email_medicao || '';
         document.getElementById('med-status').value = data.status_medicao || '';
         document.getElementById('med-cancel-btn').style.display = 'inline-block';
