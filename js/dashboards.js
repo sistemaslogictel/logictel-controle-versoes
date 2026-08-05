@@ -8,6 +8,10 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 // CÁLCULO COMPARTILHADO DE SALDO POR MÊS
 // =====================================================
 function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
+    console.log('Medições recebidas:', medicoes);
+    console.log('Consumos recebidos:', consumos);
+    console.log('Campo valor usado:', campoValor);
+    
     const grupos = {};
     const todosMeses = new Set();
 
@@ -32,6 +36,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
         if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
         // A medição é uma pendência, então é NEGATIVA
         const valor = -Math.abs(Number(med[campoValor] || 0));
+        console.log(`Medição - ${med.mes}: valor original ${med[campoValor]}, convertido para ${valor}`);
         g.meses[med.mes].medicao += valor;
     });
 
@@ -45,6 +50,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
         if (!g.meses[mes]) g.meses[mes] = { medicao: 0, consumo: 0 };
         // Consumo é positivo (abatimento da dívida)
         const valor = Math.abs(Number(c.valor || 0));
+        console.log(`Consumo - ${mes}: valor ${valor}`);
         g.meses[mes].consumo += valor;
     });
 
@@ -52,14 +58,15 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
     Object.values(grupos).forEach(g => {
         let total = 0;
         Object.keys(g.meses).forEach(mes => {
-            const medicaoVal = g.meses[mes].medicao || 0;  // já é negativo
-            const consumoVal = g.meses[mes].consumo || 0;  // positivo
-            // Saldo = medicao (negativo) + consumo (positivo)
+            const medicaoVal = g.meses[mes].medicao || 0;
+            const consumoVal = g.meses[mes].consumo || 0;
             const saldo = medicaoVal + consumoVal;
             g.meses[mes].saldo = saldo;
             total += saldo;
+            console.log(`Mês ${mes}: medicao=${medicaoVal}, consumo=${consumoVal}, saldo=${saldo}`);
         });
         g.total = total;
+        console.log(`Total do grupo ${g.projeto}: ${total}`);
     });
 
     // Filtrar meses: só mostrar meses que têm saldo diferente de zero para algum grupo
@@ -79,6 +86,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
     }
 
     const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
+    console.log('Meses a exibir:', mesesExibir);
     return { grupos, mesesExibir };
 }
 
@@ -127,9 +135,9 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
             
             if (temValor) {
                 if (saldo < 0) {
-                    valorClass = 'valor-negativo';  // Vermelho para negativo (ainda deve)
+                    valorClass = 'valor-negativo';
                 } else if (saldo > 0) {
-                    valorClass = 'valor-positivo';  // Verde para positivo (recebeu mais do que devia)
+                    valorClass = 'valor-positivo';
                 }
                 displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
             }
@@ -210,7 +218,6 @@ function aplicarFiltrosDashboard(lista, filtros) {
 
 // =====================================================
 // DASHBOARD STATUS (CINZA)
-// Usa valor_status da medição e Mês Apropriação do consumo
 // =====================================================
 export async function carregarDashApropriacao() {
     const tbody = document.getElementById('tabela-dash-apropriacao');
@@ -228,6 +235,8 @@ export async function carregarDashApropriacao() {
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorMed) throw errorMed;
+
+        console.log('Medições carregadas:', medicoes);
 
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
@@ -258,7 +267,6 @@ export async function carregarDashApropriacao() {
 
 // =====================================================
 // DASHBOARD DON (AZUL)
-// Usa valor_don da medição e Mês Medido do consumo
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
@@ -276,6 +284,8 @@ export async function carregarDashDON() {
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorMed) throw errorMed;
+
+        console.log('Medições DON carregadas:', medicoes);
 
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
