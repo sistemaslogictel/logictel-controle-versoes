@@ -6,7 +6,7 @@ export async function carregarMedicoes() {
     const tbody = document.getElementById('tabela-medicoes');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
 
     try {
         const { data, error } = await supabaseClient
@@ -20,7 +20,6 @@ export async function carregarMedicoes() {
                 ano,
                 valor_don,
                 valor_status,
-                manter_valor_status,
                 observacao,
                 data_email_medicao,
                 status_medicao,
@@ -32,11 +31,11 @@ export async function carregarMedicoes() {
 
         if (error) {
             console.error('Erro ao carregar medições:', error);
-            tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
             return;
         }
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição cadastrada.</td></tr>';
             return;
         }
         tbody.innerHTML = '';
@@ -54,9 +53,8 @@ export async function carregarMedicoes() {
                     <td>${m.ano}</td>
                     <td class="text-right mono">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td class="text-right mono">R$ ${valorStatus.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
-                    <td>${m.manter_valor_status ? 'Sim' : 'Não'}</td>
-                    <td>${m.observacao || '-'}</td>
                     <td>${m.status_medicao || '-'}</td>
+                    <td>${m.observacao || '-'}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
                             <button onclick="editarMedicao(${m.id})" class="btn-edit">Editar</button>
@@ -67,57 +65,12 @@ export async function carregarMedicoes() {
         });
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
 export function initFormMedicao() {
     const form = document.getElementById('form-medicao');
-    const checkboxManter = document.getElementById('med-manter-valor-status');
-    const campoValorStatus = document.getElementById('med-valor-status');
-    const campoValorDon = document.getElementById('med-valor-don');
-    const containerValorStatus = document.getElementById('med-valor-status-container');
-    
-    // Função para controlar visibilidade do campo valor Status
-    function controlarCampoValorStatus() {
-        if (checkboxManter && checkboxManter.checked) {
-            // Manter valor: esconde o campo valor Status
-            if (containerValorStatus) {
-                containerValorStatus.style.display = 'none';
-            }
-            if (campoValorStatus) {
-                campoValorStatus.disabled = true;
-                // Copiar valor DON para Status
-                if (campoValorDon) {
-                    campoValorStatus.value = campoValorDon.value;
-                }
-            }
-        } else {
-            // Mostrar campo valor Status
-            if (containerValorStatus) {
-                containerValorStatus.style.display = 'block';
-            }
-            if (campoValorStatus) {
-                campoValorStatus.disabled = false;
-            }
-        }
-    }
-    
-    // Evento para quando o checkbox mudar
-    if (checkboxManter) {
-        checkboxManter.addEventListener('change', function() {
-            controlarCampoValorStatus();
-        });
-    }
-    
-    // Evento para quando o valor DON mudar (copiar para Status se manter marcado)
-    if (campoValorDon) {
-        campoValorDon.addEventListener('input', function() {
-            if (checkboxManter && checkboxManter.checked && campoValorStatus) {
-                campoValorStatus.value = this.value;
-            }
-        });
-    }
     
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -133,16 +86,8 @@ export function initFormMedicao() {
             return;
         }
         
-        const manterValorStatus = checkboxManter ? checkboxManter.checked : true;
-        const valorDon = valorParaNumero(campoValorDon ? campoValorDon.value : '0');
-        
-        // Se manterValorStatus for true, valorStatus = valorDon
-        let valorStatus;
-        if (manterValorStatus) {
-            valorStatus = valorDon;
-        } else {
-            valorStatus = valorParaNumero(campoValorStatus ? campoValorStatus.value : '0');
-        }
+        const valorDon = valorParaNumero(document.getElementById('med-valor-don').value);
+        const valorStatus = valorParaNumero(document.getElementById('med-valor-status').value);
 
         const dados = {
             projeto_id: parseInt(projetoId),
@@ -152,7 +97,6 @@ export function initFormMedicao() {
             ano: parseInt(document.getElementById('med-ano').value),
             valor_don: valorDon,
             valor_status: valorStatus,
-            manter_valor_status: manterValorStatus,
             observacao: document.getElementById('med-observacao').value || null,
             data_email_medicao: document.getElementById('med-data-email').value || null,
             status_medicao: document.getElementById('med-status').value
@@ -182,8 +126,6 @@ export function initFormMedicao() {
             document.getElementById('med-edit-id').value = '';
             document.getElementById('med-cancel-btn').style.display = 'none';
             
-            // Reaplicar controle e máscaras
-            controlarCampoValorStatus();
             carregarMedicoes();
             carregarFiltros();
             aplicarMascaras();
@@ -192,9 +134,6 @@ export function initFormMedicao() {
             alert('Erro ao salvar medição.');
         }
     });
-    
-    // Inicializar controle
-    controlarCampoValorStatus();
 }
 
 export async function editarMedicao(id) {
@@ -210,7 +149,6 @@ export async function editarMedicao(id) {
                 ano,
                 valor_don,
                 valor_status,
-                manter_valor_status,
                 observacao,
                 data_email_medicao,
                 status_medicao
@@ -237,32 +175,10 @@ export async function editarMedicao(id) {
         document.getElementById('med-ano').value = data.ano || '';
         document.getElementById('med-valor-don').value = Number(data.valor_don || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
         document.getElementById('med-valor-status').value = Number(data.valor_status || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
-        document.getElementById('med-manter-valor-status').checked = data.manter_valor_status !== false;
         document.getElementById('med-observacao').value = data.observacao || '';
         document.getElementById('med-data-email').value = data.data_email_medicao || '';
         document.getElementById('med-status').value = data.status_medicao || '';
         document.getElementById('med-cancel-btn').style.display = 'inline-block';
-
-        // Atualizar visibilidade do campo valor Status baseado no checkbox
-        const checkboxManter = document.getElementById('med-manter-valor-status');
-        const campoValorStatus = document.getElementById('med-valor-status');
-        const containerValorStatus = document.getElementById('med-valor-status-container');
-        
-        if (checkboxManter && checkboxManter.checked) {
-            if (containerValorStatus) {
-                containerValorStatus.style.display = 'none';
-            }
-            if (campoValorStatus) {
-                campoValorStatus.disabled = true;
-            }
-        } else {
-            if (containerValorStatus) {
-                containerValorStatus.style.display = 'block';
-            }
-            if (campoValorStatus) {
-                campoValorStatus.disabled = false;
-            }
-        }
 
         // Scroll para o formulário
         document.getElementById('form-medicao').scrollIntoView({ behavior: 'smooth' });
