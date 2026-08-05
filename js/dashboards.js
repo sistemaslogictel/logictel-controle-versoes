@@ -75,7 +75,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 }
 
 // =====================================================
-// CÁLCULO DE SALDO PARA DON - AGRUPADO POR PROJETO E DIRETOR (SUB-LINHAS)
+// CÁLCULO DE SALDO PARA DON - AGRUPADO POR PROJETO E DIRETOR
 // =====================================================
 function calcularGruposSaldoDON(medicoes, consumos) {
     const grupos = {};
@@ -302,7 +302,7 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA DON - COM PROJETO E SUB-LINHAS POR DIRETOR
+// RENDERIZAÇÃO DA TABELA DON - COM EXPANSÃO POR CLIQUE
 // =====================================================
 function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -331,14 +331,17 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
     tbody.innerHTML = '';
     let totalGeral = 0;
 
-    projetos.forEach(proj => {
+    projetos.forEach((proj, index) => {
         totalGeral += proj.total;
         const totalColor = proj.total < 0 ? 'color:#FF0000;' : (proj.total > 0 ? 'color:#00AA00;' : '');
+        const projetoId = `projeto-${index}`;
 
-        // Linha do Projeto (destaque)
+        // Linha do Projeto (clicável para expandir/colapsar)
         let html = `
-            <tr style="border-top:2px solid var(--primary);background:var(--primary-100);">
-                <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">${proj.projeto}</td>
+            <tr class="projeto-row" data-projeto="${projetoId}" style="border-top:2px solid var(--primary);background:var(--primary-100);cursor:pointer;">
+                <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">
+                    <span class="expand-icon" id="icon-${projetoId}">▶</span> ${proj.projeto}
+                </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;color:var(--text-soft);">—</td>
                 <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${proj.descricao}</td>
         `;
@@ -359,34 +362,58 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         `;
         tbody.innerHTML += html;
 
-        // Sub-linhas: Diretores do Projeto
+        // Sub-linhas: Diretores do Projeto (inicialmente ocultos)
         const diretores = Object.values(proj.diretores).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-        diretores.forEach(dir => {
-            const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
-            let dHtml = `
-                <tr style="border-bottom:1px solid var(--border);">
-                    <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);">↳</td>
-                    <td style="text-align:left;padding:8px 12px;font-weight:500;">${dir.nome}</td>
-                    <td style="text-align:left;padding:8px 12px;color:var(--text-soft);font-size:12px;">—</td>
-            `;
-            mesesExibir.forEach(mes => {
-                const saldo = dir.meses[mes]?.saldo;
-                const temValor = saldo !== undefined && saldo !== 0;
-                let displayValor = '-';
-                let colorStyle = '';
-                if (temValor) {
-                    colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
-                    displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
-                }
-                dHtml += `<td style="text-align:center;padding:8px 12px;${colorStyle}">${displayValor}</td>`;
+        if (diretores.length > 0) {
+            let diretoresHtml = `<tbody class="diretores-container" id="diretores-${projetoId}" style="display:none;">`;
+            diretores.forEach(dir => {
+                const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
+                diretoresHtml += `
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);">↳</td>
+                        <td style="text-align:left;padding:8px 12px;font-weight:500;">${dir.nome}</td>
+                        <td style="text-align:left;padding:8px 12px;color:var(--text-soft);font-size:12px;">—</td>
+                `;
+                mesesExibir.forEach(mes => {
+                    const saldo = dir.meses[mes]?.saldo;
+                    const temValor = saldo !== undefined && saldo !== 0;
+                    let displayValor = '-';
+                    let colorStyle = '';
+                    if (temValor) {
+                        colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
+                        displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
+                    }
+                    diretoresHtml += `<td style="text-align:center;padding:8px 12px;${colorStyle}">${displayValor}</td>`;
+                });
+                diretoresHtml += `
+                        <td style="text-align:center;padding:8px 12px;font-weight:600;${dTotalColor}">${dir.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    </tr>
+                `;
             });
-            dHtml += `
-                    <td style="text-align:center;padding:8px 12px;font-weight:600;${dTotalColor}">${dir.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
-                </tr>
-            `;
-            tbody.innerHTML += dHtml;
-        });
+            diretoresHtml += `</tbody>`;
+            tbody.innerHTML += diretoresHtml;
+        }
     });
+
+    // Adicionar event listener para clique nas linhas de projeto (após renderizar)
+    setTimeout(() => {
+        document.querySelectorAll('.projeto-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const projetoId = this.dataset.projeto;
+                const container = document.getElementById(`diretores-${projetoId}`);
+                const icon = document.getElementById(`icon-${projetoId}`);
+                if (container) {
+                    if (container.style.display === 'none') {
+                        container.style.display = '';
+                        if (icon) icon.textContent = '▼';
+                    } else {
+                        container.style.display = 'none';
+                        if (icon) icon.textContent = '▶';
+                    }
+                }
+            });
+        });
+    }, 50);
 
     renderizarTotalGeralCard(totalCardId, 'don', mesesExibir, projetos, totalGeral);
 }
@@ -482,7 +509,7 @@ export async function carregarDashApropriacao() {
 }
 
 // =====================================================
-// DASHBOARD DON (AZUL) - AGRUPADO POR PROJETO > DIRETOR
+// DASHBOARD DON (AZUL) - COM EXPANSÃO POR CLIQUE
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
