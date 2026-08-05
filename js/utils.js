@@ -48,8 +48,11 @@ export function aplicarMascaras() {
 }
 
 export function valorParaNumero(valorFormatado) {
-    if (!valorFormatado) return 0;
-    return parseFloat(String(valorFormatado).replace(/\./g, '').replace(',', '.'));
+    if (!valorFormatado || valorFormatado === '') return 0;
+    // Remover pontos de milhar e substituir vírgula por ponto
+    const valorLimpo = String(valorFormatado).replace(/\./g, '').replace(',', '.');
+    const numero = parseFloat(valorLimpo);
+    return isNaN(numero) ? 0 : numero;
 }
 
 export function registrarUltimaAtualizacao() {
