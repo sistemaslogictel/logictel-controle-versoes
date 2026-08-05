@@ -1137,3 +1137,87 @@ nav.sidenav{
     font-size: 10px;
   }
 }
+/* =====================================================
+   FILTROS COM LABELS (DON e STATUS)
+   ===================================================== */
+.filters-bar-don,
+.filters-bar-status {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(8,16,32,0.04);
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.filter-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.filter-actions .btn-primary,
+.filter-actions .btn-clear-filters {
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+/* Botão "Filtrar" em tema escuro na aba Dashboard Status */
+#tab-dash-apropriacao .btn-primary {
+  background: linear-gradient(135deg, #2B2B2B, #3A3A3A);
+  border-color: #000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+#tab-dash-apropriacao .btn-primary:hover {
+  background: linear-gradient(135deg, #3A3A3A, #4A4A4A);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+}
+
+@media (max-width: 900px) {
+  .filters-bar-don,
+  .filters-bar-status {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-actions {
+    grid-column: span 2;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 600px) {
+  .filters-bar-don,
+  .filters-bar-status {
+    grid-template-columns: 1fr;
+  }
+  .filter-actions {
+    grid-column: span 1;
+    flex-direction: row;
+    justify-content: stretch;
+  }
+  .filter-actions .btn-primary,
+  .filter-actions .btn-clear-filters {
+    flex: 1;
+    justify-content: center;
+  }
+}
