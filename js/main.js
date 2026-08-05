@@ -33,40 +33,83 @@ import { initFormUsuario, editarUsuario, excluirUsuario } from './usuarios.js';
 // EXPOSIÇÃO DAS FUNÇÕES USADAS EM ATRIBUTOS onclick/onchange/oninput DO HTML
 // =====================================================
 Object.assign(window, {
-    // auth
-    fazerLogin, fazerLogout, validarSenha, gerarSenhaForte,
-    // navegação
-    mudarAba, cancelarEdicao, toggleSidebar,
+    // AUTH - FUNÇÕES DE LOGIN (CRÍTICO PARA O FUNCIONAMENTO)
+    fazerLogin,
+    fazerLogout,
+    validarSenha,
+    gerarSenhaForte,
+    
+    // NAVEGAÇÃO
+    mudarAba,
+    cancelarEdicao,
+    toggleSidebar,
     limparFiltros: (tipo) => limparFiltros(tipo, {
         aprop: carregarDashApropriacao,
         don: carregarDashDON
     }),
-    // dashboards
-    carregarDashApropriacao, carregarDashDON,
-    // DC cards
-    carregarDCCards, irParaConsumo,
-    // consumo
-    carregarGestoresPorProjeto, controlarCamposNF, editarConsumo, excluirConsumo, exportarExcel,
-    // medições
-    editarMedicao, excluirMedicao,
-    // histórico
-    carregarApropriacaoHist, carregarMedicaoHist,
-    // cadastros
-    editarEmpresa, excluirEmpresa,
-    editarDiretor, excluirDiretor,
-    editarContrato, excluirContrato,
-    editarProjeto, excluirProjeto,
-    editarGestorLogictel, excluirGestorLogictel,
-    editarStatusDC, excluirStatusDC,
-    editarStatusMed, excluirStatusMed,
-    editarStatusNF, excluirStatusNF,
-    // usuários
-    editarUsuario, excluirUsuario
+    
+    // DASHBOARDS
+    carregarDashApropriacao,
+    carregarDashDON,
+    
+    // DC CARDS
+    carregarDCCards,
+    irParaConsumo,
+    
+    // CONSUMO
+    carregarGestoresPorProjeto,
+    controlarCamposNF,
+    editarConsumo,
+    excluirConsumo,
+    exportarExcel,
+    
+    // MEDIÇÕES
+    editarMedicao,
+    excluirMedicao,
+    
+    // HISTÓRICO
+    carregarApropriacaoHist,
+    carregarMedicaoHist,
+    
+    // CADASTROS - EMPRESA
+    editarEmpresa,
+    excluirEmpresa,
+    
+    // CADASTROS - DIRETOR
+    editarDiretor,
+    excluirDiretor,
+    
+    // CADASTROS - CONTRATO
+    editarContrato,
+    excluirContrato,
+    
+    // CADASTROS - PROJETO
+    editarProjeto,
+    excluirProjeto,
+    
+    // CADASTROS - GESTOR
+    editarGestorLogictel,
+    excluirGestorLogictel,
+    
+    // CADASTROS - STATUS DC
+    editarStatusDC,
+    excluirStatusDC,
+    
+    // CADASTROS - STATUS MEDIÇÃO
+    editarStatusMed,
+    excluirStatusMed,
+    
+    // CADASTROS - STATUS NF
+    editarStatusNF,
+    excluirStatusNF,
+    
+    // USUÁRIOS
+    editarUsuario,
+    excluirUsuario
 });
 
 // =====================================================
-// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO (equivalente aos
-// addEventListener que existiam soltos no script original)
+// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO
 // =====================================================
 function initFormListeners() {
     initFormMedicao();
@@ -86,15 +129,48 @@ function initFormListeners() {
 // BOOTSTRAP DA APLICAÇÃO
 // =====================================================
 function iniciarApp() {
+    // Inicializa todos os listeners dos formulários
     initFormListeners();
 
+    // Verifica se já existe uma sessão ativa
     if (verificarSessao()) {
+        // Se estiver logado, vai para a primeira aba acessível
         irParaPrimeiraAbaAcessivel();
+        // Carrega todas as listas
         carregarTodasListas();
+        // Aplica as máscaras de input
         aplicarMascaras();
     }
 }
 
-// Scripts com type="module" já são deferidos (equivalente a colocar no fim do body),
-// então o DOM já está pronto quando este código roda.
-iniciarApp();
+// =====================================================
+// INICIALIZAÇÃO ADICIONAL - GARANTIR QUE O LOGIN FUNCIONE
+// =====================================================
+// Como o HTML usa onsubmit="return fazerLogin(event)", precisamos garantir
+// que a função esteja disponível no window ANTES do formulário ser submetido.
+// O Object.assign(window, {...}) já faz isso, mas vamos garantir também
+// com uma verificação extra.
+
+// Verifica se o DOM já está carregado
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Garante que fazerLogin está disponível
+        if (typeof window.fazerLogin !== 'function') {
+            console.warn('⚠️ fazerLogin não está disponível no window. Reforçando...');
+            window.fazerLogin = fazerLogin;
+        }
+        iniciarApp();
+    });
+} else {
+    // DOM já carregado
+    iniciarApp();
+}
+
+// =====================================================
+// EXPORTAÇÃO PARA DEBUG (opcional)
+// =====================================================
+console.log('✅ Sistema Financeiro - main.js carregado com sucesso!');
+console.log('📌 Funções disponíveis globalmente:', Object.keys(window).filter(key => 
+    typeof window[key] === 'function' && 
+    ['fazerLogin', 'fazerLogout', 'mudarAba', 'carregarDashDON', 'carregarDashApropriacao'].includes(key)
+));
