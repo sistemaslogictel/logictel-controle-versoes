@@ -75,63 +75,89 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 }
 
 // =====================================================
-// CÁLCULO DE SALDO PARA DON - AGRUPADO POR PROJETO E DIRETOR
+// CÁLCULO DE SALDO PARA DON - AGRUPADO POR PROJETO E DIRETOR (SUB-LINHAS)
 // =====================================================
 function calcularGruposSaldoDON(medicoes, consumos) {
     const grupos = {};
     const todosMeses = new Set();
 
-    function garantirGrupo(key, origem) {
+    function garantirGrupoProjeto(key, origem) {
         if (!grupos[key]) {
             grupos[key] = {
                 projeto: origem.projetos?.nome || 'N/A',
-                diretor: origem.diretores?.nome || 'N/A',
                 descricao: origem.projetos?.nome || '',
                 meses: {},
-                total: 0
+                total: 0,
+                diretores: {}
             };
         }
         return grupos[key];
     }
 
+    function garantirDiretor(parent, diretorId, diretorNome) {
+        const key = diretorId || 'sem-diretor';
+        if (!parent.diretores[key]) {
+            parent.diretores[key] = {
+                nome: diretorNome || 'Sem diretor atribuído',
+                meses: {},
+                total: 0
+            };
+        }
+        return parent.diretores[key];
+    }
+
+    // Processar medições
     medicoes.forEach(med => {
-        const key = `${med.projeto_id}|${med.diretor_id || 'sem'}`;
-        const g = garantirGrupo(key, med);
+        const key = `${med.projeto_id}`;
+        const parent = garantirGrupoProjeto(key, med);
+        const dir = garantirDiretor(parent, med.diretor_id, med.diretores?.nome);
         todosMeses.add(med.mes);
-        if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
+
         const valor = -Math.abs(Number(med.valor_don || 0));
-        g.meses[med.mes].medicao += valor;
+        if (!parent.meses[med.mes]) parent.meses[med.mes] = { medicao: 0, consumo: 0 };
+        parent.meses[med.mes].medicao += valor;
+        if (!dir.meses[med.mes]) dir.meses[med.mes] = { medicao: 0, consumo: 0 };
+        dir.meses[med.mes].medicao += valor;
     });
 
+    // Processar consumos
     consumos.forEach(c => {
         const mes = c.mes_medido;
         if (!mes) return;
-        const key = `${c.projeto_id}|${c.diretor_id || 'sem'}`;
-        const g = garantirGrupo(key, c);
+        const key = `${c.projeto_id}`;
+        const parent = garantirGrupoProjeto(key, c);
+        const dir = garantirDiretor(parent, c.diretor_id, c.diretores?.nome);
         todosMeses.add(mes);
-        if (!g.meses[mes]) g.meses[mes] = { medicao: 0, consumo: 0 };
+
         const valor = Math.abs(Number(c.valor || 0));
-        g.meses[mes].consumo += valor;
+        if (!parent.meses[mes]) parent.meses[mes] = { medicao: 0, consumo: 0 };
+        parent.meses[mes].consumo += valor;
+        if (!dir.meses[mes]) dir.meses[mes] = { medicao: 0, consumo: 0 };
+        dir.meses[mes].consumo += valor;
     });
 
-    Object.values(grupos).forEach(g => {
+    // Calcular saldos
+    function calcularSaldos(mesesObj) {
         let total = 0;
-        Object.keys(g.meses).forEach(mes => {
-            const medicaoVal = g.meses[mes].medicao || 0;
-            const consumoVal = g.meses[mes].consumo || 0;
-            const saldo = medicaoVal + consumoVal;
-            g.meses[mes].saldo = saldo;
+        Object.keys(mesesObj).forEach(mes => {
+            const saldo = (mesesObj[mes].medicao || 0) + (mesesObj[mes].consumo || 0);
+            mesesObj[mes].saldo = saldo;
             total += saldo;
         });
-        g.total = total;
+        return total;
+    }
+
+    Object.values(grupos).forEach(g => {
+        g.total = calcularSaldos(g.meses);
+        Object.values(g.diretores).forEach(d => {
+            d.total = calcularSaldos(d.meses);
+        });
     });
 
     const mesesComSaldo = new Set();
     Object.values(grupos).forEach(g => {
         Object.keys(g.meses).forEach(mes => {
-            if (g.meses[mes].saldo !== 0) {
-                mesesComSaldo.add(mes);
-            }
+            if (g.meses[mes].saldo !== 0) mesesComSaldo.add(mes);
         });
     });
 
@@ -199,25 +225,15 @@ function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalG
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA - COM MODO DON/STATUS
+// RENDERIZAÇÃO DA TABELA STATUS
 // =====================================================
-function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass, totalCardId, tema, modo = 'status') {
+function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, headerClass, totalCardId, tema) {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
-        let html = `<tr class="${headerClass}">`;
-        
-        if (modo === 'don') {
-            // DON: Projeto e Diretor
-            html += `<th style="text-align:left;padding:10px 12px;">Projeto</th>`;
-            html += `<th style="text-align:left;padding:10px 12px;">Diretor</th>`;
-        } else {
-            // Status: Gestão e Projeto
-            html += `<th style="text-align:left;padding:10px 12px;">Gestão</th>`;
-            html += `<th style="text-align:left;padding:10px 12px;">Projeto</th>`;
-        }
-        
-        html += `<th style="text-align:left;padding:10px 12px;">Descrição</th>`;
-        
+        let html = `<tr class="${headerClass}">
+            <th style="text-align:left;padding:10px 12px;">Gestão</th>
+            <th style="text-align:left;padding:10px 12px;">Projeto</th>
+            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -241,19 +257,12 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     linhas.forEach(g => {
         totalGeral += g.total;
 
-        let html = `<tr>`;
-        
-        if (modo === 'don') {
-            // DON: Projeto e Diretor
-            html += `<td style="text-align:left;padding:10px 12px;font-weight:600;">${g.projeto}</td>`;
-            html += `<td style="text-align:left;padding:10px 12px;font-weight:500;">${g.diretor || 'N/A'}</td>`;
-        } else {
-            // Status: Gestão e Projeto
-            html += `<td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>`;
-            html += `<td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>`;
-        }
-        
-        html += `<td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>`;
+        let html = `
+            <tr>
+                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
+                <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
+        `;
 
         mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
@@ -290,6 +299,96 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     });
 
     renderizarTotalGeralCard(totalCardId, tema, mesesExibir, linhas, totalGeral);
+}
+
+// =====================================================
+// RENDERIZAÇÃO DA TABELA DON - COM PROJETO E SUB-LINHAS POR DIRETOR
+// =====================================================
+function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
+    const headerRow = document.querySelector(`#${headerId}`);
+    if (headerRow) {
+        let html = `<tr class="don-header">
+            <th style="text-align:left;padding:10px 12px;">Projeto</th>
+            <th style="text-align:left;padding:10px 12px;">Diretor</th>
+            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+        mesesExibir.forEach(mes => {
+            html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
+        });
+        html += '<th style="text-align:center;padding:10px 12px;">Total</th></tr>';
+        headerRow.innerHTML = html;
+    }
+
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+
+    const projetos = Object.values(grupos);
+    if (projetos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" style="padding:20px;text-align:center;color:var(--text-soft);">Nenhum registro encontrado.</td></tr>`;
+        renderizarTotalGeralCard(totalCardId, 'don', mesesExibir, [], 0);
+        return;
+    }
+
+    tbody.innerHTML = '';
+    let totalGeral = 0;
+
+    projetos.forEach(proj => {
+        totalGeral += proj.total;
+        const totalColor = proj.total < 0 ? 'color:#FF0000;' : (proj.total > 0 ? 'color:#00AA00;' : '');
+
+        // Linha do Projeto (destaque)
+        let html = `
+            <tr style="border-top:2px solid var(--primary);background:var(--primary-100);">
+                <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">${proj.projeto}</td>
+                <td style="text-align:left;padding:10px 12px;font-weight:500;color:var(--text-soft);">—</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${proj.descricao}</td>
+        `;
+        mesesExibir.forEach(mes => {
+            const saldo = proj.meses[mes]?.saldo;
+            const temValor = saldo !== undefined && saldo !== 0;
+            let displayValor = '-';
+            let colorStyle = '';
+            if (temValor) {
+                colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
+                displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
+            }
+            html += `<td style="text-align:center;padding:10px 12px;font-weight:700;${colorStyle}">${displayValor}</td>`;
+        });
+        html += `
+                <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${proj.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+            </tr>
+        `;
+        tbody.innerHTML += html;
+
+        // Sub-linhas: Diretores do Projeto
+        const diretores = Object.values(proj.diretores).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        diretores.forEach(dir => {
+            const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
+            let dHtml = `
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);">↳</td>
+                    <td style="text-align:left;padding:8px 12px;font-weight:500;">${dir.nome}</td>
+                    <td style="text-align:left;padding:8px 12px;color:var(--text-soft);font-size:12px;">—</td>
+            `;
+            mesesExibir.forEach(mes => {
+                const saldo = dir.meses[mes]?.saldo;
+                const temValor = saldo !== undefined && saldo !== 0;
+                let displayValor = '-';
+                let colorStyle = '';
+                if (temValor) {
+                    colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
+                    displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
+                }
+                dHtml += `<td style="text-align:center;padding:8px 12px;${colorStyle}">${displayValor}</td>`;
+            });
+            dHtml += `
+                    <td style="text-align:center;padding:8px 12px;font-weight:600;${dTotalColor}">${dir.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                </tr>
+            `;
+            tbody.innerHTML += dHtml;
+        });
+    });
+
+    renderizarTotalGeralCard(totalCardId, 'don', mesesExibir, projetos, totalGeral);
 }
 
 // =====================================================
@@ -352,7 +451,7 @@ export async function carregarDashApropriacao() {
             'valor_status'
         );
         
-        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, 'status-header', 'aprop-total-geral', 'status');
+        renderizarDashboardStatus('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, 'status-header', 'aprop-total-geral', 'status');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
@@ -361,7 +460,7 @@ export async function carregarDashApropriacao() {
 }
 
 // =====================================================
-// DASHBOARD DON (AZUL) - COM PROJETO E DIRETOR
+// DASHBOARD DON (AZUL) - AGRUPADO POR PROJETO > DIRETOR
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
@@ -397,7 +496,7 @@ export async function carregarDashDON() {
             consumosFiltrados
         );
         
-        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-header', 'don-total-geral', 'don', 'don');
+        renderizarDashboardDON('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-total-geral');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
