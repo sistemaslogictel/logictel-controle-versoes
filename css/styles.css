@@ -699,205 +699,174 @@ nav.sidenav{
 }
 
 /* =====================================================
-   ESTILO DAS DASHBOARDS - VERSÃO CORRIGIDA
+   ESTILO DAS DASHBOARDS
    ===================================================== */
 .dash-table-container {
-    overflow-x: auto;
-    padding: 0;
-    border-radius: 8px;
-    border: 1px solid var(--border);
+  overflow-x: auto;
+  padding: 0;
 }
 
 .dash-table-container table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    min-width: 600px;
-    background: var(--surface);
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 500px;
 }
 
 /* =====================================================
    CABEÇALHO DA DASHBOARD DON (AZUL)
    ===================================================== */
 .don-header th {
-    background: var(--primary) !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    font-size: 11px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    padding: 12px 14px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 10 !important;
-    border-right: 1px solid rgba(255,255,255,0.1) !important;
-    border-bottom: 2px solid var(--primary-dark) !important;
+  background: var(--primary) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 12px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  border-right: 1px solid rgba(255,255,255,0.15);
 }
 
 .don-header th:last-child {
-    border-right: none !important;
-}
-
-.don-header th:first-child,
-.don-header th:nth-child(2),
-.don-header th:nth-child(3) {
-    text-align: left !important;
+  border-right: none;
 }
 
 /* =====================================================
    CABEÇALHO DA DASHBOARD STATUS (CINZA)
    ===================================================== */
 .status-header th {
-    background: #6B7280 !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    font-size: 11px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    padding: 12px 14px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 10 !important;
-    border-right: 1px solid rgba(255,255,255,0.1) !important;
-    border-bottom: 2px solid #4B5563 !important;
+  background: #6B7280 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 12px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  border-right: 1px solid rgba(255,255,255,0.15);
 }
 
 .status-header th:last-child {
-    border-right: none !important;
-}
-
-.status-header th:first-child,
-.status-header th:nth-child(2),
-.status-header th:nth-child(3) {
-    text-align: left !important;
+  border-right: none;
 }
 
 /* =====================================================
    CÉLULAS DO CORPO DA TABELA
    ===================================================== */
 .dash-table-container tbody td {
-    padding: 10px 14px !important;
-    border-bottom: 1px solid var(--border) !important;
-    font-size: 13px;
-    vertical-align: middle;
-    text-align: center !important;
-    background: var(--surface);
+  padding: 10px 12px !important;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: middle;
+  text-align: center !important;
+  border-right: 1px solid var(--border);
 }
 
 .dash-table-container tbody td:last-child {
-    border-right: none;
-    text-align: center !important;
-    font-weight: 700;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px;
+  border-right: none;
+  text-align: center !important;
+  font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 .dash-table-container tbody td:first-child {
-    text-align: left !important;
-    font-weight: 600;
+  text-align: left !important;
+  font-weight: 600;
 }
 
 .dash-table-container tbody td:nth-child(2) {
-    text-align: left !important;
+  text-align: left !important;
 }
 
 .dash-table-container tbody td:nth-child(3) {
-    text-align: left !important;
-    color: var(--text-soft);
+  text-align: left !important;
+  color: var(--text-soft);
 }
 
 .dash-table-container tbody tr:hover {
-    background: var(--paper);
+  background: var(--paper);
 }
 
 .dash-table-container tbody tr:last-child td {
-    border-bottom: none !important;
+  border-bottom: none;
 }
 
 /* =====================================================
-   LINHA TOTAL GERAL - CORRIGIDA
+   LINHA TOTAL GERAL
    ===================================================== */
-.dash-table-container tbody tr:last-child td {
-    background: var(--primary-100) !important;
-    font-weight: 700 !important;
-    border-top: 2px solid var(--primary) !important;
-    border-bottom: 2px solid var(--primary) !important;
-    padding: 12px 14px !important;
+.dash-table-container .total-row td {
+  background: var(--primary-100) !important;
+  font-weight: 700 !important;
+  border-top: 2px solid var(--primary) !important;
+  border-bottom: 2px solid var(--primary) !important;
+  text-align: center !important;
+  padding: 10px 12px !important;
+  border-right: 1px solid var(--border);
 }
 
-.dash-table-container tbody tr:last-child td:first-child {
-    text-align: right !important;
-    font-size: 14px;
-    font-weight: 700;
+.dash-table-container .total-row td:first-child {
+  text-align: right !important;
+  font-size: 13px;
+  border-right: none;
 }
 
-.dash-table-container tbody tr:last-child td:last-child {
-    font-size: 15px !important;
+.dash-table-container .total-row td:last-child {
+  border-right: none;
+  text-align: center !important;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.dash-table-container .total-row td.mes-coluna {
+  text-align: center !important;
 }
 
 /* =====================================================
-   CORES PARA VALORES POSITIVOS E NEGATIVOS
+   CORES PARA VALORES
    ===================================================== */
 .dash-table-container .valor-positivo {
-    color: #00AA00 !important;
-    font-weight: 600;
+  color: #00AA00 !important;
+  font-weight: 600;
 }
 
 .dash-table-container .valor-negativo {
-    color: #FF0000 !important;
-    font-weight: 600;
+  color: #FF0000 !important;
+  font-weight: 600;
 }
 
 .dash-table-container .valor-zero {
-    color: #000000 !important;
-    font-weight: 400;
+  color: #000000 !important;
+  font-weight: 400;
 }
 
 /* =====================================================
-   FILTROS - CORRIGIDOS
+   COLUNAS DE TEXTO
    ===================================================== */
-.filters-bar {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr) auto auto;
-    gap: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(8,16,32,0.04);
-    align-items: end;
+.dash-table-container .gestor-coluna {
+  font-weight: 600;
+  color: var(--text);
+  text-align: left !important;
 }
 
-.filters-bar .input {
-    width: 100%;
+.dash-table-container .projeto-coluna {
+  font-weight: 500;
+  text-align: left !important;
 }
 
-.filters-bar .btn-primary {
-    white-space: nowrap;
+.dash-table-container .descricao-coluna {
+  color: var(--text-soft);
+  font-size: 12px;
+  text-align: left !important;
 }
-
-.filters-bar .btn-clear-filters {
-    white-space: nowrap;
-}
-
-@media (max-width: 900px) {
-    .filters-bar {
-        grid-template-columns: 1fr 1fr;
-        padding: 16px;
-    }
-}
-
-@media (max-width: 600px) {
-    .filters-bar {
-        grid-template-columns: 1fr;
-        padding: 12px;
-    }
-}
-
 /* =====================================================
    DC CARDS
    ===================================================== */
