@@ -13,7 +13,7 @@ import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessiv
 import { carregarDashApropriacao, carregarDashDON } from './dashboards.js';
 import { carregarDCCards, irParaConsumo } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel } from './consumo.js';
-import { initFormMedicao, editarMedicao, excluirMedicao, limparDistribuicaoMedicao } from './medicoes.js';
+import { initFormMedicao, editarMedicao, excluirMedicao } from './medicoes.js';
 import { carregarApropriacaoHist, carregarMedicaoHist } from './historico.js';
 
 import {
@@ -48,7 +48,7 @@ Object.assign(window, {
     // consumo
     carregarGestoresPorProjeto, controlarCamposNF, editarConsumo, excluirConsumo, exportarExcel,
     // medições
-    editarMedicao, excluirMedicao, limparDistribuicaoMedicao,
+    editarMedicao, excluirMedicao,
     // histórico
     carregarApropriacaoHist, carregarMedicaoHist,
     // cadastros
@@ -65,8 +65,7 @@ Object.assign(window, {
 });
 
 // =====================================================
-// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO (equivalente aos
-// addEventListener que existiam soltos no script original)
+// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO
 // =====================================================
 function initFormListeners() {
     initFormMedicao();
