@@ -8,10 +8,6 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 // CÁLCULO COMPARTILHADO DE SALDO POR MÊS
 // =====================================================
 function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
-    console.log('Medições recebidas:', medicoes);
-    console.log('Consumos recebidos:', consumos);
-    console.log('Campo valor usado:', campoValor);
-    
     const grupos = {};
     const todosMeses = new Set();
 
@@ -28,19 +24,15 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
         return grupos[key];
     }
 
-    // 1. Adicionar medições (valores NEGATIVOS - dívida/pendência)
     medicoes.forEach(med => {
         const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.ano}`;
         const g = garantirGrupo(key, med);
         todosMeses.add(med.mes);
         if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
-        // A medição é uma pendência, então é NEGATIVA
         const valor = -Math.abs(Number(med[campoValor] || 0));
-        console.log(`Medição - ${med.mes}: valor original ${med[campoValor]}, convertido para ${valor}`);
         g.meses[med.mes].medicao += valor;
     });
 
-    // 2. Adicionar consumos (valores POSITIVOS - abatem a dívida)
     consumos.forEach(c => {
         const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
         const mes = c[campoMesConsumo];
@@ -48,13 +40,10 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
         const g = garantirGrupo(key, c);
         todosMeses.add(mes);
         if (!g.meses[mes]) g.meses[mes] = { medicao: 0, consumo: 0 };
-        // Consumo é positivo (abatimento da dívida)
         const valor = Math.abs(Number(c.valor || 0));
-        console.log(`Consumo - ${mes}: valor ${valor}`);
         g.meses[mes].consumo += valor;
     });
 
-    // Calcular saldos (medicao é negativo, consumo é positivo)
     Object.values(grupos).forEach(g => {
         let total = 0;
         Object.keys(g.meses).forEach(mes => {
@@ -63,13 +52,10 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
             const saldo = medicaoVal + consumoVal;
             g.meses[mes].saldo = saldo;
             total += saldo;
-            console.log(`Mês ${mes}: medicao=${medicaoVal}, consumo=${consumoVal}, saldo=${saldo}`);
         });
         g.total = total;
-        console.log(`Total do grupo ${g.projeto}: ${total}`);
     });
 
-    // Filtrar meses: só mostrar meses que têm saldo diferente de zero para algum grupo
     const mesesComSaldo = new Set();
     Object.values(grupos).forEach(g => {
         Object.keys(g.meses).forEach(mes => {
@@ -79,14 +65,12 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
         });
     });
 
-    // Se não houver meses com saldo, mostrar pelo menos o primeiro mês com dados
     if (mesesComSaldo.size === 0 && todosMeses.size > 0) {
         const primeiroMes = Array.from(todosMeses).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b))[0];
         if (primeiroMes) mesesComSaldo.add(primeiroMes);
     }
 
     const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
-    console.log('Meses a exibir:', mesesExibir);
     return { grupos, mesesExibir };
 }
 
@@ -96,11 +80,14 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass) {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
-        let html = `<tr class="${headerClass}"><th>Gestão</th><th>Projeto</th><th>Descrição</th>`;
+        let html = `<tr class="${headerClass}">
+            <th style="text-align:left;">Gestão</th>
+            <th style="text-align:left;">Projeto</th>
+            <th style="text-align:left;">Descrição</th>`;
         mesesExibir.forEach(mes => {
-            html += `<th class="mes-header">${mes}</th>`;
+            html += `<th class="mes-header" style="text-align:center;">${mes}</th>`;
         });
-        html += '<th>Total Geral</th></tr>';
+        html += '<th style="text-align:right;">Total Geral</th></tr>';
         headerRow.innerHTML = html;
     }
 
@@ -121,9 +108,9 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
 
         let html = `
             <tr class="td-row">
-                <td class="gestor-coluna">${g.gestor}</td>
-                <td class="projeto-coluna">${g.projeto}</td>
-                <td class="descricao-coluna">${g.descricao}</td>
+                <td class="gestor-coluna" style="text-align:left;">${g.gestor}</td>
+                <td class="projeto-coluna" style="text-align:left;">${g.projeto}</td>
+                <td class="descricao-coluna" style="text-align:left;">${g.descricao}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -142,7 +129,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
                 displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
             }
             
-            html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
+            html += `<td class="mes-coluna ${valorClass}" style="text-align:center;">${displayValor}</td>`;
         });
 
         let totalClass = 'valor-zero';
@@ -153,13 +140,14 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
         }
         
         html += `
-                <td class="${totalClass}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                <td class="${totalClass}" style="text-align:right;">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
             </tr>
         `;
 
         tbody.innerHTML += html;
     });
 
+    // TOTAL GERAL - CORRIGIDO
     let totalClass = 'valor-zero';
     if (totalGeral < 0) {
         totalClass = 'valor-negativo';
@@ -169,7 +157,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     
     let totalHtml = `
         <tr class="total-row">
-            <td colspan="3" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
+            <td colspan="3" style="font-weight:700;text-align:right;background:var(--primary-100);">TOTAL GERAL</td>
     `;
 
     mesesExibir.forEach(mes => {
@@ -185,11 +173,11 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
             mesClass = 'valor-positivo';
         }
         
-        totalHtml += `<td class="mes-coluna ${mesClass}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
+        totalHtml += `<td class="mes-coluna ${mesClass}" style="text-align:center;background:var(--primary-100);">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
     });
 
     totalHtml += `
-            <td class="${totalClass}" style="font-weight:700;">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+            <td class="${totalClass}" style="text-align:right;font-weight:700;background:var(--primary-100);">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
         </tr>
     `;
     tbody.innerHTML += totalHtml;
@@ -235,8 +223,6 @@ export async function carregarDashApropriacao() {
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorMed) throw errorMed;
-
-        console.log('Medições carregadas:', medicoes);
 
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
@@ -284,8 +270,6 @@ export async function carregarDashDON() {
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorMed) throw errorMed;
-
-        console.log('Medições DON carregadas:', medicoes);
 
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
