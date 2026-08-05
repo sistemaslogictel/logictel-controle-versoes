@@ -27,7 +27,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 
     // 1. Adicionar medições (valores NEGATIVOS - dívida/pendência)
     medicoes.forEach(med => {
-        const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.empresa_id}|${med.ano}`;
+        const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.ano}`;
         const g = garantirGrupo(key, med);
         todosMeses.add(med.mes);
         if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
@@ -38,7 +38,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 
     // 2. Adicionar consumos (valores POSITIVOS - abatem a dívida)
     consumos.forEach(c => {
-        const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
+        const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
         const mes = c[campoMesConsumo];
         if (!mes) return;
         const g = garantirGrupo(key, c);
@@ -223,20 +223,22 @@ export async function carregarDashApropriacao() {
     try {
         const filtros = lerFiltrosDashboard('aprop');
         
+        // Buscar medições com valor_status
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
             .select(`
-                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_status,
-                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_status,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorMed) throw errorMed;
 
+        // Buscar consumos
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
-                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id,
+                id, projeto_id, gestor_logictel_id, diretor_id,
                 mes_apropriacao, mes_medido, ano, valor,
-                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+                projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
 
@@ -271,20 +273,22 @@ export async function carregarDashDON() {
     try {
         const filtros = lerFiltrosDashboard('don');
         
+        // Buscar medições com valor_don
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
             .select(`
-                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_don,
-                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_don,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorMed) throw errorMed;
 
+        // Buscar consumos
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
-                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id,
+                id, projeto_id, gestor_logictel_id, diretor_id,
                 mes_apropriacao, mes_medido, ano, valor,
-                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+                projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
 
