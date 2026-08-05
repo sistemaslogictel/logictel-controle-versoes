@@ -13,7 +13,7 @@ import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessiv
 import { carregarDashApropriacao, carregarDashDON } from './dashboards.js';
 import { carregarDCCards, irParaConsumo } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel } from './consumo.js';
-import { initFormMedicao, editarMedicao, excluirMedicao } from './medicoes.js';
+import { initFormMedicao, editarMedicao, excluirMedicao, limparDistribuicaoMedicao } from './medicoes.js';
 import { carregarApropriacaoHist, carregarMedicaoHist } from './historico.js';
 
 import {
@@ -48,7 +48,7 @@ Object.assign(window, {
     // consumo
     carregarGestoresPorProjeto, controlarCamposNF, editarConsumo, excluirConsumo, exportarExcel,
     // medições
-    editarMedicao, excluirMedicao,
+    editarMedicao, excluirMedicao, limparDistribuicaoMedicao,
     // histórico
     carregarApropriacaoHist, carregarMedicaoHist,
     // cadastros
