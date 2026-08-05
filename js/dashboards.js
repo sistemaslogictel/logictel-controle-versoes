@@ -506,4 +506,22 @@ export async function carregarDashDON() {
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
                 mes_apropriacao, mes_medido, ano, valor,
-                projetos(nome), gestores_logictel(nome), dire
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros, 'don');
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'don');
+        
+        const { grupos, mesesExibir } = calcularGruposSaldoDON(
+            medicoesFiltradas, 
+            consumosFiltrados
+        );
+        
+        renderizarDashboardDON('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-total-geral');
+        registrarUltimaAtualizacao();
+    } catch (e) {
+        console.error('Erro ao carregar dashboard DON:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+    }
+}
