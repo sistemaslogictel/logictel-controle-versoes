@@ -88,16 +88,21 @@ export function toggleSidebar() {
 // LIMPAR FILTROS
 // =====================================================
 export function limparFiltros(tipo, callbacks) {
-    const filtros = {
-        'aprop': ['filt-aprop-gestor', 'filt-aprop-projeto', 'filt-aprop-ano'],
-        'don': ['filt-don-gestor', 'filt-don-projeto', 'filt-don-ano']
-    };
-    const ids = filtros[tipo] || [];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-    });
-    if (callbacks && callbacks[tipo]) callbacks[tipo]();
+    if (tipo === 'don') {
+        const ids = ['filt-don-projeto', 'filt-don-diretor', 'filt-don-ano', 'filt-don-mes'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (callbacks && callbacks.don) callbacks.don();
+    } else if (tipo === 'aprop') {
+        const ids = ['filt-aprop-gestor', 'filt-aprop-projeto', 'filt-aprop-ano', 'filt-aprop-mes'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (callbacks && callbacks.aprop) callbacks.aprop();
+    }
 }
 
 // =====================================================
