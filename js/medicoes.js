@@ -86,8 +86,18 @@ export function initFormMedicao() {
             return;
         }
         
-        const valorDon = valorParaNumero(document.getElementById('med-valor-don').value);
-        const valorStatus = valorParaNumero(document.getElementById('med-valor-status').value);
+        // Pegar valores dos campos
+        const valorDonStr = document.getElementById('med-valor-don').value;
+        const valorStatusStr = document.getElementById('med-valor-status').value;
+        
+        console.log('Valor DON string:', valorDonStr);
+        console.log('Valor Status string:', valorStatusStr);
+        
+        const valorDon = valorParaNumero(valorDonStr);
+        const valorStatus = valorParaNumero(valorStatusStr);
+        
+        console.log('Valor DON convertido:', valorDon);
+        console.log('Valor Status convertido:', valorStatus);
 
         const dados = {
             projeto_id: parseInt(projetoId),
@@ -101,6 +111,8 @@ export function initFormMedicao() {
             data_email_medicao: document.getElementById('med-data-email').value || null,
             status_medicao: document.getElementById('med-status').value
         };
+
+        console.log('Dados a serem salvos:', dados);
 
         try {
             let result;
@@ -120,6 +132,8 @@ export function initFormMedicao() {
                 console.error('Erro detalhado:', result.error);
                 return;
             }
+
+            console.log('Resultado do salvamento:', result);
 
             alert(editId ? 'Medição atualizada!' : 'Medição salva!');
             form.reset();
@@ -165,6 +179,8 @@ export async function editarMedicao(id) {
             alert('Medição não encontrada!');
             return;
         }
+
+        console.log('Dados carregados para edição:', data);
 
         // Preencher os campos do formulário
         document.getElementById('med-edit-id').value = id;
