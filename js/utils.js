@@ -48,9 +48,10 @@ export function aplicarMascaras() {
 }
 
 export function valorParaNumero(valorFormatado) {
-    if (!valorFormatado || valorFormatado === '') return 0;
-    // Remover pontos de milhar e substituir vírgula por ponto
-    const valorLimpo = String(valorFormatado).replace(/\./g, '').replace(',', '.');
+    if (!valorFormatado || valorFormatado === '' || valorFormatado === '0,00') return 0;
+    // Remove pontos de milhar e substitui vírgula por ponto
+    let valorLimpo = String(valorFormatado).replace(/\./g, '');
+    valorLimpo = valorLimpo.replace(',', '.');
     const numero = parseFloat(valorLimpo);
     return isNaN(numero) ? 0 : numero;
 }
