@@ -78,12 +78,21 @@ export function initFormMedicao() {
     const campoValorDon = document.getElementById('med-valor-don');
     const containerValorStatus = document.getElementById('med-valor-status-container');
     
+    console.log('Inicializando formulário de medição...');
+    console.log('checkboxManter:', checkboxManter);
+    console.log('campoValorStatus:', campoValorStatus);
+    console.log('campoValorDon:', campoValorDon);
+    console.log('containerValorStatus:', containerValorStatus);
+    
     // Função para controlar visibilidade do campo valor Status
     function controlarCampoValorStatus() {
+        console.log('Controlar campo valor Status - checkbox checked:', checkboxManter ? checkboxManter.checked : 'checkbox não encontrado');
+        
         if (checkboxManter && checkboxManter.checked) {
             // Manter valor: esconde o campo valor Status
             if (containerValorStatus) {
                 containerValorStatus.style.display = 'none';
+                console.log('Container valor Status ocultado');
             }
             if (campoValorStatus) {
                 campoValorStatus.disabled = true;
@@ -96,6 +105,7 @@ export function initFormMedicao() {
             // Mostrar campo valor Status
             if (containerValorStatus) {
                 containerValorStatus.style.display = 'block';
+                console.log('Container valor Status exibido');
             }
             if (campoValorStatus) {
                 campoValorStatus.disabled = false;
@@ -105,7 +115,10 @@ export function initFormMedicao() {
     
     // Evento para quando o checkbox mudar
     if (checkboxManter) {
-        checkboxManter.addEventListener('change', controlarCampoValorStatus);
+        checkboxManter.addEventListener('change', function() {
+            console.log('Checkbox mudou para:', this.checked);
+            controlarCampoValorStatus();
+        });
     }
     
     // Evento para quando o valor DON mudar (copiar para Status se manter marcado)
@@ -126,6 +139,11 @@ export function initFormMedicao() {
         const gestorId = document.getElementById('med-gestor').value;
         const diretorId = document.getElementById('med-diretor').value || null;
         
+        console.log('Edit ID:', editId);
+        console.log('Empresa:', empresaId);
+        console.log('Projeto:', projetoId);
+        console.log('Gestor:', gestorId);
+        
         // Validar campos obrigatórios
         if (!empresaId || !projetoId || !gestorId) {
             alert('Empresa, Projeto e Gestor são obrigatórios!');
@@ -136,7 +154,16 @@ export function initFormMedicao() {
         const valorDon = valorParaNumero(campoValorDon ? campoValorDon.value : '0');
         
         // Se manterValorStatus for true, valorStatus = valorDon
-        let valorStatus = manterValorStatus ? valorDon : valorParaNumero(campoValorStatus ? campoValorStatus.value : '0');
+        let valorStatus;
+        if (manterValorStatus) {
+            valorStatus = valorDon;
+        } else {
+            valorStatus = valorParaNumero(campoValorStatus ? campoValorStatus.value : '0');
+        }
+        
+        console.log('Valor DON:', valorDon);
+        console.log('Valor Status:', valorStatus);
+        console.log('Manter valor:', manterValorStatus);
 
         const dados = {
             empresa_id: parseInt(empresaId),
@@ -151,6 +178,8 @@ export function initFormMedicao() {
             data_email_medicao: document.getElementById('med-data-email').value || null,
             status_medicao: document.getElementById('med-status').value
         };
+
+        console.log('Dados a serem salvos:', dados);
 
         try {
             let result;
@@ -193,6 +222,8 @@ export function initFormMedicao() {
 
 export async function editarMedicao(id) {
     try {
+        console.log('Editando medição ID:', id);
+        
         const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
@@ -221,6 +252,8 @@ export async function editarMedicao(id) {
             alert('Medição não encontrada!');
             return;
         }
+
+        console.log('Dados carregados:', data);
 
         // Preencher os campos do formulário
         document.getElementById('med-edit-id').value = id;
