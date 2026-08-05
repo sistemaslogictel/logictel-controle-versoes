@@ -142,3 +142,62 @@ export async function carregarFiltroStatus() {
 
         if (error) {
             console.error('Erro ao carregar filtro de status:', error);
+            return;
+        }
+
+        select.innerHTML = '<option value="">Todos os Status</option>';
+        if (data && data.length > 0) {
+            data.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.codigo} - ${s.nome}</option>`;
+            });
+        }
+    } catch (e) {
+        console.error('Erro ao carregar filtro de status:', e);
+    }
+}
+
+// =====================================================
+// FILTROS DOS DASHBOARDS
+// =====================================================
+export async function carregarFiltros() {
+    const { data: projetos } = await supabaseClient.from('projetos').select('nome');
+    const { data: gestores } = await supabaseClient.from('gestores_logictel').select('nome');
+    const projetosSet = new Set();
+    const gestoresSet = new Set();
+    const anos = new Set([2025, 2026, 2027]);
+
+    if (projetos) {
+        projetos.forEach(p => {
+            if (p.nome) projetosSet.add(p.nome);
+        });
+    }
+    if (gestores) {
+        gestores.forEach(g => {
+            if (g.nome) gestoresSet.add(g.nome);
+        });
+    }
+
+    const filtrosConfig = [
+        { id: 'filt-aprop-gestor', values: gestoresSet },
+        { id: 'filt-aprop-projeto', values: projetosSet },
+        { id: 'filt-aprop-ano', values: anos },
+        { id: 'filt-don-gestor', values: gestoresSet },
+        { id: 'filt-don-projeto', values: projetosSet },
+        { id: 'filt-don-ano', values: anos },
+        { id: 'filt-dcs-projeto', values: projetosSet },
+        { id: 'filt-dcs-gestor', values: gestoresSet }
+    ];
+
+    filtrosConfig.forEach(({ id, values }) => {
+        const select = document.getElementById(id);
+        if (select) {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Todos</option>';
+            const sorted = Array.from(values).sort();
+            sorted.forEach(v => {
+                if (v) select.innerHTML += `<option value="${v}">${v}</option>`;
+            });
+            if (currentValue) select.value = currentValue;
+        }
+    });
+}
