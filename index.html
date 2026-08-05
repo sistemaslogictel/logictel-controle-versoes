@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.12 - Controle de Medições e DCs - Logictel</title>
+<title>V.13 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -98,8 +98,7 @@
         <select id="filt-don-gestor" class="input" onchange="carregarDashDON()"><option value="">Todos os Gestores</option></select>
         <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
         <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
-        <button onclick="carregarDashDON()" class="btn-primary">Filtrar</button>
-        <button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button>
+        <div class="flex gap-2"><button onclick="carregarDashDON()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button></div>
       </div>
       <div class="card">
         <div class="dash-table-container">
@@ -111,7 +110,7 @@
                 <th>Descrição</th>
                 <th class="mes-header">Mês 1</th>
                 <th class="mes-header">Mês 2</th>
-                <th>Total</th>
+                <th>Total Geral</th>
               </tr>
             </thead>
             <tbody id="tabela-dash-don">
@@ -132,8 +131,7 @@
         <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
         <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
         <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Anos</option></select>
-        <button onclick="carregarDashApropriacao()" class="btn-primary">Filtrar</button>
-        <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
+        <div class="flex gap-2"><button onclick="carregarDashApropriacao()" class="btn-primary flex-1">Filtrar</button><button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button></div>
       </div>
       <div class="card">
         <div class="dash-table-container">
@@ -145,7 +143,7 @@
                 <th>Descrição</th>
                 <th class="mes-header">Mês 1</th>
                 <th class="mes-header">Mês 2</th>
-                <th>Total</th>
+                <th>Total Geral</th>
               </tr>
             </thead>
             <tbody id="tabela-dash-apropriacao">
