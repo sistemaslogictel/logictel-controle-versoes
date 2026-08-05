@@ -7,14 +7,7 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 // =====================================================
 // CÁLCULO COMPARTILHADO DE SALDO POR MÊS
 // =====================================================
-// Regra de negócio:
-//   - Medições entram como valor NEGATIVO (é o que falta receber).
-//   - Consumos DC abatem (somam, reduzindo o negativo) no mês indicado
-//     pelo campo de referência escolhido (mes_medido para DON,
-//     mes_apropriacao para Status).
-//   - saldo do mês = -(total medido no mês) + (total consumido no mês
-//     de referência)
-function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
+function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
     const grupos = {};
     const todosMeses = new Set();
 
@@ -32,14 +25,18 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
         return grupos[key];
     }
 
+    // 1. Adicionar medições (valores NEGATIVOS - dívida)
     medicoes.forEach(med => {
         const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.empresa_id}|${med.ano}`;
         const g = garantirGrupo(key, med);
         todosMeses.add(med.mes);
         if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
-        g.meses[med.mes].medicao += Number(med.valor || 0);
+        const valor = Number(med[campoValor] || 0);
+        // Medição é negativa (dívida)
+        g.meses[med.mes].medicao += valor;
     });
 
+    // 2. Adicionar consumos (valores POSITIVOS - abatem a dívida)
     consumos.forEach(c => {
         const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.empresa_id}|${c.ano}`;
         const mes = c[campoMesConsumo];
@@ -47,14 +44,17 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
         const g = garantirGrupo(key, c);
         todosMeses.add(mes);
         if (!g.meses[mes]) g.meses[mes] = { medicao: 0, consumo: 0 };
-        g.meses[mes].consumo += Number(c.valor || 0);
+        const valor = Number(c.valor || 0);
+        g.meses[mes].consumo += valor;
     });
 
+    // Calcular saldos (medicao é negativo, consumo é positivo)
     Object.values(grupos).forEach(g => {
         let total = 0;
         Object.keys(g.meses).forEach(mes => {
             const medicaoVal = g.meses[mes].medicao || 0;
             const consumoVal = g.meses[mes].consumo || 0;
+            // Saldo = -medicao + consumo (medicação negativa, consumo positiva)
             const saldo = -medicaoVal + consumoVal;
             g.meses[mes].saldo = saldo;
             total += saldo;
@@ -62,17 +62,33 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo) {
         g.total = total;
     });
 
-    const mesesExibir = Array.from(todosMeses).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
+    // Filtrar meses: só mostrar meses que têm saldo diferente de zero para algum grupo
+    const mesesComSaldo = new Set();
+    Object.values(grupos).forEach(g => {
+        Object.keys(g.meses).forEach(mes => {
+            if (g.meses[mes].saldo !== 0) {
+                mesesComSaldo.add(mes);
+            }
+        });
+    });
+
+    // Se não houver meses com saldo, mostrar pelo menos o primeiro mês com dados
+    if (mesesComSaldo.size === 0 && todosMeses.size > 0) {
+        const primeiroMes = Array.from(todosMeses).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b))[0];
+        if (primeiroMes) mesesComSaldo.add(primeiroMes);
+    }
+
+    const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
     return { grupos, mesesExibir };
 }
 
 // =====================================================
 // RENDERIZAÇÃO COMPARTILHADA DA TABELA
 // =====================================================
-function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
+function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass) {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
-        let html = '<tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>';
+        let html = `<tr class="${headerClass}"><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>`;
         mesesExibir.forEach(mes => {
             html += `<th class="mes-header">${mes}</th>`;
         });
@@ -105,31 +121,23 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
 
         mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
-            const temValor = saldo !== undefined;
+            const temValor = saldo !== undefined && saldo !== 0;
             
-            // =====================================================
-            // LÓGICA DE CORES - DEFINE AS CLASSES
-            // =====================================================
-            let valorClass = 'valor-zero'; // padrão: preto
+            let valorClass = 'valor-zero';
+            let displayValor = '-';
+            
             if (temValor) {
                 if (saldo < 0) {
-                    valorClass = 'valor-negativo';  // vermelho
+                    valorClass = 'valor-negativo';
                 } else if (saldo > 0) {
-                    valorClass = 'valor-positivo';  // verde
+                    valorClass = 'valor-positivo';
                 }
-                // se for zero, mantém 'valor-zero' (preto)
+                displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
             }
-            
-            const displayValor = temValor && saldo !== 0 ? 
-                saldo.toLocaleString('pt-BR', { minFractionDigits: 2 }) : 
-                '-';
             
             html += `<td class="mes-coluna ${valorClass}">${displayValor}</td>`;
         });
 
-        // =====================================================
-        // CORES PARA O TOTAL DA LINHA
-        // =====================================================
         let totalClass = 'valor-zero';
         if (g.total < 0) {
             totalClass = 'valor-negativo';
@@ -145,9 +153,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
         tbody.innerHTML += html;
     });
 
-    // =====================================================
-    // CORES PARA O TOTAL GERAL
-    // =====================================================
     let totalClass = 'valor-zero';
     if (totalGeral < 0) {
         totalClass = 'valor-negativo';
@@ -166,9 +171,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
             totalMes += g.meses[mes]?.saldo || 0; 
         });
         
-        // =====================================================
-        // CORES PARA O TOTAL POR MÊS
-        // =====================================================
         let mesClass = 'valor-zero';
         if (totalMes < 0) {
             mesClass = 'valor-negativo';
@@ -187,12 +189,8 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir) {
 }
 
 // =====================================================
-// FILTROS (Gestor, Projeto, Ano) - aplicados antes de agrupar
+// FILTROS
 // =====================================================
-// Os <select> de filtro guardam o NOME do gestor/projeto como value
-// (ver js/selects.js -> carregarFiltros), e não o id. Por isso o
-// filtro compara com gestores_logictel.nome / projetos.nome vindos
-// do join, e não com gestor_logictel_id / projeto_id.
 function lerFiltrosDashboard(prefixo) {
     return {
         gestor: document.getElementById(`filt-${prefixo}-gestor`)?.value || '',
@@ -211,30 +209,9 @@ function aplicarFiltrosDashboard(lista, filtros) {
     });
 }
 
-async function buscarMedicoesEConsumos() {
-    const { data: medicoes, error: errorMed } = await supabaseClient
-        .from('medicoes')
-        .select(`
-            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor,
-            empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
-        `);
-    if (errorMed) throw errorMed;
-
-    const { data: consumos, error: errorCons } = await supabaseClient
-        .from('consumo_dc')
-        .select(`
-            id, empresa_id, projeto_id, gestor_logictel_id, diretor_id,
-            mes_apropriacao, mes_medido, ano, valor,
-            empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
-        `);
-    if (errorCons) throw errorCons;
-
-    return { medicoes: medicoes || [], consumos: consumos || [] };
-}
-
 // =====================================================
-// DASHBOARD STATUS (antiga "Apropriação")
-// Abate consumo pelo Mês Apropriação
+// DASHBOARD STATUS (CINZA)
+// Usa valor_status da medição e Mês Apropriação do consumo
 // =====================================================
 export async function carregarDashApropriacao() {
     const tbody = document.getElementById('tabela-dash-apropriacao');
@@ -244,11 +221,35 @@ export async function carregarDashApropriacao() {
 
     try {
         const filtros = lerFiltrosDashboard('aprop');
-        const { medicoes, consumos } = await buscarMedicoesEConsumos();
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_apropriacao');
-        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir);
+        
+        const { data: medicoes, error: errorMed } = await supabaseClient
+            .from('medicoes')
+            .select(`
+                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_status,
+                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorMed) throw errorMed;
+
+        const { data: consumos, error: errorCons } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id,
+                mes_apropriacao, mes_medido, ano, valor,
+                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
+        
+        const { grupos, mesesExibir } = calcularGruposSaldo(
+            medicoesFiltradas, 
+            consumosFiltrados, 
+            'mes_apropriacao',
+            'valor_status'
+        );
+        
+        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, 'status-header');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
@@ -257,8 +258,8 @@ export async function carregarDashApropriacao() {
 }
 
 // =====================================================
-// DASHBOARD DON
-// Abate consumo pelo Mês Medido
+// DASHBOARD DON (AZUL)
+// Usa valor_don da medição e Mês Medido do consumo
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
@@ -268,11 +269,35 @@ export async function carregarDashDON() {
 
     try {
         const filtros = lerFiltrosDashboard('don');
-        const { medicoes, consumos } = await buscarMedicoesEConsumos();
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes, filtros);
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos, filtros);
-        const { grupos, mesesExibir } = calcularGruposSaldo(medicoesFiltradas, consumosFiltrados, 'mes_medido');
-        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir);
+        
+        const { data: medicoes, error: errorMed } = await supabaseClient
+            .from('medicoes')
+            .select(`
+                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_don,
+                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorMed) throw errorMed;
+
+        const { data: consumos, error: errorCons } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id, empresa_id, projeto_id, gestor_logictel_id, diretor_id,
+                mes_apropriacao, mes_medido, ano, valor,
+                empresas(nome), projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros);
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros);
+        
+        const { grupos, mesesExibir } = calcularGruposSaldo(
+            medicoesFiltradas, 
+            consumosFiltrados, 
+            'mes_medido',
+            'valor_don'
+        );
+        
+        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-header');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
