@@ -17,7 +17,6 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
                 gestor: origem.gestores_logictel?.nome || 'N/A',
                 projeto: origem.projetos?.nome || 'N/A',
                 descricao: origem.projetos?.nome || '',
-                empresa: origem.empresas?.nome || 'N/A',
                 meses: {},
                 total: 0
             };
@@ -89,7 +88,7 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass) {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
-        let html = `<tr class="${headerClass}"><th>Gestão</th><th>Projeto</th><th>Descrição</th><th>Empresa</th>`;
+        let html = `<tr class="${headerClass}"><th>Gestão</th><th>Projeto</th><th>Descrição</th>`;
         mesesExibir.forEach(mes => {
             html += `<th class="mes-header">${mes}</th>`;
         });
@@ -102,7 +101,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
 
     const linhas = Object.values(grupos);
     if (linhas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${4 + mesesExibir.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" class="p-6 text-center" style="color:var(--text-soft)">Nenhum registro encontrado.</td></tr>`;
         return;
     }
 
@@ -117,7 +116,6 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
                 <td class="gestor-coluna">${g.gestor}</td>
                 <td class="projeto-coluna">${g.projeto}</td>
                 <td class="descricao-coluna">${g.descricao}</td>
-                <td class="empresa-coluna">${g.empresa}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -163,7 +161,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     
     let totalHtml = `
         <tr class="total-row">
-            <td colspan="4" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
+            <td colspan="3" style="font-weight:700;text-align:right;">TOTAL GERAL</td>
     `;
 
     mesesExibir.forEach(mes => {
@@ -218,12 +216,11 @@ export async function carregarDashApropriacao() {
     const tbody = document.getElementById('tabela-dash-apropriacao');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
     try {
         const filtros = lerFiltrosDashboard('aprop');
         
-        // Buscar medições com valor_status
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
             .select(`
@@ -232,7 +229,6 @@ export async function carregarDashApropriacao() {
             `);
         if (errorMed) throw errorMed;
 
-        // Buscar consumos
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
@@ -256,7 +252,7 @@ export async function carregarDashApropriacao() {
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -268,12 +264,11 @@ export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>`;
 
     try {
         const filtros = lerFiltrosDashboard('don');
         
-        // Buscar medições com valor_don
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
             .select(`
@@ -282,7 +277,6 @@ export async function carregarDashDON() {
             `);
         if (errorMed) throw errorMed;
 
-        // Buscar consumos
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
@@ -306,6 +300,6 @@ export async function carregarDashDON() {
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
