@@ -157,84 +157,107 @@ export async function carregarFiltroStatus() {
 }
 
 // =====================================================
-// FILTROS DOS DASHBOARDS
+// FILTROS DOS DASHBOARDS - DINÂMICOS BASEADOS NO BANCO
 // =====================================================
 export async function carregarFiltros() {
-    // Filtros da Dashboard Status (com Gestor)
-    const { data: projetos } = await supabaseClient.from('projetos').select('nome').order('nome');
-    const { data: gestores } = await supabaseClient.from('gestores_logictel').select('nome').order('nome');
-    
-    // Filtros da Dashboard DON (com Diretor)
-    const { data: diretores } = await supabaseClient.from('diretores').select('nome').order('nome');
-
     const projetosSet = new Set();
     const gestoresSet = new Set();
     const diretoresSet = new Set();
     const anosSet = new Set();
     const mesesSet = new Set();
 
-    // Buscar anos e meses disponíveis nas medições
-    const { data: anosMeses } = await supabaseClient
+    // 1. Buscar dados DISTINTOS das medições
+    const { data: medData } = await supabaseClient
         .from('medicoes')
-        .select('ano, mes')
-        .order('ano', { ascending: true });
+        .select('projeto_id, gestor_logictel_id, diretor_id, ano, mes');
 
-    if (anosMeses) {
-        anosMeses.forEach(item => {
+    if (medData) {
+        medData.forEach(item => {
+            if (item.projeto_id) projetosSet.add(item.projeto_id);
+            if (item.gestor_logictel_id) gestoresSet.add(item.gestor_logictel_id);
+            if (item.diretor_id) diretoresSet.add(item.diretor_id);
             if (item.ano) anosSet.add(item.ano);
             if (item.mes) mesesSet.add(item.mes);
         });
     }
 
-    // Também buscar anos e meses dos consumos
-    const { data: anosMesesConsumo } = await supabaseClient
+    // 2. Buscar dados DISTINTOS dos consumos (para complementar)
+    const { data: consData } = await supabaseClient
         .from('consumo_dc')
-        .select('ano, mes_apropriacao')
-        .order('ano', { ascending: true });
+        .select('projeto_id, gestor_logictel_id, diretor_id, ano, mes_apropriacao');
 
-    if (anosMesesConsumo) {
-        anosMesesConsumo.forEach(item => {
+    if (consData) {
+        consData.forEach(item => {
+            if (item.projeto_id) projetosSet.add(item.projeto_id);
+            if (item.gestor_logictel_id) gestoresSet.add(item.gestor_logictel_id);
+            if (item.diretor_id) diretoresSet.add(item.diretor_id);
             if (item.ano) anosSet.add(item.ano);
             if (item.mes_apropriacao) mesesSet.add(item.mes_apropriacao);
         });
     }
 
-    if (projetos) {
-        projetos.forEach(p => {
-            if (p.nome) projetosSet.add(p.nome);
-        });
-    }
-    if (gestores) {
-        gestores.forEach(g => {
-            if (g.nome) gestoresSet.add(g.nome);
-        });
-    }
-    if (diretores) {
-        diretores.forEach(d => {
-            if (d.nome) diretoresSet.add(d.nome);
-        });
+    // 3. Buscar nomes dos projetos
+    const projetosMap = {};
+    if (projetosSet.size > 0) {
+        const { data: projetos } = await supabaseClient
+            .from('projetos')
+            .select('id, nome')
+            .in('id', Array.from(projetosSet));
+        if (projetos) {
+            projetos.forEach(p => { projetosMap[p.id] = p.nome; });
+        }
     }
 
+    // 4. Buscar nomes dos gestores
+    const gestoresMap = {};
+    if (gestoresSet.size > 0) {
+        const { data: gestores } = await supabaseClient
+            .from('gestores_logictel')
+            .select('id, nome')
+            .in('id', Array.from(gestoresSet));
+        if (gestores) {
+            gestores.forEach(g => { gestoresMap[g.id] = g.nome; });
+        }
+    }
+
+    // 5. Buscar nomes dos diretores
+    const diretoresMap = {};
+    if (diretoresSet.size > 0) {
+        const { data: diretores } = await supabaseClient
+            .from('diretores')
+            .select('id, nome')
+            .in('id', Array.from(diretoresSet));
+        if (diretores) {
+            diretores.forEach(d => { diretoresMap[d.id] = d.nome; });
+        }
+    }
+
+    // 6. Converter IDs para nomes e ordenar
+    const projetosNomes = Array.from(projetosSet).map(id => projetosMap[id]).filter(Boolean).sort();
+    const gestoresNomes = Array.from(gestoresSet).map(id => gestoresMap[id]).filter(Boolean).sort();
+    const diretoresNomes = Array.from(diretoresSet).map(id => diretoresMap[id]).filter(Boolean).sort();
+    const anosOrdenados = Array.from(anosSet).sort();
+    
     // Ordenar meses na ordem correta
     const mesesOrdenados = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     const mesesFiltrados = Array.from(mesesSet).sort((a, b) => mesesOrdenados.indexOf(a) - mesesOrdenados.indexOf(b));
 
-    // Configuração dos filtros
+    // 7. Configuração dos filtros
     const filtrosConfig = [
         // Dashboard Status
-        { id: 'filt-aprop-gestor', values: gestoresSet },
-        { id: 'filt-aprop-projeto', values: projetosSet },
-        { id: 'filt-aprop-ano', values: anosSet },
+        { id: 'filt-aprop-gestor', values: gestoresNomes },
+        { id: 'filt-aprop-projeto', values: projetosNomes },
+        { id: 'filt-aprop-ano', values: anosOrdenados },
         { id: 'filt-aprop-mes', values: mesesFiltrados },
         // Dashboard DON
-        { id: 'filt-don-projeto', values: projetosSet },
-        { id: 'filt-don-diretor', values: diretoresSet },
-        { id: 'filt-don-ano', values: anosSet },
+        { id: 'filt-don-projeto', values: projetosNomes },
+        { id: 'filt-don-diretor', values: diretoresNomes },
+        { id: 'filt-don-ano', values: anosOrdenados },
         { id: 'filt-don-mes', values: mesesFiltrados },
         // DC Cards
-        { id: 'filt-dcs-projeto', values: projetosSet },
-        { id: 'filt-dcs-gestor', values: gestoresSet }
+        { id: 'filt-dcs-projeto', values: projetosNomes },
+        { id: 'filt-dcs-gestor', values: gestoresNomes }
     ];
 
     filtrosConfig.forEach(({ id, values }) => {
@@ -242,11 +265,12 @@ export async function carregarFiltros() {
         if (select) {
             const currentValue = select.value;
             select.innerHTML = '<option value="">Todos</option>';
-            const sorted = Array.from(values).sort();
-            sorted.forEach(v => {
+            values.forEach(v => {
                 if (v) select.innerHTML += `<option value="${v}">${v}</option>`;
             });
-            if (currentValue) select.value = currentValue;
+            if (currentValue && values.includes(currentValue)) {
+                select.value = currentValue;
+            }
         }
     });
 }
