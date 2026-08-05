@@ -1085,6 +1085,98 @@ nav.sidenav{
 .campos-extras { display:none; }
 .campos-extras.visible { display:grid; }
 
+/* =====================================================
+   DISTRIBUIÇÃO DON / STATUS (cadastro de medição)
+   ===================================================== */
+.distribuicao-bloco {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--paper);
+}
+
+.distribuicao-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.distribuicao-header > div:first-child { min-width: 220px; }
+
+.distribuicao-linhas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.distribuicao-linhas:empty::before {
+  content: attr(data-vazio);
+  display: block;
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-soft);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.distribuicao-linha {
+  display: grid;
+  grid-template-columns: 2fr 1.4fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.distribuicao-linha .distribuicao-remover {
+  padding: 8px 12px;
+  line-height: 1;
+}
+
+.distribuicao-resumo {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text);
+}
+
+@media (max-width: 700px) {
+  .distribuicao-linha {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================
+   DASHBOARD DON — SUB-LINHAS POR DIRETOR
+   ===================================================== */
+.dash-table-container tbody tr.linha-grupo-don td {
+  border-top: 2px solid var(--border) !important;
+}
+
+.dash-table-container tbody tr.linha-diretor-don td {
+  background: var(--paper);
+  font-size: 12px !important;
+  border-top: none !important;
+}
+
+.dash-table-container tbody tr.linha-diretor-don td:first-child {
+  padding-left: 32px !important;
+  font-weight: 500 !important;
+  color: var(--text-soft) !important;
+  text-align: left !important;
+}
+
 @media (max-width: 900px){
   .sidebar{ display:none; }
   .mobile-menu-toggle{ display:inline-flex; align-items:center; gap:8px; }
