@@ -699,7 +699,7 @@ nav.sidenav{
 }
 
 /* =====================================================
-   ESTILO DAS DASHBOARDS
+   ESTILO DAS DASHBOARDS - ALINHAMENTO CORRIGIDO
    ===================================================== */
 .dash-table-container {
   overflow-x: auto;
@@ -713,42 +713,77 @@ nav.sidenav{
   min-width: 600px;
 }
 
-.dash-table-container thead th {
-  padding: 10px 14px;
-  text-align: left;
-  white-space: nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+/* =====================================================
+   CABEÇALHO DA DASHBOARD DON (AZUL)
+   ===================================================== */
+.don-header th {
+  background: var(--primary) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 14px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+/* =====================================================
+   CABEÇALHO DA DASHBOARD STATUS (CINZA)
+   ===================================================== */
+.status-header th {
+  background: #6B7280 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 14px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  border-right: 1px solid rgba(255,255,255,0.15);
 }
 
 .dash-table-container thead th:last-child {
-  text-align: right;
+  border-right: none;
 }
 
 .dash-table-container thead th.mes-header {
-  text-align: right;
-  min-width: 80px;
+  text-align: center !important;
+  min-width: 100px;
 }
 
+/* =====================================================
+   CÉLULAS DO CORPO DA TABELA
+   ===================================================== */
 .dash-table-container tbody td {
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   font-size: 13px;
   vertical-align: middle;
+  text-align: center !important;
+  border-right: 1px solid var(--border);
 }
 
 .dash-table-container tbody td:last-child {
-  text-align: right;
+  border-right: none;
+  text-align: right !important;
   font-weight: 600;
   font-family: 'IBM Plex Mono', monospace;
 }
 
 .dash-table-container tbody td.mes-coluna {
-  text-align: right;
+  text-align: center !important;
   font-family: 'IBM Plex Mono', monospace;
   font-weight: 500;
-  min-width: 80px;
+  min-width: 100px;
 }
 
 .dash-table-container tbody tr:hover {
@@ -759,17 +794,71 @@ nav.sidenav{
   border-bottom: none;
 }
 
+/* =====================================================
+   LINHA TOTAL GERAL
+   ===================================================== */
 .dash-table-container .total-row td {
-  background: var(--primary-100);
-  font-weight: 700;
-  border-top: 2px solid var(--primary);
+  background: var(--primary-100) !important;
+  font-weight: 700 !important;
+  border-top: 2px solid var(--primary) !important;
+  border-bottom: 2px solid var(--primary) !important;
+  text-align: center !important;
+  padding: 10px 14px !important;
+}
+
+.dash-table-container .total-row td:first-child {
+  text-align: right !important;
+  font-size: 13px;
 }
 
 .dash-table-container .total-row td:last-child {
+  text-align: right !important;
   font-weight: 700;
   font-size: 14px;
+  border-right: none;
 }
 
+.dash-table-container .total-row td.mes-coluna {
+  text-align: center !important;
+}
+
+/* =====================================================
+   CORES PARA VALORES
+   ===================================================== */
+.dash-table-container .valor-positivo {
+  color: #00AA00 !important;
+  font-weight: 600;
+}
+
+.dash-table-container .valor-negativo {
+  color: #FF0000 !important;
+  font-weight: 600;
+}
+
+.dash-table-container .valor-zero {
+  color: #000000 !important;
+  font-weight: 400;
+}
+
+/* =====================================================
+   COLUNAS DE TEXTO
+   ===================================================== */
+.dash-table-container .gestor-coluna {
+  font-weight: 600;
+  color: var(--text);
+  text-align: left !important;
+}
+
+.dash-table-container .projeto-coluna {
+  font-weight: 500;
+  text-align: left !important;
+}
+
+.dash-table-container .descricao-coluna {
+  color: var(--text-soft);
+  font-size: 12px;
+  text-align: left !important;
+}
 /* =====================================================
    CABEÇALHO DA DASHBOARD DON (AZUL)
    ===================================================== */
