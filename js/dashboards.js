@@ -25,14 +25,14 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
         return grupos[key];
     }
 
-    // 1. Adicionar medições (valores NEGATIVOS - dívida)
+    // 1. Adicionar medições (valores NEGATIVOS - dívida/pendência)
     medicoes.forEach(med => {
         const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.empresa_id}|${med.ano}`;
         const g = garantirGrupo(key, med);
         todosMeses.add(med.mes);
         if (!g.meses[med.mes]) g.meses[med.mes] = { medicao: 0, consumo: 0 };
-        const valor = Number(med[campoValor] || 0);
-        // Medição é negativa (dívida)
+        // A medição é uma pendência, então é NEGATIVA
+        const valor = -Math.abs(Number(med[campoValor] || 0));
         g.meses[med.mes].medicao += valor;
     });
 
@@ -44,7 +44,8 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
         const g = garantirGrupo(key, c);
         todosMeses.add(mes);
         if (!g.meses[mes]) g.meses[mes] = { medicao: 0, consumo: 0 };
-        const valor = Number(c.valor || 0);
+        // Consumo é positivo (abatimento da dívida)
+        const valor = Math.abs(Number(c.valor || 0));
         g.meses[mes].consumo += valor;
     });
 
@@ -52,10 +53,10 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
     Object.values(grupos).forEach(g => {
         let total = 0;
         Object.keys(g.meses).forEach(mes => {
-            const medicaoVal = g.meses[mes].medicao || 0;
-            const consumoVal = g.meses[mes].consumo || 0;
-            // Saldo = -medicao + consumo (medicação negativa, consumo positiva)
-            const saldo = -medicaoVal + consumoVal;
+            const medicaoVal = g.meses[mes].medicao || 0;  // já é negativo
+            const consumoVal = g.meses[mes].consumo || 0;  // positivo
+            // Saldo = medicao (negativo) + consumo (positivo)
+            const saldo = medicaoVal + consumoVal;
             g.meses[mes].saldo = saldo;
             total += saldo;
         });
@@ -128,9 +129,9 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
             
             if (temValor) {
                 if (saldo < 0) {
-                    valorClass = 'valor-negativo';
+                    valorClass = 'valor-negativo';  // Vermelho para negativo (ainda deve)
                 } else if (saldo > 0) {
-                    valorClass = 'valor-positivo';
+                    valorClass = 'valor-positivo';  // Verde para positivo (recebeu mais do que devia)
                 }
                 displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
             }
