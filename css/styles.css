@@ -699,7 +699,7 @@ nav.sidenav{
 }
 
 /* =====================================================
-   ESTILO DAS DASHBOARDS - ALINHAMENTO CORRIGIDO
+   ESTILO DAS DASHBOARDS
    ===================================================== */
 .dash-table-container {
   overflow-x: auto;
@@ -710,7 +710,7 @@ nav.sidenav{
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 600px;
+  min-width: 500px;
 }
 
 /* =====================================================
@@ -723,13 +723,17 @@ nav.sidenav{
   font-size: 11px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
-  padding: 10px 14px !important;
+  padding: 10px 12px !important;
   text-align: center !important;
   white-space: nowrap !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 10 !important;
   border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+.don-header th:last-child {
+  border-right: none;
 }
 
 /* =====================================================
@@ -742,7 +746,7 @@ nav.sidenav{
   font-size: 11px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
-  padding: 10px 14px !important;
+  padding: 10px 12px !important;
   text-align: center !important;
   white-space: nowrap !important;
   position: sticky !important;
@@ -751,20 +755,15 @@ nav.sidenav{
   border-right: 1px solid rgba(255,255,255,0.15);
 }
 
-.dash-table-container thead th:last-child {
+.status-header th:last-child {
   border-right: none;
-}
-
-.dash-table-container thead th.mes-header {
-  text-align: center !important;
-  min-width: 100px;
 }
 
 /* =====================================================
    CÉLULAS DO CORPO DA TABELA
    ===================================================== */
 .dash-table-container tbody td {
-  padding: 10px 14px;
+  padding: 10px 12px !important;
   border-bottom: 1px solid var(--border);
   font-size: 13px;
   vertical-align: middle;
@@ -774,16 +773,23 @@ nav.sidenav{
 
 .dash-table-container tbody td:last-child {
   border-right: none;
-  text-align: right !important;
+  text-align: center !important;
   font-weight: 600;
   font-family: 'IBM Plex Mono', monospace;
 }
 
-.dash-table-container tbody td.mes-coluna {
-  text-align: center !important;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 500;
-  min-width: 100px;
+.dash-table-container tbody td:first-child {
+  text-align: left !important;
+  font-weight: 600;
+}
+
+.dash-table-container tbody td:nth-child(2) {
+  text-align: left !important;
+}
+
+.dash-table-container tbody td:nth-child(3) {
+  text-align: left !important;
+  color: var(--text-soft);
 }
 
 .dash-table-container tbody tr:hover {
@@ -803,19 +809,21 @@ nav.sidenav{
   border-top: 2px solid var(--primary) !important;
   border-bottom: 2px solid var(--primary) !important;
   text-align: center !important;
-  padding: 10px 14px !important;
+  padding: 10px 12px !important;
+  border-right: 1px solid var(--border);
 }
 
 .dash-table-container .total-row td:first-child {
   text-align: right !important;
   font-size: 13px;
+  border-right: none;
 }
 
 .dash-table-container .total-row td:last-child {
-  text-align: right !important;
+  border-right: none;
+  text-align: center !important;
   font-weight: 700;
   font-size: 14px;
-  border-right: none;
 }
 
 .dash-table-container .total-row td.mes-coluna {
@@ -859,78 +867,6 @@ nav.sidenav{
   font-size: 12px;
   text-align: left !important;
 }
-/* =====================================================
-   CABEÇALHO DA DASHBOARD DON (AZUL)
-   ===================================================== */
-.don-header th {
-  background: var(--primary) !important;
-  color: #fff !important;
-  font-weight: 600 !important;
-  font-size: 11px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  padding: 10px 14px !important;
-  text-align: left !important;
-  white-space: nowrap !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 10 !important;
-}
-
-/* =====================================================
-   CABEÇALHO DA DASHBOARD STATUS (CINZA)
-   ===================================================== */
-.status-header th {
-  background: #6B7280 !important;
-  color: #fff !important;
-  font-weight: 600 !important;
-  font-size: 11px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  padding: 10px 14px !important;
-  text-align: left !important;
-  white-space: nowrap !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 10 !important;
-}
-
-/* =====================================================
-   CORES PARA VALORES NAS DASHBOARDS
-   ===================================================== */
-.dash-table-container .valor-positivo {
-  color: #00AA00 !important;  /* Verde vibrante */
-  font-weight: 600;
-}
-
-.dash-table-container .valor-negativo {
-  color: #FF0000 !important;  /* Vermelho puro */
-  font-weight: 600;
-}
-
-.dash-table-container .valor-zero {
-  color: #000000 !important;  /* Preto */
-  font-weight: 400;
-}
-
-.dash-table-container .gestor-coluna {
-  font-weight: 600;
-  color: var(--text);
-}
-
-.dash-table-container .projeto-coluna {
-  font-weight: 500;
-}
-
-.dash-table-container .descricao-coluna {
-  color: var(--text-soft);
-  font-size: 12px;
-}
-
-.dash-table-container .empresa-coluna {
-  color: var(--text-muted);
-}
-
 /* =====================================================
    DC CARDS
    ===================================================== */
