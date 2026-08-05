@@ -108,9 +108,9 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
 
         let html = `
             <tr>
-                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
-                <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
+                <td class="gestor-coluna">${g.gestor}</td>
+                <td class="projeto-coluna">${g.projeto}</td>
+                <td class="descricao-coluna">${g.descricao}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -132,7 +132,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
                 displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
             }
             
-            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${colorStyle}">${displayValor}</td>`;
+            html += `<td class="${valorClass}">${displayValor}</td>`;
         });
 
         let totalClass = '';
@@ -146,7 +146,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
         }
         
         html += `
-                <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                <td class="${totalClass}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
             </tr>
         `;
 
@@ -183,7 +183,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     });
 
     totalHtml += `
-            <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+            <td class="${totalClass}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
         </tr>
     `;
     tbody.innerHTML += totalHtml;
