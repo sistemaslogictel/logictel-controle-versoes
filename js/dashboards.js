@@ -362,58 +362,57 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         `;
         tbody.innerHTML += html;
 
-        // Sub-linhas: Diretores do Projeto (inicialmente ocultos)
+        // Sub-linhas: Diretores do Projeto (inicialmente ocultas)
+        // IMPORTANTE: não usar <tbody> aninhada aqui — uma <tbody> dentro de
+        // outra <tbody> é HTML inválido e o navegador descarta a tag ao
+        // fazer o parse do innerHTML, então o id nunca existe de fato no DOM.
+        // Por isso cada <tr> de diretor recebe data-parent-projeto e a
+        // ocultação/exibição é feita linha a linha.
         const diretores = Object.values(proj.diretores).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-        if (diretores.length > 0) {
-            let diretoresHtml = `<tbody class="diretores-container" id="diretores-${projetoId}" style="display:none;">`;
-            diretores.forEach(dir => {
-                const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
-                diretoresHtml += `
-                    <tr style="border-bottom:1px solid var(--border);">
-                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);">↳</td>
-                        <td style="text-align:left;padding:8px 12px;font-weight:500;">${dir.nome}</td>
-                        <td style="text-align:left;padding:8px 12px;color:var(--text-soft);font-size:12px;">—</td>
-                `;
-                mesesExibir.forEach(mes => {
-                    const saldo = dir.meses[mes]?.saldo;
-                    const temValor = saldo !== undefined && saldo !== 0;
-                    let displayValor = '-';
-                    let colorStyle = '';
-                    if (temValor) {
-                        colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
-                        displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
-                    }
-                    diretoresHtml += `<td style="text-align:center;padding:8px 12px;${colorStyle}">${displayValor}</td>`;
-                });
-                diretoresHtml += `
-                        <td style="text-align:center;padding:8px 12px;font-weight:600;${dTotalColor}">${dir.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
-                    </tr>
-                `;
+        diretores.forEach(dir => {
+            const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
+            let dirHtml = `
+                <tr class="diretor-row" data-parent-projeto="${projetoId}" style="display:none;border-bottom:1px solid var(--border);">
+                    <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);">↳</td>
+                    <td style="text-align:left;padding:8px 12px;font-weight:500;">${dir.nome}</td>
+                    <td style="text-align:left;padding:8px 12px;color:var(--text-soft);font-size:12px;">—</td>
+            `;
+            mesesExibir.forEach(mes => {
+                const saldo = dir.meses[mes]?.saldo;
+                const temValor = saldo !== undefined && saldo !== 0;
+                let displayValor = '-';
+                let colorStyle = '';
+                if (temValor) {
+                    colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
+                    displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
+                }
+                dirHtml += `<td style="text-align:center;padding:8px 12px;${colorStyle}">${displayValor}</td>`;
             });
-            diretoresHtml += `</tbody>`;
-            tbody.innerHTML += diretoresHtml;
-        }
+            dirHtml += `
+                    <td style="text-align:center;padding:8px 12px;font-weight:600;${dTotalColor}">${dir.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                </tr>
+            `;
+            tbody.innerHTML += dirHtml;
+        });
     });
 
-    // Adicionar event listener para clique nas linhas de projeto (após renderizar)
-    setTimeout(() => {
-        document.querySelectorAll('.projeto-row').forEach(row => {
-            row.addEventListener('click', function() {
-                const projetoId = this.dataset.projeto;
-                const container = document.getElementById(`diretores-${projetoId}`);
-                const icon = document.getElementById(`icon-${projetoId}`);
-                if (container) {
-                    if (container.style.display === 'none') {
-                        container.style.display = '';
-                        if (icon) icon.textContent = '▼';
-                    } else {
-                        container.style.display = 'none';
-                        if (icon) icon.textContent = '▶';
-                    }
-                }
+    // Adicionar event listener para clique nas linhas de projeto (após renderizar).
+    // Usamos onclick direto (em vez de addEventListener acumulado) para evitar
+    // qualquer risco de listeners duplicados em re-renderizações.
+    document.querySelectorAll('.projeto-row').forEach(row => {
+        row.onclick = function () {
+            const projetoId = this.dataset.projeto;
+            const linhasDiretores = document.querySelectorAll(`tr[data-parent-projeto="${projetoId}"]`);
+            const icon = document.getElementById(`icon-${projetoId}`);
+            if (linhasDiretores.length === 0) return;
+
+            const estaOculto = linhasDiretores[0].style.display === 'none';
+            linhasDiretores.forEach(tr => {
+                tr.style.display = estaOculto ? '' : 'none';
             });
-        });
-    }, 50);
+            if (icon) icon.textContent = estaOculto ? '▼' : '▶';
+        };
+    });
 
     renderizarTotalGeralCard(totalCardId, 'don', mesesExibir, projetos, totalGeral);
 }
