@@ -75,9 +75,63 @@ function calcularGruposSaldo(medicoes, consumos, campoMesConsumo, campoValor) {
 }
 
 // =====================================================
+// ÍCONE DO CARD "TOTAL GERAL" (seta de tendência)
+// =====================================================
+const ICONE_TOTAL_GERAL = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>`;
+
+function classeValor(v) {
+    if (v > 0) return 'valor-positivo';
+    if (v < 0) return 'valor-negativo';
+    return 'valor-zero';
+}
+
+// =====================================================
+// CARD "TOTAL GERAL" (fora da tabela, no rodapé da dashboard)
+// =====================================================
+function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalGeral) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.className = `total-geral-card theme-${tema}`;
+
+    if (!linhas || linhas.length === 0) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = '';
+
+    let statsHtml = '';
+    mesesExibir.forEach(mes => {
+        let totalMes = 0;
+        linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
+        const displayValor = totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-';
+        statsHtml += `
+            <div class="total-geral-stat">
+                <div class="total-geral-stat-label">${mes}</div>
+                <div class="total-geral-stat-value ${classeValor(totalMes)}">${displayValor}</div>
+            </div>`;
+    });
+
+    statsHtml += `
+        <div class="total-geral-stat">
+            <div class="total-geral-stat-label">Total</div>
+            <div class="total-geral-stat-value ${classeValor(totalGeral)}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</div>
+        </div>`;
+
+    container.innerHTML = `
+        <div class="total-geral-icon-wrap">
+            <div class="total-geral-icon">${ICONE_TOTAL_GERAL}</div>
+            <div class="total-geral-label">TOTAL GERAL</div>
+        </div>
+        <div class="total-geral-stats">${statsHtml}</div>
+    `;
+}
+
+// =====================================================
 // RENDERIZAÇÃO DA TABELA - ALINHAMENTO CENTRALIZADO
 // =====================================================
-function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass) {
+function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass, totalCardId, tema) {
     const headerRow = document.querySelector(`#${headerId}`);
     if (headerRow) {
         let html = `<tr class="${headerClass}">
@@ -97,6 +151,7 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
     const linhas = Object.values(grupos);
     if (linhas.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" style="padding:20px;text-align:center;color:var(--text-soft);">Nenhum registro encontrado.</td></tr>`;
+        renderizarTotalGeralCard(totalCardId, tema, mesesExibir, [], 0);
         return;
     }
 
@@ -117,16 +172,13 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
             const saldo = g.meses[mes]?.saldo;
             const temValor = saldo !== undefined && saldo !== 0;
             
-            let valorClass = '';
             let displayValor = '-';
             let colorStyle = '';
             
             if (temValor) {
                 if (saldo < 0) {
-                    valorClass = 'valor-negativo';
                     colorStyle = 'color:#FF0000;';
                 } else if (saldo > 0) {
-                    valorClass = 'valor-positivo';
                     colorStyle = 'color:#00AA00;';
                 }
                 displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
@@ -135,13 +187,10 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
             html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${colorStyle}">${displayValor}</td>`;
         });
 
-        let totalClass = '';
         let totalColor = '';
         if (g.total < 0) {
-            totalClass = 'valor-negativo';
             totalColor = 'color:#FF0000;';
         } else if (g.total > 0) {
-            totalClass = 'valor-positivo';
             totalColor = 'color:#00AA00;';
         }
         
@@ -153,40 +202,8 @@ function renderizarDashboard(headerId, tbodyId, grupos, mesesExibir, headerClass
         tbody.innerHTML += html;
     });
 
-    // TOTAL GERAL - CORRIGIDO
-    let totalColor = '';
-    if (totalGeral < 0) {
-        totalColor = 'color:#FF0000;';
-    } else if (totalGeral > 0) {
-        totalColor = 'color:#00AA00;';
-    }
-    
-    let totalHtml = `
-        <tr style="background:var(--primary-100);font-weight:700;border-top:2px solid var(--primary);border-bottom:2px solid var(--primary);">
-            <td colspan="3" style="text-align:right;padding:10px 12px;">TOTAL GERAL</td>
-    `;
-
-    mesesExibir.forEach(mes => {
-        let totalMes = 0;
-        linhas.forEach(g => { 
-            totalMes += g.meses[mes]?.saldo || 0; 
-        });
-        
-        let mesColor = '';
-        if (totalMes < 0) {
-            mesColor = 'color:#FF0000;';
-        } else if (totalMes > 0) {
-            mesColor = 'color:#00AA00;';
-        }
-        
-        totalHtml += `<td style="text-align:center;padding:10px 12px;${mesColor}">${totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-'}</td>`;
-    });
-
-    totalHtml += `
-            <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
-        </tr>
-    `;
-    tbody.innerHTML += totalHtml;
+    // Card "TOTAL GERAL" renderizado separadamente, fora da tabela (ver imagens de referência)
+    renderizarTotalGeralCard(totalCardId, tema, mesesExibir, linhas, totalGeral);
 }
 
 // =====================================================
@@ -249,7 +266,7 @@ export async function carregarDashApropriacao() {
             'valor_status'
         );
         
-        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, 'status-header');
+        renderizarDashboard('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, 'status-header', 'aprop-total-geral', 'status');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
@@ -296,7 +313,7 @@ export async function carregarDashDON() {
             'valor_don'
         );
         
-        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-header');
+        renderizarDashboard('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-header', 'don-total-geral', 'don');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
