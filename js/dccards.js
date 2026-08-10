@@ -138,8 +138,7 @@ export async function carregarDCCards() {
 }
 
 export function irParaConsumo(dc) {
-    mudarAba('dcs');
+    mudarAba('cad-consumo');
     document.getElementById('dc-numero').value = dc;
     carregarConsumos();
-    document.getElementById('form-consumo')?.scrollIntoView({ behavior: 'smooth' });
 }

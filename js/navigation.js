@@ -27,7 +27,7 @@ export function gerarMenu(permissoes) {
         ]},
         { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
             { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
-            { id: 'historico-medicoes', label: 'Histórico das Medições', area: 'medicoes' }
+            { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' }
         ]},
         { id: 'dcs', label: 'DC\'s', icon: 'dcs', area: 'dcs', type: 'flyout', children: [
             { id: 'dcs', label: 'DC\'s', area: 'dcs' },
@@ -156,7 +156,7 @@ const AREA_MAP = {
     'dash-don': 'dash-don',
     'dash-apropriacao': 'dash-apropriacao',
     'cad-medicao': 'medicoes',
-    'historico-medicoes': 'medicoes',
+    'cad-consumo': 'consumos',
     'dcs': 'dcs',
     'historico-consumo-dcs': 'consumos',
     'adm-user': 'adm-user',
@@ -198,22 +198,21 @@ export function mudarAba(nomeAba) {
 export function carregarDadosAba(nomeAba) {
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
-    else if (nomeAba === 'dcs') {
-        carregarDCCards();
-        carregarFiltroStatus();
-        // Formulário "Cadastro de Consumo DC" vive dentro desta mesma aba
+    else if (nomeAba === 'dcs') { carregarDCCards(); carregarFiltroStatus(); }
+    else if (nomeAba === 'cad-medicao') {
+        carregarMedicoes();
+        carregarSelectProjetos('filt-med-projeto');
+        carregarSelectDiretores('filt-med-diretor');
+    }
+    else if (nomeAba === 'cad-consumo') {
         carregarStatusDCCustom();
         carregarSelectStatus('dc-status-nf', 'status_nf');
         carregarSelectGestores('dc-gestor', 'gestores_logictel');
         carregarSelectDiretores('dc-diretor');
         carregarSelectEmpresas('dc-empresa');
         carregarSelectProjetos('dc-projeto');
+        // Consumos e datalists (DC/Pedido) usados no próprio formulário
         carregarConsumos();
-    }
-    else if (nomeAba === 'historico-medicoes') {
-        carregarMedicoes();
-        carregarSelectProjetos('filt-med-projeto');
-        carregarSelectDiretores('filt-med-diretor');
     }
     else if (nomeAba === 'historico-consumo-dcs') {
         carregarConsumos();
