@@ -1308,3 +1308,178 @@ nav.sidenav{
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* =====================================================
+   TABELA EXTRA COMPACTA - SEM ROLAGEM LATERAL
+   ===================================================== */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-extra-compact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  min-width: auto;
+}
+
+.table-extra-compact thead th {
+  padding: 3px 4px !important;
+  font-size: 8px !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  background: var(--paper) !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
+.table-extra-compact tbody td {
+  padding: 3px 4px !important;
+  font-size: 9px !important;
+  border-bottom: 1px solid var(--border) !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+
+.table-extra-compact td.text-right {
+  text-align: right !important;
+}
+
+.table-extra-compact .table-actions {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.table-extra-compact .btn-edit,
+.table-extra-compact .btn-danger,
+.table-extra-compact .btn-excel {
+  font-size: 8px !important;
+  padding: 1px 4px !important;
+  border-radius: 3px !important;
+  min-height: 16px !important;
+}
+
+.table-extra-compact .mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* =====================================================
+   BOTÕES SMALL (para os filtros)
+   ===================================================== */
+.btn-sm {
+  padding: 3px 8px !important;
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+  border-radius: 4px !important;
+  min-height: 24px !important;
+}
+
+/* =====================================================
+   FILTROS MAIS COMPACTOS
+   ===================================================== */
+.filters-bar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 1px 4px rgba(8,16,32,0.04);
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.filter-label {
+  font-size: 7px !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.filter-group .input {
+  padding: 2px 4px !important;
+  font-size: 10px !important;
+  min-height: 22px !important;
+  border-radius: 4px !important;
+}
+
+.filter-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.filter-actions .btn-sm {
+  min-height: 22px !important;
+  padding: 2px 8px !important;
+  font-size: 10px !important;
+}
+
+@media (max-width: 600px) {
+  .filters-bar-grid {
+    grid-template-columns: 1fr 1fr;
+    padding: 4px 6px;
+  }
+  .filter-actions {
+    grid-column: span 2;
+    flex-direction: row;
+    justify-content: stretch;
+  }
+  .filter-actions .btn-sm {
+    flex: 1;
+    justify-content: center;
+  }
+  .table-extra-compact {
+    font-size: 8px !important;
+  }
+  .table-extra-compact thead th {
+    font-size: 6px !important;
+    padding: 2px 2px !important;
+  }
+  .table-extra-compact tbody td {
+    font-size: 7px !important;
+    padding: 2px 2px !important;
+  }
+  .table-extra-compact .btn-edit,
+  .table-extra-compact .btn-danger,
+  .table-extra-compact .btn-excel {
+    font-size: 6px !important;
+    padding: 0px 3px !important;
+    min-height: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-bar-grid {
+    grid-template-columns: 1fr;
+  }
+  .filter-actions {
+    grid-column: span 1;
+  }
+  .table-extra-compact {
+    font-size: 7px !important;
+  }
+  .table-extra-compact thead th {
+    font-size: 5px !important;
+    padding: 1px 1px !important;
+  }
+  .table-extra-compact tbody td {
+    font-size: 6px !important;
+    padding: 1px 1px !important;
+  }
+}
