@@ -1,6 +1,7 @@
 import { supabaseClient } from './config.js';
 import { valorParaNumero, aplicarMascaras, paginar, renderizarPaginacao } from './utils.js';
 import { carregarFiltros } from './selects.js';
+import { mudarAba } from './navigation.js';
 
 // Guarda a última lista buscada no banco, para os filtros da tela
 // (Projeto / Diretor Cliente / Mês) filtrarem sem precisar refazer a consulta.
@@ -269,7 +270,8 @@ export async function editarMedicao(id) {
         document.getElementById('med-status').value = data.status_medicao || '';
         document.getElementById('med-cancel-btn').style.display = 'inline-block';
 
-        // Scroll para o formulário
+        // O formulário fica na aba "Cadastro de Medição" (separada do histórico).
+        mudarAba('cad-medicao');
         document.getElementById('form-medicao').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         console.error('Erro ao editar medição:', e);
