@@ -25,12 +25,13 @@ export function gerarMenu(permissoes) {
             { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' },
             { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' }
         ]},
+        { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
+            { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
+            { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' }
+        ]},
         { id: 'dcs', label: 'DC\'s', icon: 'dcs', area: 'dcs', type: 'flyout', children: [
             { id: 'dcs', label: 'DC\'s', area: 'dcs' },
             { id: 'historico-consumo-dcs', label: 'Histórico Consumo das DCs', area: 'consumos' }
-        ]},
-        { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
-            { id: 'medicoes', label: 'Medições', area: 'medicoes' }
         ]},
         { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
             { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
@@ -154,9 +155,10 @@ export function gerarMenu(permissoes) {
 const AREA_MAP = {
     'dash-don': 'dash-don',
     'dash-apropriacao': 'dash-apropriacao',
+    'cad-medicao': 'medicoes',
+    'cad-consumo': 'consumos',
     'dcs': 'dcs',
     'historico-consumo-dcs': 'consumos',
-    'medicoes': 'medicoes',
     'adm-user': 'adm-user',
     'adm-empresa': 'adm-cliente',
     'adm-diretor': 'adm-cliente',
@@ -169,6 +171,8 @@ const AREA_MAP = {
 };
 
 // Ordem de prioridade usada para decidir em qual aba cair logo após o login
+// (a antiga "Visão Geral de Saldos" servia de tela inicial universal; agora
+// caímos na primeira aba, nessa ordem, que o usuário tiver permissão de ver)
 const ORDEM_ABAS_PADRAO = Object.keys(AREA_MAP);
 
 // =====================================================
@@ -194,31 +198,29 @@ export function mudarAba(nomeAba) {
 export function carregarDadosAba(nomeAba) {
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
-    else if (nomeAba === 'dcs') { 
-        carregarDCCards(); 
-        carregarFiltroStatus();
+    else if (nomeAba === 'dcs') { carregarDCCards(); carregarFiltroStatus(); }
+    else if (nomeAba === 'cad-medicao') {
+        carregarMedicoes();
+        carregarSelectProjetos('filt-med-projeto');
+        carregarSelectDiretores('filt-med-diretor');
+    }
+    else if (nomeAba === 'cad-consumo') {
         carregarStatusDCCustom();
         carregarSelectStatus('dc-status-nf', 'status_nf');
         carregarSelectGestores('dc-gestor', 'gestores_logictel');
         carregarSelectDiretores('dc-diretor');
         carregarSelectEmpresas('dc-empresa');
         carregarSelectProjetos('dc-projeto');
+        // Consumos e datalists (DC/Pedido) usados no próprio formulário
+        carregarConsumos();
     }
     else if (nomeAba === 'historico-consumo-dcs') {
         carregarConsumos();
+        // Selects do bloco de filtros da listagem
         carregarSelectProjetos('filt-consumo-projeto');
         carregarSelectDiretores('filt-consumo-diretor');
         carregarStatusDCCustom('filt-consumo-status-dc');
         carregarSelectStatus('filt-consumo-status-nf', 'status_nf');
-    }
-    else if (nomeAba === 'medicoes') {
-        carregarMedicoes();
-        carregarSelectProjetos('filt-med-projeto');
-        carregarSelectDiretores('filt-med-diretor');
-        carregarSelectProjetos('med-projeto');
-        carregarSelectDiretores('med-diretor');
-        carregarSelectGestores('med-gestor', 'gestores_logictel');
-        carregarSelectStatus('med-status', 'status_medicao');
     }
     else if (nomeAba === 'adm-user') carregarUsuarios();
     else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
@@ -232,7 +234,8 @@ export function carregarDadosAba(nomeAba) {
 }
 
 // =====================================================
-// PRIMEIRA ABA ACESSÍVEL
+// PRIMEIRA ABA ACESSÍVEL (usada no login/restauração de sessão,
+// já que não existe mais uma dashboard universal como tela inicial)
 // =====================================================
 export function irParaPrimeiraAbaAcessivel() {
     for (const nomeAba of ORDEM_ABAS_PADRAO) {
@@ -242,11 +245,9 @@ export function irParaPrimeiraAbaAcessivel() {
             return;
         }
     }
+    // Nenhuma área liberada: não força nenhuma aba (usuário sem permissões)
 }
 
-// =====================================================
-// CARREGAR TODAS AS LISTAS
-// =====================================================
 export function carregarTodasListas() {
     carregarMedicoes();
     carregarConsumos();
@@ -281,6 +282,7 @@ export function carregarTodasListas() {
     carregarDCCards();
     carregarStatusDCCustom();
     carregarFiltroStatus();
+    // Selects dos blocos de filtro das listagens de Medição e Consumo DC
     carregarSelectProjetos('filt-med-projeto');
     carregarSelectDiretores('filt-med-diretor');
     carregarSelectProjetos('filt-consumo-projeto');
@@ -290,7 +292,7 @@ export function carregarTodasListas() {
 }
 
 // =====================================================
-// CANCELAR EDIÇÃO
+// CANCELAR EDIÇÃO (genérico para todos os formulários)
 // =====================================================
 export function cancelarEdicao(tipo) {
     const prefixos = {

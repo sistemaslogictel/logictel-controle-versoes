@@ -432,8 +432,9 @@ export async function editarConsumo(id) {
         controlarCamposNF();
         document.getElementById('consumo-cancel-btn').style.display = 'inline-block';
 
-        // O formulário de Consumo DC vive dentro da aba "DC's".
-        mudarAba('dcs');
+        // A listagem/histórico fica em outra aba; troca para "Consumo DC"
+        // (onde está o formulário) antes de rolar até ele.
+        mudarAba('cad-consumo');
         document.getElementById('form-consumo').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         console.error('Erro ao editar consumo:', e);
