@@ -1,322 +1,653 @@
-import { temPermissao } from './session.js';
-import { aplicarMascaras, initFlyouts } from './utils.js';
-import { setPermissoes } from './usuarios.js';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V.11.16 - Controle de Medições e DCs - Logictel</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=20260804">
+</head>
+<body>
 
-import { carregarDashApropriacao, carregarDashDON } from './dashboards.js';
-import { carregarDCCards } from './dccards.js';
-import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom } from './selects.js';
-import { carregarMedicoes } from './medicoes.js';
-import { carregarConsumos } from './consumo.js';
-import { carregarUsuarios } from './usuarios.js';
-import {
-    carregarEmpresas, carregarDiretores, carregarContratos, carregarProjetos,
-    carregarGestoresLogictel, carregarStatusDC, carregarStatusMed, carregarStatusNF
-} from './cadastros.js';
+<!-- ===================== TELA DE LOGIN ===================== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
+    </div>
+    <div class="login-system-name">Sistema Financeiro</div>
+    <div class="login-title">Bem-vindo de volta</div>
+    <div class="login-subtitle">Faça login para acessar o sistema</div>
 
-// =====================================================
-// GERAR MENU DINÂMICO
-// =====================================================
-export function gerarMenu(permissoes) {
-    const desktopNav = document.getElementById('desktopNav');
-    const mobileNav = document.getElementById('mobileNav');
+    <div class="login-error" id="loginError">Usuário ou senha incorretos. Tente novamente.</div>
 
-    const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', area: 'dash-don', type: 'flyout', children: [
-            { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' },
-            { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' }
-        ]},
-        { id: 'dcs', label: 'DC\'s', icon: 'dcs', area: 'dcs', type: 'flyout', children: [
-            { id: 'dcs', label: 'DC\'s', area: 'dcs' },
-            { id: 'historico-consumo-dcs', label: 'Histórico Consumo das DCs', area: 'consumos' }
-        ]},
-        { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
-            { id: 'medicoes', label: 'Medições', area: 'medicoes' }
-        ]},
-        { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
-            { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
-        ]},
-        { id: 'cadastros-cliente', label: 'Cadastro Cliente', icon: 'cliente', area: 'adm-cliente', type: 'flyout', children: [
-            { id: 'adm-empresa', label: 'Empresa', area: 'adm-cliente' },
-            { id: 'adm-diretor', label: 'Diretor Cliente', area: 'adm-cliente' },
-            { id: 'adm-contrato', label: 'Contrato', area: 'adm-cliente' }
-        ]},
-        { id: 'cadastros-logictel', label: 'Cadastro Logictel', icon: 'logictel', area: 'adm-logictel', type: 'flyout', children: [
-            { id: 'adm-projeto', label: 'Projeto', area: 'adm-logictel' },
-            { id: 'adm-gestor', label: 'Gestor Logictel', area: 'adm-logictel' }
-        ]},
-        { id: 'cadastros-status', label: 'Cadastro Status', icon: 'status', area: 'adm-status', type: 'flyout', children: [
-            { id: 'adm-status-dc', label: 'Status DC', area: 'adm-status' },
-            { id: 'adm-status-med', label: 'Status Medição', area: 'adm-status' },
-            { id: 'adm-status-nf', label: 'Status NF', area: 'adm-status' }
-        ]}
-    ];
+    <form id="loginForm" onsubmit="return fazerLogin(event)">
+      <input type="text" id="loginUser" class="input" placeholder="Usuário" required autofocus>
+      <input type="password" id="loginPassword" class="input" placeholder="Senha" required>
+      <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+  </div>
+</div>
 
-    function temAcesso(item) {
-        if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
-        if (item.type === 'link') return permissoes.includes(item.area);
-        if (item.type === 'flyout') return item.children.some(child => permissoes.includes(child.area));
-        return false;
-    }
+<!-- ===================== APP SHELL ===================== -->
+<div class="app-shell" id="appShell" style="display:none;">
 
-    function getIcon(name) {
-        const icons = {
-            'dashboard': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
-            'dcs': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>',
-            'medicoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l13-13 5 5-13 13H3v-5z"/><path d="M13.5 6.5l4 4"/><path d="M9 11l1.5 1.5"/><path d="M6 14l1.5 1.5"/></svg>',
-            'historico': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
-            'adm': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l-.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
-            'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-            'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
-            'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
-            'atualizacoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
-        };
-        return icons[name] || '';
-    }
+  <!-- SIDEBAR MOBILE -->
+  <div class="sidebar-mobile-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <div class="sidebar-mobile" id="sidebarMobile">
+    <div>
+      <div class="brand-box flex justify-between items-center">
+        <div class="brand-chip">
+          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
+          <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
+        </div>
+        <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
+      </div>
+      <nav class="sidenav" id="mobileNav"></nav>
+    </div>
+    <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
+  </div>
 
-    function buildMenuHTML(container, items, isMobile) {
-        let html = '';
-        let hasVisibleItems = false;
+  <!-- SIDEBAR DESKTOP -->
+  <aside class="sidebar hidden md:flex">
+    <div>
+      <div class="brand-box">
+        <div class="brand-chip">
+          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
+          <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
+        </div>
+      </div>
+      <nav class="sidenav" id="desktopNav"></nav>
+    </div>
+    <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
+  </aside>
 
-        items.forEach(item => {
-            if (!temAcesso(item)) return;
-            hasVisibleItems = true;
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="content-area">
 
-            if (item.type === 'link') {
-                const activeClass = item.id === 'dashboard' ? ' is-active' : '';
-                html += `
-                    <button onclick="mudarAba('${item.id}')" id="btn-${item.id}${isMobile ? '-mobile' : ''}" class="sidebar-link js-nav${activeClass}">
-                        ${getIcon(item.icon)}
-                        <span>${item.label}</span>
-                    </button>
-                `;
-            } else if (item.type === 'flyout') {
-                const hasAccessibleChild = item.children.some(child => {
-                    if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
-                    return permissoes.includes(child.area);
-                });
-                if (!hasAccessibleChild) return;
+    <div class="topbar mb-4">
+      <div class="flex items-center gap-2.5">
+        <button class="mobile-menu-toggle md:hidden" onclick="toggleSidebar()">☰ Menu</button>
+        <span class="status-dot"></span>
+        <span class="text-xs font-medium" style="color:var(--text-muted)">Banco sincronizado</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="badge-ultima-atualizacao" class="mono text-xs font-semibold px-2 py-1 rounded-lg" style="background:var(--paper); color:var(--text)">
+          Última atualização: carregando...
+        </div>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <span class="text-sm font-medium" id="userNameDisplay">Usuário</span>
+          <button onclick="fazerLogout()" class="logout-btn">Sair</button>
+        </div>
+      </div>
+    </div>
 
-                html += `
-                    <div class="flyout-wrap" data-flyout>
-                        <button class="flyout-trigger">
-                            <span class="lbl">
-                                ${getIcon(item.icon)}
-                                ${item.label}
-                            </span>
-                            <span class="chev"></span>
-                        </button>
-                        <div class="flyout" role="menu">
-                            <div class="flyout-section-title">${item.label}</div>
-                `;
+    <!-- ===================== DASHBOARD DON ===================== -->
+    <div id="tab-dash-don" class="tab-content active space-y-4">
+      <div>
+        <h2 class="text-xl font-bold" style="color:var(--text)">Dashboard DON</h2>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted)">Medições pendentes (negativo) abatidas pelos consumos de DC, usando o Mês Medido como referência.</p>
+      </div>
+      <div class="filters-bar-don">
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Diretor</label>
+          <select id="filt-don-diretor" class="input" onchange="carregarDashDON()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Ano</label>
+          <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Mês</label>
+          <select id="filt-don-mes" class="input" onchange="carregarDashDON()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="carregarDashDON()" class="btn-primary btn-sm">Filtrar</button>
+          <button onclick="limparFiltros('don')" class="btn-clear-filters btn-sm">Limpar</button>
+          <button onclick="exportarExcelDON()" class="btn-excel btn-sm">📊 Excel</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="dash-table-container">
+          <table>
+            <thead id="don-header" class="don-header">
+              <tr>
+                <th>Projeto</th>
+                <th>Diretor</th>
+                <th>Descrição</th>
+                <th class="mes-header">Mês 1</th>
+                <th class="mes-header">Mês 2</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dash-don">
+              <tr><td colspan="6" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="don-total-geral" class="total-geral-card theme-don"></div>
+    </div>
 
-                item.children.forEach(child => {
-                    if (!permissoes || permissoes.length === 0 || permissoes.includes('*') || permissoes.includes(child.area)) {
-                        html += `
-                            <button onclick="mudarAba('${child.id}')" id="btn-${child.id}${isMobile ? '-mobile' : ''}" class="flyout-link js-nav">${child.label}</button>
-                        `;
-                    }
-                });
+    <!-- ===================== DASHBOARD STATUS ===================== -->
+    <div id="tab-dash-apropriacao" class="tab-content space-y-4">
+      <div>
+        <h2 class="text-xl font-bold" style="color:var(--text)">Dashboard Status</h2>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted)">Medições pendentes (negativo) abatidas pelos consumos de DC, usando o Mês Apropriação como referência.</p>
+      </div>
+      <div class="filters-bar-status">
+        <div class="filter-group">
+          <label class="filter-label">Gestor</label>
+          <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Ano</label>
+          <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Mês</label>
+          <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="carregarDashApropriacao()" class="btn-primary btn-sm">Filtrar</button>
+          <button onclick="limparFiltros('aprop')" class="btn-clear-filters btn-sm">Limpar</button>
+          <button onclick="exportarExcelStatus()" class="btn-excel btn-sm">📊 Excel</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="dash-table-container">
+          <table>
+            <thead id="aprop-header" class="status-header">
+              <tr>
+                <th>Gestão</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th class="mes-header">Mês 1</th>
+                <th class="mes-header">Mês 2</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dash-apropriacao">
+              <tr><td colspan="6" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="aprop-total-geral" class="total-geral-card theme-status"></div>
+    </div>
+    
+    <!-- ===================== DC CARDS + CONSUMO DC ===================== -->
+    <div id="tab-dcs" class="tab-content space-y-4">
+      <div>
+        <h2 class="text-xl font-bold" style="color:var(--text)">📋 DC's</h2>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p>
+      </div>
+      <div class="filters-bar-grid">
+        <div class="filter-group">
+          <label class="filter-label">DC</label>
+          <input type="text" id="filt-dcs-dc" placeholder="Filtrar..." oninput="filtrarDCCards()" class="input">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <select id="filt-dcs-status" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-dcs-projeto" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Gestor</label>
+          <select id="filt-dcs-gestor" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="filtrarDCCards()" class="btn-primary btn-sm">Filtrar</button>
+        </div>
+      </div>
+      <div class="dc-cards-grid" id="dc-cards-container">
+        <div class="p-4 text-center" style="color:var(--text-soft)">Carregando DC's...</div>
+      </div>
+      <div id="dc-cards-pagination"></div>
 
-                html += `
-                        </div>
-                    </div>
-                `;
-            }
-        });
+      <!-- ========== CONSUMO DC (dentro de DC's) ========== -->
+      <div class="mt-4">
+        <h3 class="text-md font-bold mb-2" style="color:var(--text)">Cadastro de Consumo DC</h3>
+        <div class="card card-pad">
+          <form id="form-consumo" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <input type="hidden" id="consumo-edit-id" value="">
 
-        if (hasVisibleItems) {
-            container.innerHTML = `
-                <div class="nav-section-label">Menu</div>
-                ${html}
-            `;
-        } else {
-            container.innerHTML = '<div class="nav-section-label">Sem acesso</div>';
-        }
-    }
+            <div><label class="label">DC *</label><input type="text" id="dc-numero" required placeholder="Número" class="input"></div>
+            <div><label class="label">Pedido</label><input type="text" id="dc-pedido" placeholder="Número" class="input"></div>
+            <div><label class="label">Projeto *</label><select id="dc-projeto" required class="input" onchange="carregarGestoresPorProjeto()"><option value="">Selecione...</option></select></div>
+            <div><label class="label">Gestor *</label><select id="dc-gestor" required class="input"><option value="">Selecione...</option></select></div>
 
-    const desktopItems = menuItems.filter(item => {
-        if (!permissoes || permissoes.length === 0 || permissoes.includes('*')) return true;
-        if (item.type === 'link') return permissoes.includes(item.area);
-        if (item.type === 'flyout') return item.children.some(child => permissoes.includes(child.area));
-        return false;
-    });
+            <div><label class="label">Tipo Medição *</label><select id="dc-tipo-medicao" required class="input"><option value="">Selecione...</option><option value="PA">PA - Parcial</option><option value="FI">FI - Final</option></select></div>
+            <div><label class="label">Diretor Cliente</label><select id="dc-diretor" class="input"><option value="">Selecione...</option></select></div>
+            <div><label class="label">Empresa *</label><select id="dc-empresa" required class="input"><option value="">Selecione...</option></select></div>
+            <div><label class="label">Mês Apropriação *</label><select id="dc-mes-apropriacao" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
 
-    buildMenuHTML(desktopNav, desktopItems, false);
-    buildMenuHTML(mobileNav, desktopItems, true);
+            <div><label class="label">Ano *</label><input type="number" id="dc-ano" value="2026" required class="input"></div>
+            <div><label class="label">Valor (R$) *</label><input type="text" id="dc-valor" required placeholder="0,00" class="input money-input"></div>
+            <div><label class="label">Mês Medido *</label><select id="dc-mes-medido" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
+            <div><label class="label">Data Solicitação *</label><input type="text" id="dc-data-solicitacao" required placeholder="dd/mm/aaaa" class="input date-input"></div>
 
-    // Reativa os flyouts (hover/click) para o menu recém-gerado
-    initFlyouts();
-}
+            <div><label class="label">FR</label><input type="text" id="dc-fr" placeholder="Nº Folha" class="input"></div>
+            <div><label class="label">Status DC *</label><select id="dc-status-dc" required class="input"><option value="">Selecione...</option></select></div>
+            <div><label class="label">Status NF *</label><select id="dc-status-nf" required onchange="controlarCamposNF()" class="input"><option value="">Selecione...</option></select></div>
+            <div><label class="label">Nº NF</label><input type="text" id="dc-num-nf" disabled placeholder="Obrigatório se emitida" class="input"></div>
 
-// =====================================================
-// MAPA DE ABAS -> ÁREA DE PERMISSÃO
-// =====================================================
-const AREA_MAP = {
-    'dash-don': 'dash-don',
-    'dash-apropriacao': 'dash-apropriacao',
-    'dcs': 'dcs',
-    'historico-consumo-dcs': 'consumos',
-    'medicoes': 'medicoes',
-    'adm-user': 'adm-user',
-    'adm-empresa': 'adm-cliente',
-    'adm-diretor': 'adm-cliente',
-    'adm-contrato': 'adm-cliente',
-    'adm-projeto': 'adm-logictel',
-    'adm-gestor': 'adm-logictel',
-    'adm-status-dc': 'adm-status',
-    'adm-status-med': 'adm-status',
-    'adm-status-nf': 'adm-status'
-};
+            <div><label class="label">Data Emissão NF</label><input type="text" id="dc-data-nf" disabled placeholder="dd/mm/aaaa" class="input date-input"></div>
+            <div><label class="label">Centro de Custo</label><input type="text" id="dc-centro-custo" placeholder="Centro" class="input"></div>
+            <div><label class="label">Item</label><input type="text" id="dc-item" placeholder="Item" class="input"></div>
+            <div><label class="label">PO</label><input type="text" id="dc-po" placeholder="PO" class="input"></div>
 
-// Ordem de prioridade usada para decidir em qual aba cair logo após o login
-const ORDEM_ABAS_PADRAO = Object.keys(AREA_MAP);
+            <div class="md:col-span-4 flex justify-end pt-2 gap-2">
+              <button type="button" onclick="cancelarEdicao('consumo')" class="btn-cancel btn-sm" style="display:none;" id="consumo-cancel-btn">Cancelar</button>
+              <button type="submit" class="btn-primary btn-sm">Salvar Consumo</button>
+            </div>
+          </form>
+        </div>
+        <p class="text-xs mt-1" style="color:var(--text-muted)">📌 A listagem completa e o histórico de consumos estão na aba <strong>Histórico Consumo das DCs</strong>.</p>
+      </div>
+    </div>
 
-// =====================================================
-// NAVEGAÇÃO ENTRE ABAS
-// =====================================================
-export function mudarAba(nomeAba) {
-    const area = AREA_MAP[nomeAba] || nomeAba;
-    if (!temPermissao(area)) {
-        alert('Você não tem permissão para acessar esta área.');
-        return;
-    }
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.js-nav').forEach(el => el.classList.remove('is-active'));
-    const target = document.getElementById('tab-' + nomeAba);
-    if (target) target.classList.add('active');
-    const btnAtivo = document.getElementById('btn-' + nomeAba);
-    if (btnAtivo) btnAtivo.classList.add('is-active');
-    const btnMobile = document.getElementById('btn-' + nomeAba + '-mobile');
-    if (btnMobile) btnMobile.classList.add('is-active');
-    carregarDadosAba(nomeAba);
-}
+    <!-- ===================== MEDIÇÕES + HISTÓRICO DE MEDIÇÕES ===================== -->
+    <div id="tab-medicoes" class="tab-content space-y-4">
+      <div>
+        <h2 class="text-xl font-bold" style="color:var(--text)">📊 Medições</h2>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted)">Cadastro e histórico de medições.</p>
+      </div>
 
-export function carregarDadosAba(nomeAba) {
-    if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
-    else if (nomeAba === 'dash-don') carregarDashDON();
-    else if (nomeAba === 'dcs') { 
-        carregarDCCards(); 
-        carregarFiltroStatus();
-        carregarStatusDCCustom();
-        carregarSelectStatus('dc-status-nf', 'status_nf');
-        carregarSelectGestores('dc-gestor', 'gestores_logictel');
-        carregarSelectDiretores('dc-diretor');
-        carregarSelectEmpresas('dc-empresa');
-        carregarSelectProjetos('dc-projeto');
-    }
-    else if (nomeAba === 'historico-consumo-dcs') {
-        carregarConsumos();
-        carregarSelectProjetos('filt-consumo-projeto');
-        carregarSelectDiretores('filt-consumo-diretor');
-        carregarStatusDCCustom('filt-consumo-status-dc');
-        carregarSelectStatus('filt-consumo-status-nf', 'status_nf');
-    }
-    else if (nomeAba === 'medicoes') {
-        carregarMedicoes();
-        carregarSelectProjetos('filt-med-projeto');
-        carregarSelectDiretores('filt-med-diretor');
-        carregarSelectProjetos('med-projeto');
-        carregarSelectDiretores('med-diretor');
-        carregarSelectGestores('med-gestor', 'gestores_logictel');
-        carregarSelectStatus('med-status', 'status_medicao');
-    }
-    else if (nomeAba === 'adm-user') carregarUsuarios();
-    else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
-    else if (nomeAba === 'adm-diretor') { carregarDiretores(); carregarSelectEmpresas('diretor-empresa'); }
-    else if (nomeAba === 'adm-contrato') { carregarContratos(); carregarSelectEmpresas('contrato-empresa'); carregarSelectDiretores('contrato-diretor'); }
-    else if (nomeAba === 'adm-projeto') { carregarProjetos(); carregarSelectProjetos('gestor-projeto'); }
-    else if (nomeAba === 'adm-gestor') { carregarGestoresLogictel(); carregarSelectProjetos('gestor-projeto'); }
-    else if (nomeAba === 'adm-status-dc') carregarStatusDC();
-    else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
-    else if (nomeAba === 'adm-status-nf') carregarStatusNF();
-}
+      <!-- Cadastro de Medição -->
+      <div class="card card-pad">
+        <h3 class="text-md font-bold mb-2" style="color:var(--text)">Cadastro de Medição</h3>
+        <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input type="hidden" id="med-edit-id" value="">
+          
+          <div><label class="label">Projeto *</label><select id="med-projeto" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Gestor Logictel *</label><select id="med-gestor" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
+          <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
+          
+          <div><label class="label">Valor DON *</label><input type="text" id="med-valor-don" required placeholder="0,00" class="input money-input"></div>
+          <div><label class="label">Valor Status *</label><input type="text" id="med-valor-status" required placeholder="0,00" class="input money-input"></div>
+          <div><label class="label">Data E-mail</label><input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input"></div>
+          
+          <div><label class="label">Status Medição *</label><select id="med-status" required class="input"><option value="">Selecione...</option></select></div>
+          
+          <div class="md:col-span-3">
+            <label class="label">Observação</label>
+            <textarea id="med-observacao" rows="2" placeholder="Observações sobre a medição..." class="input"></textarea>
+          </div>
+          
+          <div class="md:col-span-3 flex justify-end pt-2 gap-2">
+            <button type="button" onclick="cancelarEdicao('med')" class="btn-cancel btn-sm" style="display:none;" id="med-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm">Salvar Medição</button>
+          </div>
+        </form>
+      </div>
 
-// =====================================================
-// PRIMEIRA ABA ACESSÍVEL
-// =====================================================
-export function irParaPrimeiraAbaAcessivel() {
-    for (const nomeAba of ORDEM_ABAS_PADRAO) {
-        const area = AREA_MAP[nomeAba];
-        if (temPermissao(area)) {
-            mudarAba(nomeAba);
-            return;
-        }
-    }
-}
+      <!-- Histórico de Medições -->
+      <div>
+        <h3 class="text-md font-bold mb-2" style="color:var(--text)">📋 Histórico de Medições</h3>
+        <div class="filters-bar-grid">
+          <div class="filter-group">
+            <label class="filter-label">Projeto</label>
+            <select id="filt-med-projeto" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Diretor</label>
+            <select id="filt-med-diretor" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Mês</label>
+            <select id="filt-med-mes" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
+          </div>
+          <div class="filter-group filter-actions">
+            <button onclick="filtrarMedicoes()" class="btn-primary btn-sm">Filtrar</button>
+            <button onclick="limparFiltrosMedicoes()" class="btn-clear-filters btn-sm">Limpar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table-compact">
+              <thead><tr class="th-row">
+                <th>ID</th>
+                <th>Projeto</th>
+                <th>Gestor</th>
+                <th>Diretor</th>
+                <th>Mês</th>
+                <th>Ano</th>
+                <th class="text-right">DON</th>
+                <th class="text-right">Status</th>
+                <th>Status</th>
+                <th class="text-right">Ações</th>
+              </tr></thead>
+              <tbody id="tabela-medicoes"><tr><td colspan="10" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+          <div id="medicoes-pagination"></div>
+        </div>
+      </div>
+    </div>
 
-// =====================================================
-// CARREGAR TODAS AS LISTAS
-// =====================================================
-export function carregarTodasListas() {
-    carregarMedicoes();
-    carregarConsumos();
-    carregarUsuarios();
-    carregarEmpresas();
-    carregarDiretores();
-    carregarContratos();
-    carregarProjetos();
-    carregarGestoresLogictel();
-    carregarStatusDC();
-    carregarStatusMed();
-    carregarStatusNF();
-    carregarSelectEmpresas('contrato-empresa');
-    carregarSelectEmpresas('projeto-empresa');
-    carregarSelectEmpresas('diretor-empresa');
-    carregarSelectEmpresas('dc-empresa');
-    carregarSelectEmpresas('med-empresa');
-    carregarSelectDiretores('contrato-diretor');
-    carregarSelectDiretores('projeto-diretor');
-    carregarSelectDiretores('dc-diretor');
-    carregarSelectDiretores('med-diretor');
-    carregarSelectContratos('projeto-contrato');
-    carregarSelectProjetos('dc-projeto');
-    carregarSelectProjetos('med-projeto');
-    carregarSelectProjetos('gestor-projeto');
-    carregarSelectStatus('dc-status-dc', 'status_dc');
-    carregarSelectStatus('dc-status-nf', 'status_nf');
-    carregarSelectStatus('med-status', 'status_medicao');
-    carregarSelectGestores('dc-gestor', 'gestores_logictel');
-    carregarSelectGestores('med-gestor', 'gestores_logictel');
-    carregarFiltros();
-    carregarDCCards();
-    carregarStatusDCCustom();
-    carregarFiltroStatus();
-    carregarSelectProjetos('filt-med-projeto');
-    carregarSelectDiretores('filt-med-diretor');
-    carregarSelectProjetos('filt-consumo-projeto');
-    carregarSelectDiretores('filt-consumo-diretor');
-    carregarStatusDCCustom('filt-consumo-status-dc');
-    carregarSelectStatus('filt-consumo-status-nf', 'status_nf');
-}
+    <!-- ===================== HISTÓRICO CONSUMO DC ===================== -->
+    <div id="tab-historico-consumo-dcs" class="tab-content space-y-4">
+      <div>
+        <h2 class="text-xl font-bold" style="color:var(--text)">📋 Histórico de Consumo das DCs</h2>
+        <p class="text-xs mt-0.5" style="color:var(--text-muted)">Listagem completa de todos os lançamentos de consumo de DC.</p>
+      </div>
 
-// =====================================================
-// CANCELAR EDIÇÃO
-// =====================================================
-export function cancelarEdicao(tipo) {
-    const prefixos = {
-        'med': 'med',
-        'consumo': 'consumo',
-        'user': 'user',
-        'empresa': 'empresa',
-        'diretor': 'diretor',
-        'contrato': 'contrato',
-        'projeto': 'projeto',
-        'gestor': 'gestor',
-        'statusdc': 'statusdc',
-        'statusmed': 'statusmed',
-        'statusnf': 'statusnf'
-    };
-    const prefixo = prefixos[tipo] || tipo;
-    document.getElementById(prefixo + '-edit-id').value = '';
-    const form = document.getElementById('form-' + prefixo);
-    if (form) form.reset();
-    const cancelBtn = document.getElementById(prefixo + '-cancel-btn');
-    if (cancelBtn) cancelBtn.style.display = 'none';
-    if (tipo === 'user') {
-        setPermissoes([]);
-        document.getElementById('user-submit-btn').disabled = true;
-    }
-    document.getElementById('campos-extras-consumo').classList.remove('visible');
-    aplicarMascaras();
-    carregarTodasListas();
-}
+      <div class="filters-bar-grid">
+        <div class="filter-group">
+          <label class="filter-label">DC</label>
+          <input type="text" id="filt-consumo-dc" placeholder="Filtrar DC..." oninput="filtrarConsumos()" class="input" list="dclist-consumo">
+          <datalist id="dclist-consumo"></datalist>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Pedido</label>
+          <input type="text" id="filt-consumo-pedido" placeholder="Filtrar Pedido..." oninput="filtrarConsumos()" class="input" list="pedidolist-consumo">
+          <datalist id="pedidolist-consumo"></datalist>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-consumo-projeto" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Diretor</label>
+          <select id="filt-consumo-diretor" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status DC</label>
+          <select id="filt-consumo-status-dc" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status NF</label>
+          <select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="filtrarConsumos()" class="btn-primary btn-sm">Filtrar</button>
+          <button onclick="limparFiltrosConsumo()" class="btn-clear-filters btn-sm">Limpar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row">
+              <th>ID</th><th>DC</th><th>Pedido</th><th>Projeto</th><th>Gestor</th><th>Tipo</th>
+              <th>Diretor</th><th>Mês Aprop.</th><th>Ano</th><th>Mês Medido</th>
+              <th>Status DC</th><th>Status NF</th><th class="text-right">Valor</th><th class="text-right">Ações</th>
+            </tr></thead>
+            <tbody id="tabela-consumos"><tr><td colspan="14" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="consumo-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ===================== CADASTRO USUÁRIO ===================== -->
+    <div id="tab-adm-user" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Usuário</h2>
+      <div class="card card-pad">
+        <form id="form-usuario" class="space-y-4">
+          <input type="hidden" id="user-edit-id" value="">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div><label class="label">Usuário *</label><input type="text" id="user-nome" required placeholder="Nome do usuário" class="input"></div>
+            <div>
+              <label class="label">Senha *</label>
+              <div class="flex flex-col gap-2">
+                <div class="flex gap-2">
+                  <input type="text" id="user-senha" required placeholder="Senha" class="input" oninput="validarSenha()">
+                  <button type="button" onclick="gerarSenhaForte()" class="btn-generate btn-sm">Gerar</button>
+                </div>
+                <div class="password-strength" id="senha-criterios">
+                  <span class="criteria unmet" id="criterio-tamanho"><span class="check">✕</span> 8 caracteres</span>
+                  <span class="criteria unmet" id="criterio-maiuscula"><span class="check">✕</span> 1 maiúscula</span>
+                  <span class="criteria unmet" id="criterio-minuscula"><span class="check">✕</span> 1 minúscula</span>
+                  <span class="criteria unmet" id="criterio-numero"><span class="check">✕</span> 1 número</span>
+                  <span class="criteria unmet" id="criterio-especial"><span class="check">✕</span> 1 caractere especial</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-end gap-2">
+              <button type="button" onclick="cancelarEdicao('user')" class="btn-cancel btn-sm" style="display:none;" id="user-cancel-btn">Cancelar</button>
+              <button type="submit" class="btn-primary btn-sm w-full" id="user-submit-btn" disabled>Salvar</button>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <label class="label" style="font-size:12px; color:var(--text);">Permissões de Acesso</label>
+            <p class="text-xs text-muted mb-2" style="color:var(--text-soft);">Selecione as áreas que este usuário terá acesso</p>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Status</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="dcs" class="permission-check"><span>DC's</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label>
+              <label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Usuário</th><th>Senha</th><th>Permissões</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-usuarios"><tr><td colspan="5" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CLIENTE: EMPRESA ===================== -->
+    <div id="tab-adm-empresa" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Empresa</h2>
+      <div class="card card-pad">
+        <form id="form-empresa" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="empresa-edit-id" value="">
+          <div><label class="label">Nome da Empresa *</label><input type="text" id="empresa-nome" required placeholder="Nome da empresa" class="input"></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('empresa')" class="btn-cancel btn-sm" style="display:none;" id="empresa-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-empresas"><tr><td colspan="3" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CLIENTE: DIRETOR ===================== -->
+    <div id="tab-adm-diretor" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Diretor Cliente</h2>
+      <div class="card card-pad">
+        <form id="form-diretor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="diretor-edit-id" value="">
+          <div><label class="label">Nome do Diretor *</label><input type="text" id="diretor-nome" required placeholder="Nome do diretor" class="input"></div>
+          <div><label class="label">Empresa *</label><select id="diretor-empresa" required class="input"><option value="">Selecione...</option></select></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('diretor')" class="btn-cancel btn-sm" style="display:none;" id="diretor-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Diretor</th><th>Empresa</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-diretores"><tr><td colspan="4" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CLIENTE: CONTRATO ===================== -->
+    <div id="tab-adm-contrato" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Contrato</h2>
+      <div class="card card-pad">
+        <form id="form-contrato" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input type="hidden" id="contrato-edit-id" value="">
+          <div><label class="label">Número *</label><input type="text" id="contrato-numero" required placeholder="Número do contrato" class="input"></div>
+          <div><label class="label">Empresa *</label><select id="contrato-empresa" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Diretor *</label><select id="contrato-diretor" required class="input"><option value="">Selecione...</option></select></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('contrato')" class="btn-cancel btn-sm" style="display:none;" id="contrato-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Contrato</th><th>Empresa</th><th>Diretor</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-contratos"><tr><td colspan="5" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== LOGICTEL: PROJETO ===================== -->
+    <div id="tab-adm-projeto" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
+      <div class="card card-pad">
+        <form id="form-projeto" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="projeto-edit-id" value="">
+          <div><label class="label">Nome do Projeto *</label><input type="text" id="projeto-nome" required placeholder="Ex: 306, 340" class="input"></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('projeto')" class="btn-cancel btn-sm" style="display:none;" id="projeto-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-projetos"><tr><td colspan="3" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== LOGICTEL: GESTOR ===================== -->
+    <div id="tab-adm-gestor" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Gestor Logictel</h2>
+      <div class="card card-pad">
+        <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="gestor-edit-id" value="">
+          <div><label class="label">Nome do Gestor *</label><input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input"></div>
+          <div><label class="label">Projeto *</label><select id="gestor-projeto" required class="input"><option value="">Selecione...</option></select></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel btn-sm" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Gestor</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-gestores"><tr><td colspan="4" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== STATUS ===================== -->
+    <div id="tab-adm-status-dc" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Status DC</h2>
+      <div class="card card-pad">
+        <form id="form-status-dc" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="statusdc-edit-id" value="">
+          <div><label class="label">Código *</label><input type="text" id="statusdc-codigo" required placeholder="Ex: ZE" class="input" style="text-transform:uppercase;"></div>
+          <div><label class="label">Nome *</label><input type="text" id="statusdc-nome" required placeholder="Nome do status" class="input"></div>
+          <div><label class="label">Motivo</label><textarea id="statusdc-motivo" rows="2" placeholder="Motivo do status" class="input"></textarea></div>
+          <div><label class="label">Responsável</label><select id="statusdc-responsavel" class="input"><option value="Logictel">Logictel</option><option value="V.tal">V.tal</option></select></div>
+          <div><label class="label">Cor</label><input type="color" id="statusdc-cor" value="#3498DB" class="input" style="height:38px;"></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('statusdc')" class="btn-cancel btn-sm" style="display:none;" id="statusdc-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Código</th><th>Nome</th><th>Motivo</th><th>Responsável</th><th>Cor</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-statusdc"><tr><td colspan="7" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-adm-status-med" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Status Medição</h2>
+      <div class="card card-pad">
+        <form id="form-status-med" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="statusmed-edit-id" value="">
+          <div><label class="label">Nome do Status *</label><input type="text" id="statusmed-nome" required placeholder="Ex: Pendente" class="input"></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('statusmed')" class="btn-cancel btn-sm" style="display:none;" id="statusmed-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Status</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-statusmed"><tr><td colspan="3" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-adm-status-nf" class="tab-content space-y-4">
+      <h2 class="text-xl font-bold" style="color:var(--text)">Cadastro de Status NF</h2>
+      <div class="card card-pad">
+        <form id="form-status-nf" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="statusnf-edit-id" value="">
+          <div><label class="label">Nome do Status *</label><input type="text" id="statusnf-nome" required placeholder="Ex: Emitida" class="input"></div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('statusnf')" class="btn-cancel btn-sm" style="display:none;" id="statusnf-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary btn-sm w-full">Salvar</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table-compact">
+            <thead><tr class="th-row"><th>ID</th><th>Status</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-statusnf"><tr><td colspan="3" class="p-4 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script type="module" src="js/main.js?v=20260806"></script>
+</body>
+</html>
