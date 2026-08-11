@@ -1,7 +1,7 @@
 // dccards.js
 import { supabaseClient } from './config.js';
 import { mudarAba } from './navigation.js';
-import { carregarConsumos, editarConsumo } from './consumo.js';
+import { carregarConsumos } from './consumo.js';
 import { paginar, renderizarPaginacao } from './utils.js';
 
 const ITENS_POR_PAGINA_DC = 12;
@@ -40,17 +40,7 @@ export async function carregarDCCards() {
     const filtroGestor = document.getElementById('filt-dcs-gestor')?.value || '';
 
     try {
-        // Buscar consumos com joins para trazer mais informações
-        let query = supabaseClient
-            .from('consumo_dc')
-            .select(`
-                *,
-                projetos(nome),
-                gestores_logictel(nome),
-                diretores(nome),
-                empresas(nome)
-            `);
-
+        let query = supabaseClient.from('consumo_dc').select('*');
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
         if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
 
@@ -70,7 +60,6 @@ export async function carregarDCCards() {
             return;
         }
 
-        // Buscar status DC
         const { data: statusList } = await supabaseClient
             .from('status_dc')
             .select('id, codigo, nome, motivo, responsavel, cor');
@@ -82,7 +71,6 @@ export async function carregarDCCards() {
             });
         }
 
-        // Agrupar por DC (pegar o mais recente de cada DC)
         const dcMap = new Map();
         consumos.forEach(c => {
             const dcNum = c.dc;
@@ -117,38 +105,28 @@ export async function carregarDCCards() {
             const diffTime = Math.abs(hoje - dataAtualizacao);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            // Calcular Aging
             let agingClass = 'verde';
             let agingText = `${diffDays} dia(s)`;
             if (diffDays >= 4 && diffDays <= 6) { agingClass = 'amarelo'; }
             else if (diffDays > 6) { agingClass = 'vermelho'; }
 
-            // Status DC
             const statusInfo = c.status_id ? statusMap[c.status_id] : null;
             const statusNome = statusInfo ? `${statusInfo.codigo} - ${statusInfo.nome}` : (c.status_dc || 'Sem status');
             const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
             const statusResponsavel = statusInfo ? statusInfo.responsavel : (c.responsavel || '');
-            const statusCor = statusInfo ? statusInfo.cor : '#3498DB';
 
             const respClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
             const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
             const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
 
-            // Tipo Medição
             const tipoMedicao = c.tipo_medicao || 'PA';
             const tipoClass = tipoMedicao === 'FI' ? 'final' : '';
 
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-            // Nomes
-            const projetoNome = c.projetos?.nome || c.projeto || 'N/A';
-
-            // Determinar ícone do status baseado no responsável
-            const statusIcon = statusResponsavel === 'V.tal' ? '⚠️' : '✅';
-
             container.innerHTML += `
-                <div class="dc-card" onclick="irParaConsumoCompleto(${c.id})" style="border-left-color: ${borderColor};">
+                <div class="dc-card" onclick="abrirEdicaoConsumo(${c.id})" style="border-left-color: ${borderColor};">
                     <!-- Linha 1: DC + Valor -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <div class="dc-number">DC ${c.dc}</div>
@@ -162,10 +140,10 @@ export async function carregarDCCards() {
                     </div>
                     
                     <!-- Linha 3: Projeto -->
-                    <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${projetoNome}</div>
+                    <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${c.projeto || 'N/A'}</div>
                     
                     <!-- Linha 4: Motivo/Observação -->
-                    <div class="dc-motivo" style="margin-bottom:6px;">${statusIcon} ${statusMotivo || 'Sem observação'}</div>
+                    <div class="dc-motivo" style="margin-bottom:6px;">${statusResponsavel === 'V.tal' ? '⚠️' : '✅'} ${statusMotivo || 'Sem observação'}</div>
                     
                     <!-- Linha 5: Data + Aging (alinhados) -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
@@ -189,14 +167,25 @@ export async function carregarDCCards() {
     }
 }
 
-// Função para abrir a edição completa do consumo
-export async function irParaConsumoCompleto(id) {
-    // Primeiro, mudar para a aba de cadastro de consumo
+// Função que mantém o comportamento original (apenas preenche o campo DC)
+export function irParaConsumo(dc) {
     mudarAba('cad-consumo');
-    
-    // Aguardar um pequeno delay para a aba carregar
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Chamar a função de edição com o ID do consumo
-    await editarConsumo(id);
+    document.getElementById('dc-numero').value = dc;
+    carregarConsumos();
 }
+
+// Função para abrir a edição completa do consumo
+window.abrirEdicaoConsumo = function(id) {
+    // Verificar se a função editarConsumo está disponível no window
+    if (typeof window.editarConsumo === 'function') {
+        // Mudar para a aba de cadastro de consumo
+        window.mudarAba('cad-consumo');
+        // Aguardar um pequeno delay para a aba carregar
+        setTimeout(function() {
+            window.editarConsumo(id);
+        }, 200);
+    } else {
+        console.error('Função editarConsumo não encontrada');
+        alert('Erro ao carregar os dados para edição. Tente novamente.');
+    }
+};
