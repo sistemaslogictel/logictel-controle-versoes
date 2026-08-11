@@ -347,33 +347,35 @@ function formatarDataLimiteTopbar(data, label) {
     
     const diffDias = Math.floor((dataLimite - hoje) / (1000 * 60 * 60 * 24));
     
-    const diaSemana = dataLimite.getDay();
-    const inicioSemana = new Date(dataLimite);
-    inicioSemana.setDate(dataLimite.getDate() - diaSemana + 1);
-    const diffInicioSemana = Math.floor((inicioSemana - hoje) / (1000 * 60 * 60 * 24));
-    
     const dia = String(dataLimite.getDate()).padStart(2, '0');
     const mes = String(dataLimite.getMonth() + 1).padStart(2, '0');
     const ano = dataLimite.getFullYear();
     const dataStr = `${dia}/${mes}/${ano}`;
+    
+    // NOVA LÓGICA DE CORES:
+    // - Amarela: 7 dias antes (diffDias <= 7 e diffDias > 3)
+    // - Vermelha: 3 dias antes (diffDias <= 3 e diffDias > 0)
+    // - Preta piscando: No dia (diffDias === 0)
+    // - Sem cor: Passou ou mais de 7 dias
     
     // Passou da data limite
     if (diffDias < 0) {
         return `<span style="color:var(--text-soft);">${label}: ${dataStr}</span>`;
     }
     
-    // No dia (diffDias === 0)
+    // No dia (diffDias === 0) - PRETO PISCANDO
     if (diffDias === 0) {
         return `<span class="piscando" style="background:#000;color:#fff;font-weight:bold;padding:2px 8px;border-radius:4px;">${label}: ${dataStr}</span>`;
     }
-    // Três dias antes (diffDias <= 3)
+    // Três dias antes (diffDias <= 3) - VERMELHO
     else if (diffDias <= 3) {
         return `<span class="vermelho" style="background:#FF0000;color:#fff;font-weight:bold;padding:2px 8px;border-radius:4px;">${label}: ${dataStr}</span>`;
     }
-    // Na semana da data (iniciando na segunda)
-    else if (diffInicioSemana >= 0 && diffInicioSemana <= 6) {
+    // Sete dias antes (diffDias <= 7) - AMARELO
+    else if (diffDias <= 7) {
         return `<span class="amarelo" style="background:#FFD700;color:#000;padding:2px 8px;border-radius:4px;">${label}: ${dataStr}</span>`;
     }
     
+    // Mais de 7 dias - SEM COR
     return `<span style="color:var(--text-soft);">${label}: ${dataStr}</span>`;
 }

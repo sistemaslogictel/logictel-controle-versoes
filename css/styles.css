@@ -1788,45 +1788,57 @@ nav.sidenav{
 }
 
 /* =====================================================
-   LEGENDA DATAS LIMITES
+   LEGENDA DATAS LIMITES - VERSÃO MENOR
    ===================================================== */
 .legenda-datas {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
-    font-size: 10.8px;
+    font-size: 9.9px;
     color: var(--text-muted);
 }
 
-.legenda-item {
+.legenda-datas .legenda-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 
-.legenda-cor {
+.legenda-datas .legenda-cor {
     display: inline-block;
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
     border: 1px solid rgba(0,0,0,0.1);
     flex-shrink: 0;
 }
 
-.legenda-cor.amarelo {
+.legenda-datas .legenda-cor.amarelo {
     background: #FFD700;
 }
 
-.legenda-cor.vermelho {
+.legenda-datas .legenda-cor.vermelho {
     background: #FF0000;
 }
 
-.legenda-cor.preto {
+.legenda-datas .legenda-cor.preto {
     background: #000000;
 }
 
-.legenda-cor.piscando-demo {
+.legenda-datas .legenda-cor.piscando-demo {
     background: #000000;
     animation: piscar 0.8s ease-in-out infinite;
+}
+
+/* Redimensionar a legenda para ser 20% menor */
+.legenda-datas {
+    font-size: 9.9px;
+    padding: 6px 12px;
+    gap: 10px;
+}
+
+.legenda-datas .legenda-cor {
+    width: 12px;
+    height: 12px;
 }

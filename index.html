@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.16.3 - Controle de Medições e DCs - Logictel</title>
+<title>V.16.4 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -88,6 +88,20 @@
           <button onclick="fazerLogout()" class="logout-btn">Sair</button>
         </div>
       </div>
+    </div>
+
+    <!-- ===================== LEGENDA GLOBAL ===================== -->
+    <div class="legenda-global" style="display:flex; align-items:center; gap:16px; padding:6px 12px; background:var(--paper); border:1px solid var(--border); border-radius:8px; margin-bottom:16px; flex-wrap:wrap; font-size:9.9px; color:var(--text-muted);">
+      <span style="font-weight:600;color:var(--text);">📌 Legenda:</span>
+      <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;"></span> 7 dias antes
+      </span>
+      <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FF0000;"></span> 3 dias antes
+      </span>
+      <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#000;border:1px solid #666;animation:piscar 0.8s ease-in-out infinite;"></span> Dia (piscando)
+      </span>
     </div>
 
     <!-- ===================== DASHBOARD DON ===================== -->
@@ -825,12 +839,18 @@
       <p class="text-sm mt-0.5" style="color:var(--text-muted)">Defina as datas limites para emissão de FR e NF por mês/ano.</p>
       
       <!-- LEGENDA DE CORES -->
-      <div class="card card-pad" style="padding:12px 20px; background:var(--paper); border:1px solid var(--border);">
-        <div class="flex items-center gap-6 flex-wrap text-xs" style="color:var(--text-muted);">
+      <div class="card card-pad" style="padding:6px 12px; background:var(--paper); border:1px solid var(--border);">
+        <div class="legenda-datas" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; font-size:9.9px; color:var(--text-muted);">
           <span style="font-weight:600;color:var(--text);">📌 Legenda:</span>
-          <span><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;vertical-align:middle;margin-right:4px;"></span> Na semana da data (segunda a domingo)</span>
-          <span><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:#FF0000;vertical-align:middle;margin-right:4px;"></span> 3 dias antes</span>
-          <span><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:#000;border:1px solid #666;vertical-align:middle;margin-right:4px;"></span> <span style="color:#000;background:#fff;padding:0 4px;border-radius:2px;">Dia</span> (piscando)</span>
+          <span style="display:flex; align-items:center; gap:4px;">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;"></span> 7 dias antes
+          </span>
+          <span style="display:flex; align-items:center; gap:4px;">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FF0000;"></span> 3 dias antes
+          </span>
+          <span style="display:flex; align-items:center; gap:4px;">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#000;border:1px solid #666;animation:piscar 0.8s ease-in-out infinite;"></span> Dia (piscando)
+          </span>
         </div>
       </div>
 
