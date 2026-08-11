@@ -388,7 +388,7 @@ nav.sidenav{
   letter-spacing:0.06em;
   text-transform:uppercase;
   font-weight:600;
-  padding:10px 14px;
+  padding:8px 10px;
   text-align:left;
   position:sticky;
   top:0;
@@ -396,9 +396,9 @@ nav.sidenav{
   white-space:nowrap;
 }
 .td-row td{
-  padding:10px 14px;
+  padding:8px 10px;
   border-bottom:1px solid var(--border);
-  font-size:13px;
+  font-size:12px;
 }
 .td-row:last-child td{ border-bottom:none; }
 .td-row:hover{ background:var(--paper); }
@@ -553,9 +553,9 @@ nav.sidenav{
   background:var(--danger);
   color:#fff;
   font-weight:600;
-  font-size:12px;
-  padding:6px 12px;
-  border-radius:6px;
+  font-size:10px;
+  padding:4px 8px;
+  border-radius:4px;
   border:1px solid #8B1A1A;
   transition:all .15s ease;
 }
@@ -565,9 +565,9 @@ nav.sidenav{
   background:var(--primary);
   color:#fff;
   font-weight:600;
-  font-size:12px;
-  padding:6px 12px;
-  border-radius:6px;
+  font-size:10px;
+  padding:4px 8px;
+  border-radius:4px;
   border:1px solid var(--primary-dark);
   transition:all .15s ease;
 }
@@ -625,9 +625,9 @@ nav.sidenav{
   background:#217346;
   color:#fff;
   font-weight:600;
-  font-size:12px;
-  padding:6px 12px;
-  border-radius:6px;
+  font-size:10px;
+  padding:4px 8px;
+  border-radius:4px;
   border:1px solid #1a5c38;
   transition:all .15s ease;
 }
@@ -640,7 +640,7 @@ nav.sidenav{
 .tab-content.active{ display:block; animation:fadeIn .22s cubic-bezier(.16,1,.3,1); }
 @keyframes fadeIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:translateY(0);} }
 
-.table-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+.table-actions{ display:flex; gap:4px; flex-wrap:wrap; }
 .permissions-badge{
   display:inline-block;
   font-size:10px;
@@ -1107,8 +1107,8 @@ nav.sidenav{
   .topbar .flex.items-center{ flex-wrap:wrap; }
   .stat-value{ font-size:18px; }
   .card-pad{ padding:16px; }
-  .td-row td{ padding:10px 12px; font-size:12px; }
-  .th-row th{ padding:10px 12px; font-size:9px; }
+  .td-row td{ padding:8px 8px; font-size:11px; }
+  .th-row th{ padding:8px 8px; font-size:9px; }
   .flyout{ left:0; top:100%; min-width:200px; margin-left:0; margin-top:2px; max-height:300px; min-height:auto; }
   .flyout-wrap{ position:static; }
   .checkbox-group{ grid-template-columns:1fr 1fr; }
@@ -1125,7 +1125,7 @@ nav.sidenav{
 }
 @media (max-width: 480px){
   .flyout{ position:fixed; left:auto; right:8px; top:auto; min-width:180px; max-width:220px; max-height:250px; }
-  .table-actions{ flex-direction:column; }
+  .table-actions{ flex-direction:column; gap:2px; }
   .checkbox-group{ grid-template-columns:1fr; }
   .login-card{ padding:20px 16px; }
   .login-logo img{ height:56px; }
@@ -1307,4 +1307,238 @@ nav.sidenav{
 .btn-page:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* =====================================================
+   TABELA HISTÓRICO CONSUMO DAS DCS - ESTILO COMPACTO
+   ===================================================== */
+.historico-table-container {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.historico-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  min-width: 600px;
+}
+
+/* Cabeçalho compacto */
+.historico-table-container thead th {
+  background: var(--paper) !important;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  padding: 6px 8px !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  border-bottom: 2px solid var(--border);
+}
+
+/* Coluna DC fixa */
+.historico-table-container .coluna-sticky {
+  position: sticky;
+  z-index: 5;
+  background: var(--surface);
+}
+
+.historico-table-container .coluna-sticky-first {
+  left: 0;
+  z-index: 6;
+}
+
+/* Células do corpo */
+.historico-table-container tbody td {
+  padding: 5px 8px !important;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  vertical-align: middle;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historico-table-container tbody tr:hover {
+  background: var(--paper);
+}
+
+.historico-table-container tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Coluna de valor */
+.historico-table-container .coluna-valor {
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* Coluna de ações */
+.historico-table-container .coluna-acoes {
+  text-align: right;
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+.historico-table-container .coluna-acoes .btn-edit,
+.historico-table-container .coluna-acoes .btn-danger,
+.historico-table-container .coluna-acoes .btn-excel {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.historico-table-container .coluna-acoes .btn-edit {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.historico-table-container .coluna-acoes .btn-edit:hover {
+  background: var(--primary-dark);
+}
+
+.historico-table-container .coluna-acoes .btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.historico-table-container .coluna-acoes .btn-danger:hover {
+  background: #8B1A1A;
+}
+
+.historico-table-container .coluna-acoes .btn-excel {
+  background: #217346;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.historico-table-container .coluna-acoes .btn-excel:hover {
+  background: #1a5c38;
+}
+
+/* Badge de status */
+.status-badge-compact {
+  display: inline-block;
+  font-size: 8px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge-compact.logictel {
+  background: var(--primary-100);
+  color: var(--logictel-color);
+}
+
+.status-badge-compact.vtal {
+  background: var(--gold-bg);
+  color: var(--vtal-color);
+}
+
+.status-badge-compact.dc-status {
+  background: var(--paper);
+  color: var(--text-muted);
+}
+
+/* Tipo de medição */
+.historico-table-container .tipo-badge {
+  display: inline-block;
+  font-size: 8px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.historico-table-container .tipo-badge.pa {
+  background: var(--primary-100);
+  color: var(--primary);
+}
+
+.historico-table-container .tipo-badge.fi {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .historico-table-container table {
+    font-size: 10px;
+    min-width: 500px;
+  }
+  .historico-table-container thead th {
+    font-size: 8px !important;
+    padding: 4px 6px !important;
+  }
+  .historico-table-container tbody td {
+    padding: 4px 6px !important;
+    font-size: 9px;
+    max-width: 80px;
+  }
+  .historico-table-container .coluna-valor {
+    font-size: 9px;
+  }
+  .historico-table-container .coluna-acoes {
+    min-width: 60px;
+  }
+  .historico-table-container .coluna-acoes .btn-edit,
+  .historico-table-container .coluna-acoes .btn-danger,
+  .historico-table-container .coluna-acoes .btn-excel {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+  .historico-table-container .coluna-sticky {
+    background: var(--surface);
+  }
+  .historico-table-container .coluna-sticky-first {
+    left: 0;
+    z-index: 6;
+  }
+}
+
+@media (max-width: 480px) {
+  .historico-table-container table {
+    font-size: 9px;
+    min-width: 400px;
+  }
+  .historico-table-container thead th {
+    font-size: 7px !important;
+    padding: 3px 4px !important;
+  }
+  .historico-table-container tbody td {
+    padding: 3px 4px !important;
+    font-size: 8px;
+    max-width: 60px;
+  }
+  .historico-table-container .coluna-valor {
+    font-size: 8px;
+  }
+  .historico-table-container .coluna-acoes {
+    min-width: 50px;
+  }
+  .historico-table-container .coluna-acoes .btn-edit,
+  .historico-table-container .coluna-acoes .btn-danger,
+  .historico-table-container .coluna-acoes .btn-excel {
+    font-size: 7px;
+    padding: 1px 3px;
+  }
+  .historico-table-container .coluna-sticky {
+    background: var(--surface);
+  }
+  .historico-table-container .coluna-sticky-first {
+    left: 0;
+    z-index: 6;
+  }
 }
