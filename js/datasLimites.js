@@ -34,8 +34,9 @@ export async function carregarDatasLimites() {
 
         tbody.innerHTML = '';
         data.forEach(d => {
-            const dataFr = new Date(d.data_fr).toLocaleDateString('pt-BR');
-            const dataNf = new Date(d.data_nf).toLocaleDateString('pt-BR');
+            // Função para formatar data corretamente, sem problemas de fuso horário
+            const dataFr = formatarDataParaExibicao(d.data_fr);
+            const dataNf = formatarDataParaExibicao(d.data_nf);
             tbody.innerHTML += `
                 <tr class="td-row">
                     <td>${d.mes}</td>
@@ -56,12 +57,30 @@ export async function carregarDatasLimites() {
     }
 }
 
+// Função auxiliar para formatar data sem problemas de fuso horário
+function formatarDataParaExibicao(dataStr) {
+    if (!dataStr) return '-';
+    // Se a data já estiver no formato YYYY-MM-DD, dividir e montar manualmente
+    const partes = dataStr.split('-');
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    // Fallback: tentar criar a data de forma segura
+    try {
+        const data = new Date(dataStr + 'T00:00:00');
+        return data.toLocaleDateString('pt-BR');
+    } catch {
+        return dataStr;
+    }
+}
+
 export function initFormDataLimite() {
     const form = document.getElementById('form-datas-limites');
     if (!form) return;
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const editId = document.getElementById('datalimite-edit-id').value;
         
         const mes = document.getElementById('datalimite-mes').value;
@@ -92,7 +111,6 @@ export function initFormDataLimite() {
             let result;
             
             if (editId) {
-                // Atualizar registro existente
                 result = await supabaseClient
                     .from('datas_limites')
                     .update(dados)
@@ -114,7 +132,6 @@ export function initFormDataLimite() {
                     return;
                 }
 
-                // Inserir novo registro
                 dados.criado_em = new Date().toISOString();
                 result = await supabaseClient
                     .from('datas_limites')
@@ -129,12 +146,10 @@ export function initFormDataLimite() {
 
             alert(editId ? 'Data limite atualizada com sucesso!' : 'Data limite salva com sucesso!');
             
-            // Resetar o formulário
             form.reset();
             document.getElementById('datalimite-edit-id').value = '';
             document.getElementById('datalimite-cancel-btn').style.display = 'none';
             
-            // Recarregar os dados
             await carregarDatasLimites();
             await atualizarTopbarDatasLimites();
             
@@ -242,11 +257,12 @@ export async function atualizarTopbarDatasLimites() {
             return;
         }
 
-        const dataFr = new Date(data.data_fr);
-        const dataNf = new Date(data.data_nf);
+        // Criar datas manualmente para evitar problemas de fuso horário
+        const dataFr = new Date(data.data_fr + 'T00:00:00');
+        const dataNf = new Date(data.data_nf + 'T00:00:00');
 
-        const frHtml = formatarDataLimite(dataFr, 'FR (12h)');
-        const nfHtml = formatarDataLimite(dataNf, 'NF (23h)');
+        const frHtml = formatarDataLimiteTopbar(dataFr, 'FR (12h)');
+        const nfHtml = formatarDataLimiteTopbar(dataNf, 'NF (23h)');
 
         container.innerHTML = `
             <div class="flex items-center gap-4 text-xs" style="color:var(--text-muted);">
@@ -266,7 +282,7 @@ export async function atualizarTopbarDatasLimites() {
     }
 }
 
-function formatarDataLimite(data, label) {
+function formatarDataLimiteTopbar(data, label) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     
@@ -281,7 +297,11 @@ function formatarDataLimite(data, label) {
     inicioSemana.setDate(dataLimite.getDate() - diaSemana + 1); // Segunda-feira
     const diffInicioSemana = Math.floor((inicioSemana - hoje) / (1000 * 60 * 60 * 24));
     
-    const dataStr = dataLimite.toLocaleDateString('pt-BR');
+    // Formatar data manualmente para exibir corretamente
+    const dia = String(dataLimite.getDate()).padStart(2, '0');
+    const mes = String(dataLimite.getMonth() + 1).padStart(2, '0');
+    const ano = dataLimite.getFullYear();
+    const dataStr = `${dia}/${mes}/${ano}`;
     
     // Passou da data limite
     if (diffDias < 0) {
