@@ -1850,7 +1850,8 @@ nav.sidenav{
     display: flex;
     flex-direction: column;
     padding: 16px;
-    min-height: 180px;
+    padding-bottom: 14px;
+    min-height: 170px;
 }
 
 .dc-card .dc-number {
@@ -1858,10 +1859,6 @@ nav.sidenav{
     font-weight: 700;
     font-size: 16px;
     color: var(--text);
-}
-
-.dc-card .dc-number + div[style*="font-family:'IBM Plex Mono'"] {
-    font-size: 18px;
 }
 
 .dc-card .dc-motivo {
@@ -1942,13 +1939,71 @@ nav.sidenav{
     color: var(--danger);
 }
 
-.dc-card .dc-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+/* Ajuste para os filtros da aba DC's */
+#tab-dcs .filters-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(8,16,32,0.04);
+    align-items: end;
+}
+
+#tab-dcs .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+#tab-dcs .filter-label {
     font-size: 9px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: var(--paper);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     color: var(--text-muted);
+}
+
+#tab-dcs .filter-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#tab-dcs .filter-actions .btn-primary,
+#tab-dcs .filter-actions .btn-clear-filters {
+    height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 900px) {
+    #tab-dcs .filters-bar {
+        grid-template-columns: 1fr 1fr;
+    }
+    #tab-dcs .filter-actions {
+        grid-column: span 2;
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    #tab-dcs .filters-bar {
+        grid-template-columns: 1fr;
+    }
+    #tab-dcs .filter-actions {
+        grid-column: span 1;
+        flex-direction: row;
+        justify-content: stretch;
+    }
+    #tab-dcs .filter-actions .btn-primary,
+    #tab-dcs .filter-actions .btn-clear-filters {
+        flex: 1;
+        justify-content: center;
+    }
 }
