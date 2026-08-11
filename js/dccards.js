@@ -32,13 +32,63 @@ export function limparFiltrosDCCards() {
 function formatarDataBr(dataStr) {
     if (!dataStr) return '-';
     try {
-        const data = new Date(dataStr + 'T00:00:00');
+        // Se já for uma string no formato YYYY-MM-DD
+        if (typeof dataStr === 'string' && dataStr.includes('-')) {
+            const partes = dataStr.split('T')[0].split('-');
+            if (partes.length === 3) {
+                return `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+        }
+        // Tentar criar a data de outra forma
+        const data = new Date(dataStr);
+        if (isNaN(data.getTime())) return '-';
         const dia = String(data.getDate()).padStart(2, '0');
         const mes = String(data.getMonth() + 1).padStart(2, '0');
         const ano = data.getFullYear();
         return `${dia}/${mes}/${ano}`;
     } catch {
-        return dataStr;
+        return '-';
+    }
+}
+
+// Função para calcular Aging a partir da data de solicitação
+function calcularAging(dataSolicitacaoStr) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    if (!dataSolicitacaoStr) {
+        return { dias: 0, class: 'verde', texto: '0 dia(s)' };
+    }
+    
+    try {
+        let dataSolicitacao;
+        // Se for string no formato YYYY-MM-DD
+        if (typeof dataSolicitacaoStr === 'string' && dataSolicitacaoStr.includes('-')) {
+            const partes = dataSolicitacaoStr.split('T')[0].split('-');
+            dataSolicitacao = new Date(partes[0], partes[1] - 1, partes[2]);
+        } else {
+            dataSolicitacao = new Date(dataSolicitacaoStr);
+        }
+        
+        if (isNaN(dataSolicitacao.getTime())) {
+            return { dias: 0, class: 'verde', texto: '0 dia(s)' };
+        }
+        
+        dataSolicitacao.setHours(0, 0, 0, 0);
+        const diffTime = Math.abs(hoje - dataSolicitacao);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        let agingClass = 'verde';
+        if (diffDays >= 4 && diffDays <= 6) { agingClass = 'amarelo'; }
+        else if (diffDays > 6) { agingClass = 'vermelho'; }
+        
+        return { 
+            dias: diffDays, 
+            class: agingClass, 
+            texto: `${diffDays} dia(s)` 
+        };
+    } catch {
+        return { dias: 0, class: 'verde', texto: '0 dia(s)' };
     }
 }
 
@@ -110,48 +160,36 @@ export async function carregarDCCards() {
         if (_paginaAtualDC > totalPaginas) _paginaAtualDC = totalPaginas;
         const pagina = paginar(filtrados, _paginaAtualDC, ITENS_POR_PAGINA_DC);
 
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
         container.innerHTML = '';
 
         pagina.forEach(c => {
-            // Usar data_solicitacao_faturamento para calcular o Aging
-            const dataSolicitacaoStr = c.data_solicitacao_faturamento || c.criado_em;
-            
-            // Criar data para cálculo do Aging (sem fuso horário)
-            let dataSolicitacao;
-            if (dataSolicitacaoStr) {
-                dataSolicitacao = new Date(dataSolicitacaoStr + 'T00:00:00');
-            } else {
-                dataSolicitacao = new Date();
-            }
-            dataSolicitacao.setHours(0, 0, 0, 0);
-            
-            const diffTime = Math.abs(hoje - dataSolicitacao);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            let agingClass = 'verde';
-            let agingText = `${diffDays} dia(s)`;
-            if (diffDays >= 4 && diffDays <= 6) { agingClass = 'amarelo'; }
-            else if (diffDays > 6) { agingClass = 'vermelho'; }
-
+            // Status DC
             const statusInfo = c.status_id ? statusMap[c.status_id] : null;
             const statusNome = statusInfo ? `${statusInfo.codigo} - ${statusInfo.nome}` : (c.status_dc || 'Sem status');
             const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
             const statusResponsavel = statusInfo ? statusInfo.responsavel : (c.responsavel || '');
 
-            const respClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
             const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
             const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
 
+            // Tipo Medição
             const tipoMedicao = c.tipo_medicao || 'PA';
             const tipoClass = tipoMedicao === 'FI' ? 'final' : '';
 
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-            // Formatar data para exibição no formato dd/mm/aaaa
-            const dataExibicao = formatarDataBr(dataSolicitacaoStr);
+            // Projeto (usar o campo correto)
+            const projetoNome = c.projeto || 'N/A';
+
+            // Data de solicitação para Aging
+            const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
+            
+            // Calcular Aging
+            const aging = calcularAging(dataSolicitacao);
+            
+            // Formatar data para exibição
+            const dataExibicao = formatarDataBr(dataSolicitacao);
 
             container.innerHTML += `
                 <div class="dc-card" onclick="abrirEdicaoConsumo(${c.id})" style="border-left-color: ${borderColor};">
@@ -168,7 +206,7 @@ export async function carregarDCCards() {
                     </div>
                     
                     <!-- Linha 3: Projeto -->
-                    <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${c.projeto || 'N/A'}</div>
+                    <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${projetoNome}</div>
                     
                     <!-- Linha 4: Motivo/Observação -->
                     <div class="dc-motivo" style="margin-bottom:6px;">${statusResponsavel === 'V.tal' ? '⚠️' : '✅'} ${statusMotivo || 'Sem observação'}</div>
@@ -176,7 +214,7 @@ export async function carregarDCCards() {
                     <!-- Linha 5: Data + Aging (alinhados) -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
                         <div class="dc-updated" style="margin:0;">📅 ${dataExibicao}</div>
-                        <div class="dc-aging ${agingClass}" style="margin:0;">🏠 Aging: ${agingText}</div>
+                        <div class="dc-aging ${aging.class}" style="margin:0;">🏠 Aging: ${aging.texto}</div>
                     </div>
                     
                     <!-- Metadados adicionais (opcionais) -->
