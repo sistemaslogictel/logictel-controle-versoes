@@ -72,9 +72,10 @@ export async function carregarHistoricoMedicoes() {
     const tbody = document.getElementById('tabela-historico-medicoes');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
 
     try {
+        // Buscar medições ordenadas por ID decrescente (mais recentes primeiro)
         const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
@@ -91,14 +92,13 @@ export async function carregarHistoricoMedicoes() {
                 status_medicao,
                 projetos(nome),
                 gestores_logictel(nome),
-                diretores(nome),
-                created_at
+                diretores(nome)
             `)
-            .order('created_at', { ascending: false });
+            .order('id', { ascending: false });
 
         if (error) {
             console.error('Erro ao carregar histórico de medições:', error);
-            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
             return;
         }
 
@@ -107,7 +107,7 @@ export async function carregarHistoricoMedicoes() {
         renderizarTabelaHistoricoMedicoes();
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -151,7 +151,7 @@ function renderizarTabelaHistoricoMedicoes() {
     const paginacaoEl = document.getElementById('historico-medicoes-pagination');
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição encontrada.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição encontrada.</td></tr>';
         if (paginacaoEl) paginacaoEl.innerHTML = '';
         return;
     }
@@ -165,7 +165,6 @@ function renderizarTabelaHistoricoMedicoes() {
         pagina.forEach(m => {
             const valorDon = Number(m.valor_don || 0);
             const valorStatus = Number(m.valor_status || 0);
-            const dataCriacao = m.created_at ? new Date(m.created_at).toLocaleString('pt-BR') : '-';
             
             tbody.innerHTML += `
                 <tr class="td-row">
@@ -173,10 +172,12 @@ function renderizarTabelaHistoricoMedicoes() {
                     <td>${m.projetos?.nome || '-'}</td>
                     <td>${m.gestores_logictel?.nome || '-'}</td>
                     <td>${m.diretores?.nome || '-'}</td>
-                    <td>${m.mes}/${m.ano}</td>
+                    <td>${m.mes}</td>
+                    <td>${m.ano}</td>
                     <td class="text-right mono">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td class="text-right mono">R$ ${valorStatus.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td>${m.status_medicao || '-'}</td>
+                    <td>${m.observacao || '-'}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
                             <button onclick="editarMedicao(${m.id})" class="btn-edit">Editar</button>
@@ -190,7 +191,7 @@ function renderizarTabelaHistoricoMedicoes() {
         }
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
