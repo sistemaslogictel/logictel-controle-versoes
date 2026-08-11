@@ -1,3 +1,4 @@
+// dccards.js
 import { supabaseClient } from './config.js';
 import { mudarAba } from './navigation.js';
 import { carregarConsumos } from './consumo.js';
@@ -39,7 +40,17 @@ export async function carregarDCCards() {
     const filtroGestor = document.getElementById('filt-dcs-gestor')?.value || '';
 
     try {
-        let query = supabaseClient.from('consumo_dc').select('*');
+        // Buscar consumos com joins para trazer mais informações
+        let query = supabaseClient
+            .from('consumo_dc')
+            .select(`
+                *,
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome),
+                empresas(nome)
+            `);
+
         if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
         if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
 
@@ -59,6 +70,7 @@ export async function carregarDCCards() {
             return;
         }
 
+        // Buscar status DC
         const { data: statusList } = await supabaseClient
             .from('status_dc')
             .select('id, codigo, nome, motivo, responsavel, cor');
@@ -70,6 +82,7 @@ export async function carregarDCCards() {
             });
         }
 
+        // Agrupar por DC (pegar o mais recente de cada DC)
         const dcMap = new Map();
         consumos.forEach(c => {
             const dcNum = c.dc;
@@ -104,36 +117,62 @@ export async function carregarDCCards() {
             const diffTime = Math.abs(hoje - dataAtualizacao);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+            // Calcular Aging
             let agingClass = 'verde';
             let agingText = `${diffDays} dia(s)`;
             if (diffDays >= 4 && diffDays <= 6) { agingClass = 'amarelo'; }
             else if (diffDays > 6) { agingClass = 'vermelho'; }
 
+            // Status DC
             const statusInfo = c.status_id ? statusMap[c.status_id] : null;
             const statusNome = statusInfo ? `${statusInfo.codigo} - ${statusInfo.nome}` : (c.status_dc || 'Sem status');
             const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
             const statusResponsavel = statusInfo ? statusInfo.responsavel : (c.responsavel || '');
+            const statusCor = statusInfo ? statusInfo.cor : '#3498DB';
 
             const respClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
             const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
+            const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
 
+            // Tipo Medição
             const tipoMedicao = c.tipo_medicao || 'PA';
             const tipoClass = tipoMedicao === 'FI' ? 'final' : '';
-            const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
+
+            // Valor DC
+            const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+
+            // Nomes
+            const projetoNome = c.projetos?.nome || c.projeto || 'N/A';
+            const gestorNome = c.gestores_logictel?.nome || c.gestor_logictel || 'N/A';
+            const diretorNome = c.diretores?.nome || c.diretor || 'N/A';
 
             container.innerHTML += `
                 <div class="dc-card" onclick="irParaConsumo('${c.dc}')" style="border-left-color: ${borderColor};">
                     <div class="dc-badge">#${c.id}</div>
                     <div class="dc-number">DC ${c.dc}</div>
-                    <div class="dc-status ${statusClass}">${statusNome}</div>
-                    <div class="dc-tipo-medicao ${tipoClass}">${tipoMedicao === 'FI' ? '🔴 FINAL' : '🟡 PARCIAL'}</div>
-                    <div class="dc-motivo">📝 ${statusMotivo || 'Sem motivo'}</div>
-                    <div class="dc-responsavel ${respClass}">👤 ${statusResponsavel || 'Não definido'}</div>
-                    <div class="dc-aging ${agingClass}">⏱️ Aging: ${agingText}</div>
+                    
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+                        <div class="dc-status ${statusClass}">${statusNome}</div>
+                        <div class="dc-tipo-medicao ${tipoClass}">${tipoMedicao === 'FI' ? '🔴 FINAL' : '🟡 PARCIAL'}</div>
+                    </div>
+                    
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap;">
+                        <span style="font-size:11px; font-weight:600; color:var(--text);">💰 R$ ${valorDc}</span>
+                        <span class="dc-aging ${agingClass}">⏱️ Aging: ${agingText}</span>
+                    </div>
+                    
+                    <div class="dc-motivo">📝 ${statusMotivo || 'Sem observação'}</div>
+                    
+                    <div style="font-size:10.8px; color:var(--text-soft); margin-top:4px; line-height:1.5;">
+                        <div>📋 Projeto: ${projetoNome}</div>
+                        <div>👤 Gestor: ${gestorNome}</div>
+                        ${diretorNome && diretorNome !== 'N/A' ? `<div>🏢 Diretor: ${diretorNome}</div>` : ''}
+                    </div>
+                    
                     <div class="dc-updated">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
-                    <div style="font-size:11px;color:var(--text-soft);margin-top:4px;">${c.projeto || 'N/A'} • ${c.gestor_logictel || 'N/A'}</div>
-                    ${c.pedido ? `<div style="font-size:11px;color:var(--text-soft);">Pedido: ${c.pedido}</div>` : ''}
-                    ${c.fr ? `<div style="font-size:11px;color:var(--text-soft);">FR: ${c.fr}</div>` : ''}
+                    
+                    ${c.pedido ? `<div style="font-size:10.8px;color:var(--text-soft);">📦 Pedido: ${c.pedido}</div>` : ''}
+                    ${c.fr ? `<div style="font-size:10.8px;color:var(--text-soft);">📄 FR: ${c.fr}</div>` : ''}
                 </div>
             `;
         });
