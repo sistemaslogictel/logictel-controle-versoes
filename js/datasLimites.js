@@ -20,7 +20,8 @@ export async function carregarDatasLimites() {
             .order('mes', { ascending: false });
 
         if (error) {
-            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`;
+            console.error('Erro ao carregar datas limites:', error);
+            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
             return;
         }
 
@@ -73,6 +74,12 @@ export function initFormDataLimite() {
             return;
         }
 
+        // Validar se as datas são válidas
+        if (isNaN(new Date(dataFr).getTime()) || isNaN(new Date(dataNf).getTime())) {
+            alert('Por favor, selecione datas válidas.');
+            return;
+        }
+
         const dados = {
             mes,
             ano,
@@ -83,25 +90,31 @@ export function initFormDataLimite() {
 
         try {
             let result;
+            
             if (editId) {
+                // Atualizar registro existente
                 result = await supabaseClient
                     .from('datas_limites')
                     .update(dados)
                     .eq('id', parseInt(editId));
             } else {
                 // Verificar se já existe para este mês/ano
-                const { data: existente } = await supabaseClient
+                const { data: existente, error: checkError } = await supabaseClient
                     .from('datas_limites')
                     .select('id')
                     .eq('mes', mes)
-                    .eq('ano', ano)
-                    .single();
+                    .eq('ano', ano);
 
-                if (existente) {
+                if (checkError) {
+                    console.error('Erro ao verificar existência:', checkError);
+                }
+
+                if (existente && existente.length > 0) {
                     alert(`Já existe um registro para ${mes}/${ano}. Use a edição para alterar.`);
                     return;
                 }
 
+                // Inserir novo registro
                 dados.criado_em = new Date().toISOString();
                 result = await supabaseClient
                     .from('datas_limites')
@@ -109,20 +122,25 @@ export function initFormDataLimite() {
             }
 
             if (result.error) {
-                alert('Erro: ' + result.error.message);
+                console.error('Erro do Supabase:', result.error);
+                alert('Erro ao salvar: ' + result.error.message);
                 return;
             }
 
-            alert(editId ? 'Data limite atualizada!' : 'Data limite salva!');
+            alert(editId ? 'Data limite atualizada com sucesso!' : 'Data limite salva com sucesso!');
+            
+            // Resetar o formulário
             form.reset();
             document.getElementById('datalimite-edit-id').value = '';
             document.getElementById('datalimite-cancel-btn').style.display = 'none';
             
-            carregarDatasLimites();
-            atualizarTopbarDatasLimites();
+            // Recarregar os dados
+            await carregarDatasLimites();
+            await atualizarTopbarDatasLimites();
+            
         } catch (err) {
             console.error('Erro ao salvar data limite:', err);
-            alert('Erro ao salvar data limite.');
+            alert('Erro ao salvar data limite. Verifique o console para mais detalhes.');
         }
     });
 }
@@ -168,9 +186,9 @@ export async function excluirDataLimite(id) {
             return;
         }
 
-        alert('Data limite excluída!');
-        carregarDatasLimites();
-        atualizarTopbarDatasLimites();
+        alert('Data limite excluída com sucesso!');
+        await carregarDatasLimites();
+        await atualizarTopbarDatasLimites();
     } catch (e) {
         console.error('Erro ao excluir data limite:', e);
         alert('Erro ao excluir data limite.');
@@ -195,16 +213,20 @@ export async function atualizarTopbarDatasLimites() {
             .select('*')
             .eq('mes', mesAtual)
             .eq('ano', anoAtual)
-            .single();
+            .maybeSingle();
 
         // Se não encontrar para o mês atual, buscar a mais próxima no futuro
         if (!data) {
-            const { data: proxima } = await supabaseClient
+            const { data: proxima, error: proxError } = await supabaseClient
                 .from('datas_limites')
                 .select('*')
                 .gte('ano', anoAtual)
                 .order('ano', { ascending: true })
                 .order('mes', { ascending: true });
+
+            if (proxError) {
+                console.error('Erro ao buscar próxima data:', proxError);
+            }
 
             if (proxima && proxima.length > 0) {
                 data = proxima[0];
@@ -236,6 +258,11 @@ export async function atualizarTopbarDatasLimites() {
 
     } catch (e) {
         console.error('Erro ao carregar datas limites para topbar:', e);
+        container.innerHTML = `
+            <div class="flex items-center gap-4 text-xs" style="color:var(--text-muted);">
+                <span>📅 Erro ao carregar datas</span>
+            </div>
+        `;
     }
 }
 
