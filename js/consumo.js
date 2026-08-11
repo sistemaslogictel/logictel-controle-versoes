@@ -58,13 +58,24 @@ export function controlarCamposNF() {
         } else {
             numNf.disabled = true;
             numNf.required = false;
-            numNf.value = '';
-            dataNf.disabled = true;
-            dataNf.required = false;
-            dataNf.value = '';
+            // NÃO LIMPAR OS VALORES quando desabilitar
+            // numNf.value = '';
+            // dataNf.value = '';
             extras.classList.remove('visible');
         }
     }
+}
+
+// =====================================================
+// FUNÇÃO PARA CARREGAR TODOS OS SELECTS DO FORMULÁRIO
+// =====================================================
+async function carregarSelectsConsumo() {
+    await carregarStatusDCCustom('dc-status-dc');
+    await carregarSelectStatus('dc-status-nf', 'status_nf');
+    await carregarSelectGestores('dc-gestor', 'gestores_logictel');
+    await carregarSelectDiretores('dc-diretor');
+    await carregarSelectEmpresas('dc-empresa');
+    await carregarSelectProjetos('dc-projeto');
 }
 
 // =====================================================
@@ -356,6 +367,7 @@ export function initFormConsumo() {
 
 export async function editarConsumo(id) {
     try {
+        // Primeiro, busca os dados do consumo
         const { data, error } = await supabaseClient
             .from('consumo_dc')
             .select(`
@@ -389,14 +401,23 @@ export async function editarConsumo(id) {
             alert('Erro ao carregar: ' + error.message);
             return;
         }
-        if (!data) return;
+        if (!data) {
+            alert('Dados não encontrados!');
+            return;
+        }
 
-        // Preencher os campos básicos
+        // Mudar para a aba de cadastro de consumo
+        mudarAba('cad-consumo');
+
+        // Carregar todos os selects do formulário ANTES de preencher os valores
+        await carregarSelectsConsumo();
+
+        // Após carregar os selects, preencher os valores
         document.getElementById('consumo-edit-id').value = id;
         document.getElementById('dc-numero').value = data.dc || '';
         document.getElementById('dc-pedido').value = data.pedido || '';
         
-        // Preencher selects - IMPORTANTE: definir os valores ANTES de chamar carregarGestoresPorProjeto
+        // Preencher selects
         document.getElementById('dc-empresa').value = data.empresa_id || '';
         document.getElementById('dc-projeto').value = data.projeto_id || '';
         document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
@@ -416,16 +437,14 @@ export async function editarConsumo(id) {
         document.getElementById('dc-po').value = data.po || '';
         document.getElementById('dc-valor').value = Number(data.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-        // Carregar os gestores baseados no projeto selecionado
+        // Carregar os gestores baseados no projeto selecionado (garantir que a lista esteja correta)
         if (data.projeto_id) {
-            // Forçar o carregamento dos gestores para o projeto
             await carregarGestoresPorProjeto();
             // Reaplicar o valor do gestor após carregar a lista
             document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
         }
 
-        // Chamar a função para controlar os campos de NF (habilita/desabilita conforme status)
-        // Mas NÃO reseta os valores se o status for não-emitido
+        // Controlar os campos de NF com base no status selecionado
         const selectStatusNf = document.getElementById('dc-status-nf');
         const nomeStatus = (selectStatusNf?.selectedOptions?.[0]?.textContent || '').toLowerCase();
         const isEmitida = nomeStatus.includes('emitid');
@@ -437,17 +456,17 @@ export async function editarConsumo(id) {
             document.getElementById('dc-data-nf').required = true;
             document.getElementById('campos-extras-consumo').classList.add('visible');
         } else {
-            // Se não for emitida, desabilita mas NÃO limpa os valores
             document.getElementById('dc-num-nf').disabled = true;
             document.getElementById('dc-num-nf').required = false;
             document.getElementById('dc-data-nf').disabled = true;
             document.getElementById('dc-data-nf').required = false;
             document.getElementById('campos-extras-consumo').classList.remove('visible');
+            // NÃO LIMPAR OS VALORES DE num_nf e data_nf
         }
 
         document.getElementById('consumo-cancel-btn').style.display = 'inline-block';
 
-        mudarAba('cad-consumo');
+        // Scroll para o formulário
         document.getElementById('form-consumo').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         console.error('Erro ao editar consumo:', e);
@@ -525,3 +544,6 @@ export async function exportarExcel(id) {
         alert('Erro ao exportar arquivo Excel.');
     }
 }
+
+// Importar funções necessárias para carregar selects
+import { carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarStatusDCCustom } from './selects.js';
