@@ -1786,3 +1786,47 @@ nav.sidenav{
     border-radius: 4px;
     display: inline-block;
 }
+
+/* =====================================================
+   LEGENDA DATAS LIMITES
+   ===================================================== */
+.legenda-datas {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 10.8px;
+    color: var(--text-muted);
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legenda-cor {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.legenda-cor.amarelo {
+    background: #FFD700;
+}
+
+.legenda-cor.vermelho {
+    background: #FF0000;
+}
+
+.legenda-cor.preto {
+    background: #000000;
+}
+
+.legenda-cor.piscando-demo {
+    background: #000000;
+    animation: piscar 0.8s ease-in-out infinite;
+}

@@ -16,8 +16,8 @@ export async function carregarDatasLimites() {
         const { data, error } = await supabaseClient
             .from('datas_limites')
             .select('*')
-            .order('ano', { ascending: false })
-            .order('mes', { ascending: false });
+            .order('ano', { ascending: true })
+            .order('mes', { ascending: true });
 
         if (error) {
             console.error('Erro ao carregar datas limites:', error);
@@ -26,52 +26,120 @@ export async function carregarDatasLimites() {
         }
 
         _todasDatasLimites = data || [];
+        carregarFiltrosDatasLimites();
+        aplicarFiltrosDatasLimites();
 
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma data limite cadastrada.</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = '';
-        data.forEach(d => {
-            // Função para formatar data corretamente, sem problemas de fuso horário
-            const dataFr = formatarDataParaExibicao(d.data_fr);
-            const dataNf = formatarDataParaExibicao(d.data_nf);
-            tbody.innerHTML += `
-                <tr class="td-row">
-                    <td>${d.mes}</td>
-                    <td>${d.ano}</td>
-                    <td>${dataFr}</td>
-                    <td>${dataNf}</td>
-                    <td class="text-right">
-                        <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarDataLimite(${d.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirDataLimite(${d.id})" class="btn-danger">Excluir</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
     } catch (e) {
         console.error('Erro inesperado:', e);
         tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
+// Função para aplicar filtros na tabela
+function aplicarFiltrosDatasLimites() {
+    const tbody = document.getElementById('tabela-datas-limites');
+    if (!tbody) return;
+
+    const filtroMes = document.getElementById('filt-datas-mes')?.value || '';
+    const filtroAno = document.getElementById('filt-datas-ano')?.value || '';
+
+    let dadosFiltrados = _todasDatasLimites;
+
+    if (filtroMes) {
+        dadosFiltrados = dadosFiltrados.filter(d => d.mes === filtroMes);
+    }
+    if (filtroAno) {
+        dadosFiltrados = dadosFiltrados.filter(d => String(d.ano) === filtroAno);
+    }
+
+    // Ordenar por Data Limite FR (do menor para o maior)
+    dadosFiltrados.sort((a, b) => {
+        const dataA = new Date(a.data_fr + 'T00:00:00');
+        const dataB = new Date(b.data_fr + 'T00:00:00');
+        return dataA - dataB;
+    });
+
+    if (dadosFiltrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma data limite encontrada.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    dadosFiltrados.forEach(d => {
+        const dataFr = formatarDataParaExibicao(d.data_fr);
+        const dataNf = formatarDataParaExibicao(d.data_nf);
+        tbody.innerHTML += `
+            <tr class="td-row">
+                <td>${d.mes}</td>
+                <td>${d.ano}</td>
+                <td>${dataFr}</td>
+                <td>${dataNf}</td>
+                <td class="text-right">
+                    <div class="table-actions" style="justify-content:flex-end;">
+                        <button onclick="editarDataLimite(${d.id})" class="btn-edit">Editar</button>
+                        <button onclick="excluirDataLimite(${d.id})" class="btn-danger">Excluir</button>
+                    </div>
+                </td>
+            </tr>`;
+    });
+}
+
 // Função auxiliar para formatar data sem problemas de fuso horário
 function formatarDataParaExibicao(dataStr) {
     if (!dataStr) return '-';
-    // Se a data já estiver no formato YYYY-MM-DD, dividir e montar manualmente
     const partes = dataStr.split('-');
     if (partes.length === 3) {
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
-    // Fallback: tentar criar a data de forma segura
     try {
         const data = new Date(dataStr + 'T00:00:00');
-        return data.toLocaleDateString('pt-BR');
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        return `${dia}/${mes}/${ano}`;
     } catch {
         return dataStr;
     }
+}
+
+// Função para carregar os filtros de mês e ano
+export function carregarFiltrosDatasLimites() {
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    const selectMes = document.getElementById('filt-datas-mes');
+    if (selectMes) {
+        const valorAtual = selectMes.value;
+        selectMes.innerHTML = '<option value="">Todos os Meses</option>';
+        meses.forEach(m => {
+            selectMes.innerHTML += `<option value="${m}">${m}</option>`;
+        });
+        if (valorAtual) selectMes.value = valorAtual;
+    }
+
+    // Carregar anos disponíveis a partir dos dados
+    const selectAno = document.getElementById('filt-datas-ano');
+    if (selectAno) {
+        const anos = new Set();
+        _todasDatasLimites.forEach(d => anos.add(d.ano));
+        const valorAtual = selectAno.value;
+        selectAno.innerHTML = '<option value="">Todos os Anos</option>';
+        Array.from(anos).sort().forEach(a => {
+            selectAno.innerHTML += `<option value="${a}">${a}</option>`;
+        });
+        if (valorAtual) selectAno.value = valorAtual;
+    }
+}
+
+// Funções de filtro (expostas no window)
+export function filtrarDatasLimites() {
+    aplicarFiltrosDatasLimites();
+}
+
+export function limparFiltrosDatasLimites() {
+    document.getElementById('filt-datas-mes').value = '';
+    document.getElementById('filt-datas-ano').value = '';
+    aplicarFiltrosDatasLimites();
 }
 
 export function initFormDataLimite() {
@@ -93,7 +161,6 @@ export function initFormDataLimite() {
             return;
         }
 
-        // Validar se as datas são válidas
         if (isNaN(new Date(dataFr).getTime()) || isNaN(new Date(dataNf).getTime())) {
             alert('Por favor, selecione datas válidas.');
             return;
@@ -116,16 +183,11 @@ export function initFormDataLimite() {
                     .update(dados)
                     .eq('id', parseInt(editId));
             } else {
-                // Verificar se já existe para este mês/ano
-                const { data: existente, error: checkError } = await supabaseClient
+                const { data: existente } = await supabaseClient
                     .from('datas_limites')
                     .select('id')
                     .eq('mes', mes)
                     .eq('ano', ano);
-
-                if (checkError) {
-                    console.error('Erro ao verificar existência:', checkError);
-                }
 
                 if (existente && existente.length > 0) {
                     alert(`Já existe um registro para ${mes}/${ano}. Use a edição para alterar.`);
@@ -155,7 +217,7 @@ export function initFormDataLimite() {
             
         } catch (err) {
             console.error('Erro ao salvar data limite:', err);
-            alert('Erro ao salvar data limite. Verifique o console para mais detalhes.');
+            alert('Erro ao salvar data limite.');
         }
     });
 }
@@ -222,7 +284,6 @@ export async function atualizarTopbarDatasLimites() {
         const mesAtual = hoje.toLocaleDateString('pt-BR', { month: 'long' });
         const anoAtual = hoje.getFullYear();
 
-        // Buscar data limite do mês atual
         let { data, error } = await supabaseClient
             .from('datas_limites')
             .select('*')
@@ -230,18 +291,13 @@ export async function atualizarTopbarDatasLimites() {
             .eq('ano', anoAtual)
             .maybeSingle();
 
-        // Se não encontrar para o mês atual, buscar a mais próxima no futuro
         if (!data) {
-            const { data: proxima, error: proxError } = await supabaseClient
+            const { data: proxima } = await supabaseClient
                 .from('datas_limites')
                 .select('*')
                 .gte('ano', anoAtual)
                 .order('ano', { ascending: true })
                 .order('mes', { ascending: true });
-
-            if (proxError) {
-                console.error('Erro ao buscar próxima data:', proxError);
-            }
 
             if (proxima && proxima.length > 0) {
                 data = proxima[0];
@@ -291,13 +347,11 @@ function formatarDataLimiteTopbar(data, label) {
     
     const diffDias = Math.floor((dataLimite - hoje) / (1000 * 60 * 60 * 24));
     
-    // Calcular dia da semana (0 = domingo)
     const diaSemana = dataLimite.getDay();
     const inicioSemana = new Date(dataLimite);
-    inicioSemana.setDate(dataLimite.getDate() - diaSemana + 1); // Segunda-feira
+    inicioSemana.setDate(dataLimite.getDate() - diaSemana + 1);
     const diffInicioSemana = Math.floor((inicioSemana - hoje) / (1000 * 60 * 60 * 24));
     
-    // Formatar data manualmente para exibir corretamente
     const dia = String(dataLimite.getDate()).padStart(2, '0');
     const mes = String(dataLimite.getMonth() + 1).padStart(2, '0');
     const ano = dataLimite.getFullYear();
@@ -305,7 +359,7 @@ function formatarDataLimiteTopbar(data, label) {
     
     // Passou da data limite
     if (diffDias < 0) {
-        return `<span style="color:var(--text-soft);">${label}: ${dataStr} (passou)</span>`;
+        return `<span style="color:var(--text-soft);">${label}: ${dataStr}</span>`;
     }
     
     // No dia (diffDias === 0)

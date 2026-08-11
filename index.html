@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.16.2 - Controle de Medições e DCs - Logictel</title>
+<title>V.16.3 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -824,6 +824,16 @@
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Datas Limites</h2>
       <p class="text-sm mt-0.5" style="color:var(--text-muted)">Defina as datas limites para emissão de FR e NF por mês/ano.</p>
       
+      <!-- LEGENDA DE CORES -->
+      <div class="card card-pad" style="padding:12px 20px; background:var(--paper); border:1px solid var(--border);">
+        <div class="flex items-center gap-6 flex-wrap text-xs" style="color:var(--text-muted);">
+          <span style="font-weight:600;color:var(--text);">📌 Legenda:</span>
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;vertical-align:middle;margin-right:4px;"></span> Na semana da data (segunda a domingo)</span>
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:#FF0000;vertical-align:middle;margin-right:4px;"></span> 3 dias antes</span>
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:#000;border:1px solid #666;vertical-align:middle;margin-right:4px;"></span> <span style="color:#000;background:#fff;padding:0 4px;border-radius:2px;">Dia</span> (piscando)</span>
+        </div>
+      </div>
+
       <div class="card card-pad">
         <form id="form-datas-limites" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="hidden" id="datalimite-edit-id" value="">
@@ -864,6 +874,27 @@
             <button type="submit" class="btn-primary">Salvar Data Limite</button>
           </div>
         </form>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filters-section-title">🔍 Filtros</div>
+      <div class="filters-bar-grid">
+        <div class="filter-group">
+          <label class="filter-label">Mês</label>
+          <select id="filt-datas-mes" class="input" onchange="filtrarDatasLimites()">
+            <option value="">Todos os Meses</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Ano</label>
+          <select id="filt-datas-ano" class="input" onchange="filtrarDatasLimites()">
+            <option value="">Todos os Anos</option>
+          </select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="filtrarDatasLimites()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltrosDatasLimites()" class="btn-clear-filters">Limpar</button>
+        </div>
       </div>
 
       <div class="card">
