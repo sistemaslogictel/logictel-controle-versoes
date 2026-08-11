@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.15.2 - Controle de Medições e DCs - Logictel</title>
+<title>V.16.0 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -76,10 +76,12 @@
         <span class="status-dot"></span>
         <span class="text-xs font-medium" style="color:var(--text-muted)">Banco sincronizado</span>
       </div>
-      <div class="flex items-center gap-3">
-        <div id="badge-ultima-atualizacao" class="mono text-xs font-semibold px-3 py-1 rounded-lg" style="background:var(--paper); color:var(--text)">
-          Última atualização: carregando...
+      <div class="flex items-center gap-3 flex-wrap">
+        <div id="datas-limites-topbar" class="flex items-center gap-2">
+          <!-- Será preenchido via JavaScript -->
         </div>
+        <span class="text-xs font-medium" style="color:var(--text-muted)">|</span>
+        <span class="text-xs font-mono" style="color:var(--text-soft);" id="badge-ultima-atualizacao"></span>
         <div class="user-info">
           <div class="user-avatar" id="userAvatar">U</div>
           <span class="text-sm font-medium" id="userNameDisplay">Usuário</span>
@@ -597,6 +599,7 @@
                 <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="adm-datas" class="permission-check"><span>Datas Limites</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="atualizacoes" class="permission-check"><span>Atualizações</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="relatorios" class="permission-check"><span>Relatórios</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="configuracoes" class="permission-check"><span>Configurações</span></label>
@@ -811,6 +814,73 @@
           <table class="w-full text-left border-collapse">
             <thead><tr class="th-row"><th>ID</th><th>Status NF</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-statusnf"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== DATAS LIMITES ===================== -->
+    <div id="tab-adm-datas-limites" class="tab-content space-y-4">
+      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Datas Limites</h2>
+      <p class="text-sm mt-0.5" style="color:var(--text-muted)">Defina as datas limites para emissão de FR e NF por mês/ano.</p>
+      
+      <div class="card card-pad">
+        <form id="form-datas-limites" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input type="hidden" id="datalimite-edit-id" value="">
+          <div>
+            <label class="label">Mês *</label>
+            <select id="datalimite-mes" required class="input">
+              <option value="">Selecione...</option>
+              <option value="Janeiro">Janeiro</option>
+              <option value="Fevereiro">Fevereiro</option>
+              <option value="Março">Março</option>
+              <option value="Abril">Abril</option>
+              <option value="Maio">Maio</option>
+              <option value="Junho">Junho</option>
+              <option value="Julho">Julho</option>
+              <option value="Agosto">Agosto</option>
+              <option value="Setembro">Setembro</option>
+              <option value="Outubro">Outubro</option>
+              <option value="Novembro">Novembro</option>
+              <option value="Dezembro">Dezembro</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Ano *</label>
+            <input type="number" id="datalimite-ano" value="2026" required class="input">
+          </div>
+          <div>
+            <label class="label">Data Limite FR *</label>
+            <input type="date" id="datalimite-data-fr" required class="input">
+            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 12h)</span>
+          </div>
+          <div>
+            <label class="label">Data Limite NF *</label>
+            <input type="date" id="datalimite-data-nf" required class="input">
+            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 23h)</span>
+          </div>
+          <div class="md:col-span-4 flex justify-end pt-2 gap-2">
+            <button type="button" onclick="cancelarEdicao('datalimite')" class="btn-cancel" style="display:none;" id="datalimite-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar Data Limite</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="th-row">
+                <th>Mês</th>
+                <th>Ano</th>
+                <th>Data Limite FR</th>
+                <th>Data Limite NF</th>
+                <th class="text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-datas-limites">
+              <tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
     carregarEmpresas, carregarDiretores, carregarContratos, carregarProjetos,
     carregarGestoresLogictel, carregarStatusDC, carregarStatusMed, carregarStatusNF
 } from './cadastros.js';
+import { carregarDatasLimites, atualizarTopbarDatasLimites } from './datasLimites.js';
 
 // =====================================================
 // GERAR MENU DINÂMICO
@@ -51,6 +52,9 @@ export function gerarMenu(permissoes) {
             { id: 'adm-status-dc', label: 'Status DC', area: 'adm-status' },
             { id: 'adm-status-med', label: 'Status Medição', area: 'adm-status' },
             { id: 'adm-status-nf', label: 'Status NF', area: 'adm-status' }
+        ]},
+        { id: 'cadastros-datas', label: 'Datas Limites', icon: 'datas', area: 'adm-datas', type: 'flyout', children: [
+            { id: 'adm-datas-limites', label: 'Datas Limites', area: 'adm-datas' }
         ]}
     ];
 
@@ -71,7 +75,8 @@ export function gerarMenu(permissoes) {
             'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
             'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
             'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
-            'atualizacoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
+            'atualizacoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
+            'datas': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
         };
         return icons[name] || '';
     }
@@ -170,7 +175,8 @@ const AREA_MAP = {
     'adm-gestor': 'adm-logictel',
     'adm-status-dc': 'adm-status',
     'adm-status-med': 'adm-status',
-    'adm-status-nf': 'adm-status'
+    'adm-status-nf': 'adm-status',
+    'adm-datas-limites': 'adm-datas'
 };
 
 // Ordem de prioridade usada para decidir em qual aba cair logo após o login
@@ -246,6 +252,7 @@ export function carregarDadosAba(nomeAba) {
     else if (nomeAba === 'adm-status-dc') carregarStatusDC();
     else if (nomeAba === 'adm-status-med') { carregarStatusMed(); carregarSelectStatus('med-status', 'status_medicao'); }
     else if (nomeAba === 'adm-status-nf') carregarStatusNF();
+    else if (nomeAba === 'adm-datas-limites') carregarDatasLimites();
 }
 
 export function irParaPrimeiraAbaAcessivel() {
@@ -271,6 +278,7 @@ export function carregarTodasListas() {
     carregarStatusDC();
     carregarStatusMed();
     carregarStatusNF();
+    carregarDatasLimites();
     carregarSelectEmpresas('contrato-empresa');
     carregarSelectEmpresas('projeto-empresa');
     carregarSelectEmpresas('diretor-empresa');
@@ -306,6 +314,7 @@ export function carregarTodasListas() {
     carregarSelectProjetos('filt-dcs-projeto');
     carregarSelectGestores('filt-dcs-gestor', 'gestores_logictel');
     carregarFiltroStatus();
+    atualizarTopbarDatasLimites();
 }
 
 export function cancelarEdicao(tipo) {
@@ -320,7 +329,8 @@ export function cancelarEdicao(tipo) {
         'gestor': 'gestor',
         'statusdc': 'statusdc',
         'statusmed': 'statusmed',
-        'statusnf': 'statusnf'
+        'statusnf': 'statusnf',
+        'datalimite': 'datalimite'
     };
     const prefixo = prefixos[tipo] || tipo;
     document.getElementById(prefixo + '-edit-id').value = '';

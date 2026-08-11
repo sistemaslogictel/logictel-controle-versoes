@@ -84,7 +84,7 @@ export function registrarUltimaAtualizacao() {
     const agora = new Date().toLocaleString('pt-BR');
     const badge = document.getElementById('badge-ultima-atualizacao');
     if (badge) {
-        badge.innerText = `Última atualização: ${agora}`;
+        badge.innerText = agora;
     }
 }
 
@@ -126,6 +126,13 @@ export function limparFiltros(tipo, callbacks) {
             if (el) el.value = '';
         });
         if (callbacks && callbacks.aprop) callbacks.aprop();
+    } else if (tipo === 'cre') {
+        const ids = ['filt-cre-gestor', 'filt-cre-projeto', 'filt-cre-ano', 'filt-cre-mes'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (callbacks && callbacks.cre) callbacks.cre();
     }
 }
 
