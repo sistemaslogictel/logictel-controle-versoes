@@ -40,8 +40,6 @@ export async function carregarGestoresPorProjeto() {
 // CONTROLAR CAMPOS DE NF (habilitar/exigir conforme status)
 // =====================================================
 export function controlarCamposNF() {
-    // O <select> guarda o ID do status (não o nome) como value, então o
-    // nome real precisa ser lido do texto da opção selecionada.
     const selectStatusNf = document.getElementById('dc-status-nf');
     const nomeStatus = (selectStatusNf?.selectedOptions?.[0]?.textContent || '').toLowerCase();
     const numNf = document.getElementById('dc-num-nf');
@@ -72,11 +70,7 @@ export function controlarCamposNF() {
 // =====================================================
 // CRUD CONSUMOS
 // =====================================================
-// Guarda a última lista buscada no banco, para os filtros da tela
-// filtrarem em memória (sem refazer a consulta a cada campo digitado).
 let _todosConsumos = [];
-// Mapa id -> nome do status de NF (o <select> guarda o ID; o nome é
-// necessário para exibir na tabela e para saber se está "Emitida").
 let _statusNfMap = {};
 
 const ITENS_POR_PAGINA_CONSUMO = 15;
@@ -91,7 +85,7 @@ export async function carregarConsumos() {
     const tbody = document.getElementById('tabela-consumos');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="14" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
 
     try {
         const { data, error } = await supabaseClient
@@ -130,7 +124,7 @@ export async function carregarConsumos() {
             .order('id', { ascending: false });
 
         if (error) {
-            tbody.innerHTML = `<tr><td colspan="14" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`;
             return;
         }
 
@@ -146,13 +140,10 @@ export async function carregarConsumos() {
         renderizarTabelaConsumos();
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="14" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
-// =====================================================
-// AUTOCOMPLETE (DIGITAR-E-BUSCAR) DOS CAMPOS DC E PEDIDO
-// =====================================================
 function atualizarDatalistsConsumo(data) {
     const dcList = document.getElementById('dclist-consumo');
     if (dcList) {
@@ -166,9 +157,6 @@ function atualizarDatalistsConsumo(data) {
     }
 }
 
-// =====================================================
-// FILTROS DA LISTAGEM DE CONSUMOS
-// =====================================================
 function lerFiltrosConsumo() {
     return {
         dc: (document.getElementById('filt-consumo-dc')?.value || '').toLowerCase().trim(),
@@ -206,8 +194,6 @@ function aplicarFiltrosConsumo(lista, f) {
     });
 }
 
-// Chamado pelos onchange/oninput dos campos de filtro — só refiltra
-// o que já está em memória, sem ir ao banco de novo.
 export function filtrarConsumos() {
     _paginaAtualConsumo = 1;
     renderizarTabelaConsumos();
@@ -236,7 +222,7 @@ function renderizarTabelaConsumos() {
     const paginacaoEl = document.getElementById('consumo-pagination');
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="14" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo encontrado.</td></tr>';
         if (paginacaoEl) paginacaoEl.innerHTML = '';
         return;
     }
@@ -251,27 +237,23 @@ function renderizarTabelaConsumos() {
             const tipoMed = c.tipo_medicao || 'PA';
             const nomeStatusNf = _statusNfMap[c.status_nf] || c.status_nf || '-';
             const isEmitida = String(nomeStatusNf).toLowerCase().includes('emitid');
+            
+            const statusBadgeClass = isEmitida ? 'logictel' : 'vtal';
+            
             tbody.innerHTML += `
                 <tr class="td-row">
-                    <td>${c.id}</td>
-                    <td>${c.dc}</td>
-                    <td>${c.pedido || '-'}</td>
-                    <td>${c.projetos?.nome || '-'}</td>
-                    <td>${c.gestores_logictel?.nome || '-'}</td>
-                    <td>${tipoMed}</td>
-                    <td>${c.diretores?.nome || '-'}</td>
-                    <td>${c.mes_apropriacao}</td>
-                    <td>${c.ano}</td>
-                    <td>${c.mes_medido}</td>
-                    <td>${c.status_dc || '-'}</td>
-                    <td>${nomeStatusNf}</td>
-                    <td class="text-right mono">R$ ${Number(c.valor).toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
-                    <td class="text-right">
-                        <div class="table-actions" style="justify-content:flex-end;">
-                            <button onclick="editarConsumo(${c.id})" class="btn-edit">Editar</button>
-                            <button onclick="excluirConsumo(${c.id})" class="btn-danger">Excluir</button>
-                            ${isEmitida ? `<button onclick="exportarExcel(${c.id})" class="btn-excel">📊 Excel</button>` : ''}
-                        </div>
+                    <td class="coluna-sticky coluna-sticky-first" style="font-weight:600;">${c.dc || '-'}</td>
+                    <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.projetos?.nome || '-'}">${c.projetos?.nome || '-'}</td>
+                    <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.gestores_logictel?.nome || '-'}">${c.gestores_logictel?.nome || '-'}</td>
+                    <td><span class="status-badge-compact ${tipoMed === 'FI' ? 'dc-status' : 'logictel'}">${tipoMed}</span></td>
+                    <td>${c.mes_apropriacao || '-'}</td>
+                    <td>${c.mes_medido || '-'}</td>
+                    <td><span class="status-badge-compact ${statusBadgeClass}">${nomeStatusNf}</span></td>
+                    <td class="coluna-valor">R$ ${Number(c.valor).toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    <td class="coluna-acoes">
+                        <button onclick="editarConsumo(${c.id})" class="btn-edit" title="Editar">✎</button>
+                        <button onclick="excluirConsumo(${c.id})" class="btn-danger" title="Excluir">✕</button>
+                        ${isEmitida ? `<button onclick="exportarExcel(${c.id})" class="btn-excel" title="Exportar Excel">📊</button>` : ''}
                     </td>
                 </tr>`;
         });
@@ -280,7 +262,7 @@ function renderizarTabelaConsumos() {
         }
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="14" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -432,8 +414,6 @@ export async function editarConsumo(id) {
         controlarCamposNF();
         document.getElementById('consumo-cancel-btn').style.display = 'inline-block';
 
-        // A listagem/histórico fica em outra aba; troca para "Consumo DC"
-        // (onde está o formulário) antes de rolar até ele.
         mudarAba('cad-consumo');
         document.getElementById('form-consumo').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
@@ -465,9 +445,6 @@ export async function excluirConsumo(id) {
     }
 }
 
-// =====================================================
-// EXPORTAR EXCEL
-// =====================================================
 export async function exportarExcel(id) {
     try {
         const { data, error } = await supabaseClient

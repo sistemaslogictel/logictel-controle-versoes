@@ -1,10 +1,6 @@
 // =====================================================
 // PONTO DE ENTRADA DA APLICAÇÃO
 // =====================================================
-// Este arquivo importa todos os módulos e expõe no `window` apenas
-// as funções que o HTML precisa chamar via onclick/onchange/oninput
-// (o próprio index.html continua usando esses atributos inline,
-// então as funções precisam existir no escopo global do navegador).
 
 import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte } from './auth.js';
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
@@ -63,8 +59,7 @@ Object.assign(window, {
 });
 
 // =====================================================
-// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO (equivalente aos
-// addEventListener que existiam soltos no script original)
+// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO
 // =====================================================
 function initFormListeners() {
     initFormMedicao();
@@ -93,6 +88,4 @@ function iniciarApp() {
     }
 }
 
-// Scripts com type="module" já são deferidos (equivalente a colocar no fim do body),
-// então o DOM já está pronto quando este código roda.
 iniciarApp();
