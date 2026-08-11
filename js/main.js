@@ -1,16 +1,12 @@
 // =====================================================
 // PONTO DE ENTRADA DA APLICAÇÃO
 // =====================================================
-// Este arquivo importa todos os módulos e expõe no `window` apenas
-// as funções que o HTML precisa chamar via onclick/onchange/oninput
-// (o próprio index.html continua usando esses atributos inline,
-// então as funções precisam existir no escopo global do navegador).
 
 import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte } from './auth.js';
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
 import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessivel } from './navigation.js';
 
-import { carregarDashApropriacao, carregarDashDON, exportarExcelDON, exportarExcelStatus } from './dashboards.js';
+import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, exportarExcelDON, exportarExcelStatus, exportarExcelCRE } from './dashboards.js';
 import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
 import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed } from './medicoes.js';
@@ -38,10 +34,11 @@ Object.assign(window, {
     mudarAba, cancelarEdicao, toggleSidebar,
     limparFiltros: (tipo) => limparFiltros(tipo, {
         aprop: carregarDashApropriacao,
-        don: carregarDashDON
+        don: carregarDashDON,
+        cre: carregarDashCRE
     }),
     // dashboards
-    carregarDashApropriacao, carregarDashDON, exportarExcelDON, exportarExcelStatus,
+    carregarDashApropriacao, carregarDashDON, carregarDashCRE, exportarExcelDON, exportarExcelStatus, exportarExcelCRE,
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards,
     // consumo
@@ -62,10 +59,6 @@ Object.assign(window, {
     editarUsuario, excluirUsuario
 });
 
-// =====================================================
-// INICIALIZAÇÃO DOS LISTENERS DE FORMULÁRIO (equivalente aos
-// addEventListener que existiam soltos no script original)
-// =====================================================
 function initFormListeners() {
     initFormMedicao();
     initFormConsumo();
@@ -80,9 +73,6 @@ function initFormListeners() {
     initFormUsuario();
 }
 
-// =====================================================
-// BOOTSTRAP DA APLICAÇÃO
-// =====================================================
 function iniciarApp() {
     initFormListeners();
 
@@ -93,6 +83,4 @@ function iniciarApp() {
     }
 }
 
-// Scripts com type="module" já são deferidos (equivalente a colocar no fim do body),
-// então o DOM já está pronto quando este código roda.
 iniciarApp();
