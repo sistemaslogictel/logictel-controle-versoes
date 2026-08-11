@@ -116,9 +116,9 @@ export function exportarExcelCRE() {
 }
 
 // =====================================================
-// CÁLCULO COMPARTILHADO DE SALDO POR MÊS (para STATUS e CRE)
+// CÁLCULO DE SALDO PARA STATUS (com exclusão de CRE)
 // =====================================================
-function calcularGruposSaldo(medicoes, consumos, campoValor, filtroCRE = false) {
+function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
     const grupos = {};
 
     function garantirGrupo(key, origem) {
@@ -144,25 +144,17 @@ function calcularGruposSaldo(medicoes, consumos, campoValor, filtroCRE = false) 
         g._debitos[med.mes] = (g._debitos[med.mes] || 0) + valor;
     });
 
-    // 2) Todo consumo lançado para aquele gestor+projeto+ano entra no
-    // mesmo caixa, independente do mês de apropriação informado.
+    // 2) Todo consumo lançado (exceto CRE) entra no caixa
     consumos.forEach(c => {
-        // Se for filtro CRE, só inclui consumos com status NF "Falta aprovar CRE"
-        if (filtroCRE) {
-            if (!consumoEHCRE(c)) return;
-        } else {
-            // Se NÃO for filtro CRE, exclui consumos com status NF "Falta aprovar CRE"
-            if (consumoDeveSerExcluido(c)) return;
-        }
+        // EXCLUIR consumos com status NF "Falta aprovar CRE"
+        if (consumoDeveSerExcluido(c)) return;
         
         const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
         const g = garantirGrupo(key, c);
         g._caixa += Math.abs(Number(c.valor || 0));
     });
 
-    // 3) Quitação em cascata: aplica o caixa disponível nos meses mais
-    // antigos primeiro. O que sobrar de caixa depois de quitar todas as
-    // dívidas conhecidas vira crédito exibido no último mês medido.
+    // 3) Quitação em cascata
     Object.values(grupos).forEach(g => {
         const mesesOrdenados = Object.keys(g._debitos)
             .sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
@@ -174,14 +166,14 @@ function calcularGruposSaldo(medicoes, consumos, campoValor, filtroCRE = false) 
             const debito = g._debitos[mes];
             const aplicado = Math.min(caixa, debito);
             caixa -= aplicado;
-            const saldo = aplicado - debito; // 0 = quitado; negativo = ainda pendente
+            const saldo = aplicado - debito;
             g.meses[mes] = { saldo };
             total += saldo;
         });
 
         if (caixa > 0 && mesesOrdenados.length > 0) {
             const ultimoMes = mesesOrdenados[mesesOrdenados.length - 1];
-            g.meses[ultimoMes].saldo += caixa; // adiantamento/crédito
+            g.meses[ultimoMes].saldo += caixa;
             total += caixa;
         }
 
@@ -209,7 +201,7 @@ function calcularGruposSaldo(medicoes, consumos, campoValor, filtroCRE = false) 
 }
 
 // =====================================================
-// CÁLCULO DE SALDO PARA DON - AGRUPADO POR PROJETO E DIRETOR
+// CÁLCULO DE SALDO PARA DON (com exclusão de CRE)
 // =====================================================
 function calcularGruposSaldoDON(medicoes, consumos) {
     const grupos = {};
@@ -303,6 +295,57 @@ function calcularGruposSaldoDON(medicoes, consumos) {
     }
 
     const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
+    return { grupos, mesesExibir };
+}
+
+// =====================================================
+// CÁLCULO PARA CRE - SÓ MOSTRA OS CONSUMOS COM STATUS "Falta aprovar CRE"
+// =====================================================
+function calcularGruposCRE(consumos) {
+    const grupos = {};
+
+    // Filtrar apenas consumos com status NF "Falta aprovar CRE"
+    const consumosCRE = consumos.filter(c => consumoEHCRE(c));
+
+    if (consumosCRE.length === 0) {
+        return { grupos: {}, mesesExibir: [] };
+    }
+
+    // Agrupar por gestor + projeto + ano
+    consumosCRE.forEach(c => {
+        const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
+        if (!grupos[key]) {
+            grupos[key] = {
+                gestor: c.gestores_logictel?.nome || 'N/A',
+                projeto: c.projetos?.nome || 'N/A',
+                descricao: c.projetos?.nome || '',
+                meses: {},
+                total: 0
+            };
+        }
+        const mes = c.mes_medido || c.mes_apropriacao || 'Sem mês';
+        const valor = Math.abs(Number(c.valor || 0));
+        if (!grupos[key].meses[mes]) {
+            grupos[key].meses[mes] = { saldo: 0 };
+        }
+        grupos[key].meses[mes].saldo += valor;
+        grupos[key].total += valor;
+    });
+
+    // Determinar meses a exibir
+    const mesesComSaldo = new Set();
+    Object.values(grupos).forEach(g => {
+        Object.keys(g.meses).forEach(mes => {
+            if (g.meses[mes].saldo !== 0) mesesComSaldo.add(mes);
+        });
+    });
+
+    const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => {
+        if (a === 'Sem mês') return 1;
+        if (b === 'Sem mês') return -1;
+        return MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b);
+    });
+
     return { grupos, mesesExibir };
 }
 
@@ -514,7 +557,6 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         const totalColor = proj.total < 0 ? 'color:#FF0000;' : (proj.total > 0 ? 'color:#00AA00;' : '');
         const projetoId = `projeto-${index}`;
 
-        // Linha do Projeto (clicável para expandir/colapsar)
         let html = `
             <tr class="projeto-row" data-projeto="${projetoId}" style="border-top:2px solid var(--primary);background:var(--primary-100);cursor:pointer;">
                 <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">
@@ -588,6 +630,74 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
 }
 
 // =====================================================
+// RENDERIZAÇÃO DA TABELA CRE - SÓ MOSTRA CONSUMOS CRE
+// =====================================================
+function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
+    const headerRow = document.querySelector(`#${headerId}`);
+    if (headerRow) {
+        let html = `<tr class="cre-header">
+            <th style="text-align:left;padding:10px 12px;">Gestão</th>
+            <th style="text-align:left;padding:10px 12px;">Projeto</th>
+            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+        mesesExibir.forEach(mes => {
+            html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
+        });
+        html += '<th style="text-align:center;padding:10px 12px;">Total</th></tr>';
+        headerRow.innerHTML = html;
+    }
+
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+
+    const linhas = Object.values(grupos);
+    if (linhas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" style="padding:20px;text-align:center;color:var(--text-soft);">Nenhum registro encontrado.</td></tr>`;
+        renderizarTotalGeralCardCRE(totalCardId, 'cre', mesesExibir, [], 0);
+        return;
+    }
+
+    tbody.innerHTML = '';
+    let totalGeral = 0;
+
+    linhas.forEach(g => {
+        totalGeral += g.total;
+
+        let html = `
+            <tr>
+                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
+                <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
+        `;
+
+        mesesExibir.forEach(mes => {
+            const saldo = g.meses[mes]?.saldo;
+            const temValor = saldo !== undefined && saldo !== 0;
+            
+            let displayValor = '-';
+            let colorStyle = '';
+            
+            if (temValor) {
+                if (saldo > 0) {
+                    colorStyle = 'color:#00AA00;';
+                }
+                displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
+            }
+            
+            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${colorStyle}">${displayValor}</td>`;
+        });
+
+        html += `
+                <td style="text-align:center;padding:10px 12px;font-weight:700;color:#00AA00;">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+            </tr>
+        `;
+
+        tbody.innerHTML += html;
+    });
+
+    renderizarTotalGeralCardCRE(totalCardId, 'cre', mesesExibir, linhas, totalGeral);
+}
+
+// =====================================================
 // FILTROS
 // =====================================================
 function lerFiltrosDashboard(prefixo) {
@@ -606,7 +716,6 @@ function lerFiltrosDashboard(prefixo) {
             mes: document.getElementById('filt-cre-mes')?.value || ''
         };
     } else {
-        // 'aprop' (Status)
         return {
             gestor: document.getElementById('filt-aprop-gestor')?.value || '',
             projeto: document.getElementById('filt-aprop-projeto')?.value || '',
@@ -629,7 +738,6 @@ function aplicarFiltrosDashboard(lista, filtros, prefixo) {
             return true;
         });
     } else {
-        // 'aprop' ou 'cre'
         return lista.filter(item => {
             if (filtros.gestor && item.gestores_logictel?.nome !== filtros.gestor) return false;
             if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
@@ -650,9 +758,7 @@ export async function carregarDashApropriacao() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
-        // Carregar mapa de status NF
         await carregarStatusNfMap();
-        
         const filtros = lerFiltrosDashboard('aprop');
         
         const { data: medicoes, error: errorMed } = await supabaseClient
@@ -675,11 +781,10 @@ export async function carregarDashApropriacao() {
         const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros, 'aprop');
         const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'aprop');
         
-        const { grupos, mesesExibir } = calcularGruposSaldo(
+        const { grupos, mesesExibir } = calcularGruposSaldoStatus(
             medicoesFiltradas, 
             consumosFiltrados, 
-            'valor_status',
-            false // não é CRE
+            'valor_status'
         );
         
         _ultimoRenderStatus = { linhas: Object.values(grupos), mesesExibir };
@@ -701,9 +806,7 @@ export async function carregarDashDON() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
-        // Carregar mapa de status NF
         await carregarStatusNfMap();
-        
         const filtros = lerFiltrosDashboard('don');
         
         const { data: medicoes, error: errorMed } = await supabaseClient
@@ -740,7 +843,7 @@ export async function carregarDashDON() {
 }
 
 // =====================================================
-// DASHBOARD CRE (Tratitando CRE) - COM EXPANSÃO POR CLIQUE
+// DASHBOARD CRE (Tratitando CRE) - SÓ CONSUMOS COM STATUS "Falta aprovar CRE"
 // =====================================================
 export async function carregarDashCRE() {
     const tbody = document.getElementById('tabela-dash-cre');
@@ -749,19 +852,9 @@ export async function carregarDashCRE() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
-        // Carregar mapa de status NF
         await carregarStatusNfMap();
-        
         const filtros = lerFiltrosDashboard('cre');
         
-        const { data: medicoes, error: errorMed } = await supabaseClient
-            .from('medicoes')
-            .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_status,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
-            `);
-        if (errorMed) throw errorMed;
-
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
@@ -771,19 +864,13 @@ export async function carregarDashCRE() {
             `);
         if (errorCons) throw errorCons;
 
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros, 'cre');
         const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'cre');
         
-        // Para CRE, usamos o mesmo cálculo do Status, mas com filtroCRE = true
-        const { grupos, mesesExibir } = calcularGruposSaldo(
-            medicoesFiltradas, 
-            consumosFiltrados, 
-            'valor_status',
-            true // é CRE - só inclui "Falta aprovar CRE"
-        );
+        // Calcular apenas os consumos CRE
+        const { grupos, mesesExibir } = calcularGruposCRE(consumosFiltrados);
         
         _ultimoRenderCRE = { linhas: Object.values(grupos), mesesExibir };
-        renderizarDashboardStatus('cre-header', 'tabela-dash-cre', grupos, mesesExibir, 'cre-header', 'cre-total-geral', 'cre');
+        renderizarDashboardCRE('cre-header', 'tabela-dash-cre', grupos, mesesExibir, 'cre-total-geral');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard CRE:', e);
