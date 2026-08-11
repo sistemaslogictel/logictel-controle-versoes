@@ -163,14 +163,8 @@ export function initFormMedicao() {
         const valorDonStr = document.getElementById('med-valor-don').value;
         const valorStatusStr = document.getElementById('med-valor-status').value;
         
-        console.log('Valor DON string:', valorDonStr);
-        console.log('Valor Status string:', valorStatusStr);
-        
         const valorDon = valorParaNumero(valorDonStr);
         const valorStatus = valorParaNumero(valorStatusStr);
-        
-        console.log('Valor DON convertido:', valorDon);
-        console.log('Valor Status convertido:', valorStatus);
 
         const dados = {
             projeto_id: parseInt(projetoId),
@@ -184,8 +178,6 @@ export function initFormMedicao() {
             data_email_medicao: document.getElementById('med-data-email').value || null,
             status_medicao: document.getElementById('med-status').value
         };
-
-        console.log('Dados a serem salvos:', dados);
 
         try {
             let result;
@@ -202,11 +194,8 @@ export function initFormMedicao() {
 
             if (result.error) {
                 alert('Erro: ' + result.error.message);
-                console.error('Erro detalhado:', result.error);
                 return;
             }
-
-            console.log('Resultado do salvamento:', result);
 
             alert(editId ? 'Medição atualizada!' : 'Medição salva!');
             form.reset();
@@ -245,7 +234,6 @@ export async function editarMedicao(id) {
 
         if (error) {
             alert('Erro ao carregar: ' + error.message);
-            console.error('Erro detalhado:', error);
             return;
         }
         if (!data) {
@@ -253,10 +241,10 @@ export async function editarMedicao(id) {
             return;
         }
 
-        console.log('Dados carregados para edição:', data);
-
         // Preencher os campos do formulário
         document.getElementById('med-edit-id').value = id;
+        
+        // Preencher selects - preservando todos os valores
         document.getElementById('med-projeto').value = data.projeto_id || '';
         document.getElementById('med-gestor').value = data.gestor_logictel_id || '';
         document.getElementById('med-diretor').value = data.diretor_id || '';

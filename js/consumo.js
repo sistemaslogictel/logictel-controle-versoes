@@ -391,9 +391,12 @@ export async function editarConsumo(id) {
         }
         if (!data) return;
 
+        // Preencher os campos básicos
         document.getElementById('consumo-edit-id').value = id;
         document.getElementById('dc-numero').value = data.dc || '';
         document.getElementById('dc-pedido').value = data.pedido || '';
+        
+        // Preencher selects - IMPORTANTE: definir os valores ANTES de chamar carregarGestoresPorProjeto
         document.getElementById('dc-empresa').value = data.empresa_id || '';
         document.getElementById('dc-projeto').value = data.projeto_id || '';
         document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
@@ -401,7 +404,6 @@ export async function editarConsumo(id) {
         document.getElementById('dc-diretor').value = data.diretor_id || '';
         document.getElementById('dc-mes-apropriacao').value = data.mes_apropriacao || '';
         document.getElementById('dc-ano').value = data.ano || '';
-        document.getElementById('dc-valor').value = Number(data.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
         document.getElementById('dc-mes-medido').value = data.mes_medido || '';
         document.getElementById('dc-data-solicitacao').value = data.data_solicitacao_faturamento || '';
         document.getElementById('dc-fr').value = data.fr || '';
@@ -412,13 +414,37 @@ export async function editarConsumo(id) {
         document.getElementById('dc-centro-custo').value = data.centro_custo || '';
         document.getElementById('dc-item').value = data.item || '';
         document.getElementById('dc-po').value = data.po || '';
+        document.getElementById('dc-valor').value = Number(data.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
+        // Carregar os gestores baseados no projeto selecionado
         if (data.projeto_id) {
+            // Forçar o carregamento dos gestores para o projeto
             await carregarGestoresPorProjeto();
+            // Reaplicar o valor do gestor após carregar a lista
             document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
         }
 
-        controlarCamposNF();
+        // Chamar a função para controlar os campos de NF (habilita/desabilita conforme status)
+        // Mas NÃO reseta os valores se o status for não-emitido
+        const selectStatusNf = document.getElementById('dc-status-nf');
+        const nomeStatus = (selectStatusNf?.selectedOptions?.[0]?.textContent || '').toLowerCase();
+        const isEmitida = nomeStatus.includes('emitid');
+        
+        if (isEmitida) {
+            document.getElementById('dc-num-nf').disabled = false;
+            document.getElementById('dc-num-nf').required = true;
+            document.getElementById('dc-data-nf').disabled = false;
+            document.getElementById('dc-data-nf').required = true;
+            document.getElementById('campos-extras-consumo').classList.add('visible');
+        } else {
+            // Se não for emitida, desabilita mas NÃO limpa os valores
+            document.getElementById('dc-num-nf').disabled = true;
+            document.getElementById('dc-num-nf').required = false;
+            document.getElementById('dc-data-nf').disabled = true;
+            document.getElementById('dc-data-nf').required = false;
+            document.getElementById('campos-extras-consumo').classList.remove('visible');
+        }
+
         document.getElementById('consumo-cancel-btn').style.display = 'inline-block';
 
         mudarAba('cad-consumo');
