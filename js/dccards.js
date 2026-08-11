@@ -143,36 +143,38 @@ export async function carregarDCCards() {
 
             // Nomes
             const projetoNome = c.projetos?.nome || c.projeto || 'N/A';
-            const gestorNome = c.gestores_logictel?.nome || c.gestor_logictel || 'N/A';
-            const diretorNome = c.diretores?.nome || c.diretor || 'N/A';
 
             container.innerHTML += `
                 <div class="dc-card" onclick="irParaConsumo('${c.dc}')" style="border-left-color: ${borderColor};">
                     <div class="dc-badge">#${c.id}</div>
-                    <div class="dc-number">DC ${c.dc}</div>
                     
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+                    <!-- Linha 1: DC + Valor -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div class="dc-number">DC ${c.dc}</div>
+                        <div style="font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:700; color:var(--text);">R$ ${valorDc}</div>
+                    </div>
+                    
+                    <!-- Linha 2: Status + Tipo -->
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
                         <div class="dc-status ${statusClass}">${statusNome}</div>
                         <div class="dc-tipo-medicao ${tipoClass}">${tipoMedicao === 'FI' ? '🔴 FINAL' : '🟡 PARCIAL'}</div>
                     </div>
                     
-                    <div style="display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap;">
-                        <span style="font-size:11px; font-weight:600; color:var(--text);">💰 R$ ${valorDc}</span>
-                        <span class="dc-aging ${agingClass}">⏱️ Aging: ${agingText}</span>
+                    <!-- Linha 3: Projeto -->
+                    <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${projetoNome}</div>
+                    
+                    <!-- Linha 4: Motivo/Observação -->
+                    <div class="dc-motivo" style="margin-bottom:6px;">📝 ${statusMotivo || 'Sem observação'}</div>
+                    
+                    <!-- Linha 5: Data + Aging (alinhados) -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
+                        <div class="dc-updated" style="margin:0;">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div class="dc-aging ${agingClass}" style="margin:0;">⏱️ Aging: ${agingText}</div>
                     </div>
                     
-                    <div class="dc-motivo">📝 ${statusMotivo || 'Sem observação'}</div>
-                    
-                    <div style="font-size:10.8px; color:var(--text-soft); margin-top:4px; line-height:1.5;">
-                        <div>📋 Projeto: ${projetoNome}</div>
-                        <div>👤 Gestor: ${gestorNome}</div>
-                        ${diretorNome && diretorNome !== 'N/A' ? `<div>🏢 Diretor: ${diretorNome}</div>` : ''}
-                    </div>
-                    
-                    <div class="dc-updated">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
-                    
-                    ${c.pedido ? `<div style="font-size:10.8px;color:var(--text-soft);">📦 Pedido: ${c.pedido}</div>` : ''}
-                    ${c.fr ? `<div style="font-size:10.8px;color:var(--text-soft);">📄 FR: ${c.fr}</div>` : ''}
+                    <!-- Metadados adicionais (opcionais) -->
+                    ${c.pedido ? `<div style="font-size:10px;color:var(--text-soft);margin-top:4px;">📦 Pedido: ${c.pedido}</div>` : ''}
+                    ${c.fr ? `<div style="font-size:10px;color:var(--text-soft);">📄 FR: ${c.fr}</div>` : ''}
                 </div>
             `;
         });
