@@ -11,15 +11,43 @@ let _ultimoRenderStatus = null;
 let _ultimoRenderCRE = null;
 
 // =====================================================
+// BUSCAR MAPEAMENTO DE STATUS NF
+// =====================================================
+let _statusNfMap = {};
+
+async function carregarStatusNfMap() {
+    if (Object.keys(_statusNfMap).length > 0) return _statusNfMap;
+    try {
+        const { data, error } = await supabaseClient
+            .from('status_nf')
+            .select('id, nome');
+        if (error) {
+            console.error('Erro ao carregar status NF:', error);
+            return {};
+        }
+        if (data) {
+            data.forEach(s => {
+                _statusNfMap[s.id] = s.nome;
+            });
+        }
+        return _statusNfMap;
+    } catch (e) {
+        console.error('Erro ao carregar status NF:', e);
+        return {};
+    }
+}
+
+// =====================================================
 // FUNÇÃO PARA VERIFICAR SE UM CONSUMO DEVE SER EXCLUÍDO
 // (status NF "Falta aprovar CRE" não entra nas dashboards DON e Status)
 // =====================================================
 function consumoDeveSerExcluido(consumo) {
     if (!consumo) return false;
-    const statusNf = consumo.status_nf;
-    if (!statusNf) return false;
-    const statusNfStr = String(statusNf).toLowerCase();
-    return statusNfStr.includes('falta aprovar cre') || statusNfStr.includes('falta_aprovar_cre');
+    const statusNfId = consumo.status_nf;
+    if (!statusNfId) return false;
+    const nomeStatusNf = _statusNfMap[statusNfId] || '';
+    const nomeLower = nomeStatusNf.toLowerCase();
+    return nomeLower.includes('falta aprovar cre') || nomeLower.includes('falta_aprovar_cre');
 }
 
 // =====================================================
@@ -27,10 +55,11 @@ function consumoDeveSerExcluido(consumo) {
 // =====================================================
 function consumoEHCRE(consumo) {
     if (!consumo) return false;
-    const statusNf = consumo.status_nf;
-    if (!statusNf) return false;
-    const statusNfStr = String(statusNf).toLowerCase();
-    return statusNfStr.includes('falta aprovar cre') || statusNfStr.includes('falta_aprovar_cre');
+    const statusNfId = consumo.status_nf;
+    if (!statusNfId) return false;
+    const nomeStatusNf = _statusNfMap[statusNfId] || '';
+    const nomeLower = nomeStatusNf.toLowerCase();
+    return nomeLower.includes('falta aprovar cre') || nomeLower.includes('falta_aprovar_cre');
 }
 
 // =====================================================
@@ -621,6 +650,9 @@ export async function carregarDashApropriacao() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
+        // Carregar mapa de status NF
+        await carregarStatusNfMap();
+        
         const filtros = lerFiltrosDashboard('aprop');
         
         const { data: medicoes, error: errorMed } = await supabaseClient
@@ -635,7 +667,7 @@ export async function carregarDashApropriacao() {
             .from('consumo_dc')
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor,
+                mes_apropriacao, mes_medido, ano, valor, status_nf,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
@@ -669,6 +701,9 @@ export async function carregarDashDON() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
+        // Carregar mapa de status NF
+        await carregarStatusNfMap();
+        
         const filtros = lerFiltrosDashboard('don');
         
         const { data: medicoes, error: errorMed } = await supabaseClient
@@ -683,7 +718,7 @@ export async function carregarDashDON() {
             .from('consumo_dc')
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor,
+                mes_apropriacao, mes_medido, ano, valor, status_nf,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
@@ -714,6 +749,9 @@ export async function carregarDashCRE() {
     tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
 
     try {
+        // Carregar mapa de status NF
+        await carregarStatusNfMap();
+        
         const filtros = lerFiltrosDashboard('cre');
         
         const { data: medicoes, error: errorMed } = await supabaseClient
@@ -728,7 +766,7 @@ export async function carregarDashCRE() {
             .from('consumo_dc')
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor,
+                mes_apropriacao, mes_medido, ano, valor, status_nf,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
