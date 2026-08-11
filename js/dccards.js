@@ -28,6 +28,20 @@ export function limparFiltrosDCCards() {
     carregarDCCards();
 }
 
+// Função para formatar data no formato dd/mm/aaaa
+function formatarDataBr(dataStr) {
+    if (!dataStr) return '-';
+    try {
+        const data = new Date(dataStr + 'T00:00:00');
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        return `${dia}/${mes}/${ano}`;
+    } catch {
+        return dataStr;
+    }
+}
+
 export async function carregarDCCards() {
     const container = document.getElementById('dc-cards-container');
     if (!container) return;
@@ -97,13 +111,23 @@ export async function carregarDCCards() {
         const pagina = paginar(filtrados, _paginaAtualDC, ITENS_POR_PAGINA_DC);
 
         const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
         container.innerHTML = '';
 
         pagina.forEach(c => {
-            // ALTERADO: Usar data_solicitacao_faturamento em vez de ultima_atualizacao
-            const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
-            const dataAtualizacao = new Date(dataSolicitacao);
-            const diffTime = Math.abs(hoje - dataAtualizacao);
+            // Usar data_solicitacao_faturamento para calcular o Aging
+            const dataSolicitacaoStr = c.data_solicitacao_faturamento || c.criado_em;
+            
+            // Criar data para cálculo do Aging (sem fuso horário)
+            let dataSolicitacao;
+            if (dataSolicitacaoStr) {
+                dataSolicitacao = new Date(dataSolicitacaoStr + 'T00:00:00');
+            } else {
+                dataSolicitacao = new Date();
+            }
+            dataSolicitacao.setHours(0, 0, 0, 0);
+            
+            const diffTime = Math.abs(hoje - dataSolicitacao);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             let agingClass = 'verde';
@@ -125,6 +149,9 @@ export async function carregarDCCards() {
 
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+
+            // Formatar data para exibição no formato dd/mm/aaaa
+            const dataExibicao = formatarDataBr(dataSolicitacaoStr);
 
             container.innerHTML += `
                 <div class="dc-card" onclick="abrirEdicaoConsumo(${c.id})" style="border-left-color: ${borderColor};">
@@ -148,8 +175,7 @@ export async function carregarDCCards() {
                     
                     <!-- Linha 5: Data + Aging (alinhados) -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
-                        <!-- ALTERADO: Usar dataSolicitacao para exibir a data -->
-                        <div class="dc-updated" style="margin:0;">📅 ${new Date(dataSolicitacao).toLocaleDateString('pt-BR')} ${new Date(dataSolicitacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div class="dc-updated" style="margin:0;">📅 ${dataExibicao}</div>
                         <div class="dc-aging ${agingClass}" style="margin:0;">🏠 Aging: ${agingText}</div>
                     </div>
                     
