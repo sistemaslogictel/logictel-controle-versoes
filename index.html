@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.16.5 - Controle de Medições e DCs - Logictel</title>
+<title>V.16.6 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -70,14 +70,29 @@
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="content-area">
 
-    <!-- TOPBAR -->
-    <div class="topbar mb-3">
+    <!-- TOPBAR COM LEGENDA INTEGRADA -->
+    <div class="topbar mb-6" style="flex-wrap:wrap; gap:8px;">
       <div class="flex items-center gap-2.5">
         <button class="mobile-menu-toggle md:hidden" onclick="toggleSidebar()">☰ Menu</button>
         <span class="status-dot"></span>
         <span class="text-xs font-medium" style="color:var(--text-muted)">Banco sincronizado</span>
       </div>
-      <div class="flex items-center gap-3 flex-wrap">
+      
+      <!-- Legenda integrada no topbar -->
+      <div class="flex items-center gap-3 flex-wrap" style="font-size:9.9px; color:var(--text-muted);">
+        <span style="font-weight:600;color:var(--text);">Legenda limites:</span>
+        <span style="display:flex; align-items:center; gap:3px;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;"></span> 7 dias antes
+        </span>
+        <span style="display:flex; align-items:center; gap:3px;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FF0000;"></span> 3 dias antes
+        </span>
+        <span style="display:flex; align-items:center; gap:3px;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#000;border:1px solid #666;animation:piscar 0.8s ease-in-out infinite;"></span> Dia (piscando)
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3 flex-wrap" style="margin-left:auto;">
         <div id="datas-limites-topbar" class="flex items-center gap-2">
           <!-- Será preenchido via JavaScript -->
         </div>
@@ -89,20 +104,6 @@
           <button onclick="fazerLogout()" class="logout-btn">Sair</button>
         </div>
       </div>
-    </div>
-
-    <!-- ===================== LEGENDA GLOBAL ===================== -->
-    <div class="legenda-global" style="display:flex; align-items:center; gap:16px; padding:4px 12px; background:var(--paper); border:1px solid var(--border); border-radius:8px; margin-bottom:12px; flex-wrap:wrap; font-size:9.9px; color:var(--text-muted);">
-      <span style="font-weight:600;color:var(--text);">Legenda limites:</span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;"></span> 7 dias antes
-      </span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FF0000;"></span> 3 dias antes
-      </span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#000;border:1px solid #666;animation:piscar 0.8s ease-in-out infinite;"></span> Dia (piscando)
-      </span>
     </div>
 
     <!-- ===================== DASHBOARD DON ===================== -->
