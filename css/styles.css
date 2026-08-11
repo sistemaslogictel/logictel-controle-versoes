@@ -29,7 +29,7 @@ body{
   background:var(--paper);
   color:var(--text);
   -webkit-font-smoothing:antialiased;
-  font-size:16px;
+  font-size:13.5px;
 }
 h1,h2,h3,.display{
   font-family:'Space Grotesk', sans-serif;
@@ -92,7 +92,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .login-system-name {
   text-align:center;
   font-family:'Space Grotesk', sans-serif;
-  font-size:15px;
+  font-size:12.6px;
   font-weight:500;
   color:var(--text-muted);
   letter-spacing:0.15em;
@@ -101,14 +101,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   opacity:0.8;
 }
 .login-title {
-  font-size:21.4px;
+  font-size:18px;
   font-weight:600;
   color:var(--text);
   text-align:center;
   margin-bottom:4px;
 }
 .login-subtitle {
-  font-size:13.9px;
+  font-size:11.7px;
   color:var(--text-muted);
   text-align:center;
   margin-bottom:24px;
@@ -118,7 +118,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   color:var(--danger);
   padding:10px 14px;
   border-radius:8px;
-  font-size:13.9px;
+  font-size:11.7px;
   margin-bottom:16px;
   display:none;
   border:1px solid #F5C6CB;
@@ -135,7 +135,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .login-card .btn-primary {
   width:100%;
   padding:12px;
-  font-size:16px;
+  font-size:13.5px;
 }
 
 .sidebar{
@@ -175,7 +175,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   color:#FFFFFF;
   font-family:'Space Grotesk', sans-serif;
   font-weight:700;
-  font-size:25.7px;
+  font-size:21.6px;
   letter-spacing:0.08em;
   text-shadow:0 2px 16px rgba(0,0,0,0.3);
 }
@@ -189,7 +189,7 @@ nav.sidenav{
 }
 .nav-section-label{
   font-family:'IBM Plex Mono', monospace;
-  font-size:10.7px;
+  font-size:9px;
   letter-spacing:0.12em;
   text-transform:uppercase;
   color:#4A6A8E;
@@ -207,13 +207,13 @@ nav.sidenav{
   background:transparent;
   border:none;
   color:#B0C8E0;
-  font-size:14.4px;
+  font-size:12.2px;
   font-weight:500;
   text-align:left;
   transition:background .15s ease, color .15s ease;
   position:relative;
 }
-.sidebar-link svg{ flex-shrink:0; opacity:.7; width:17px; height:17px; }
+.sidebar-link svg{ flex-shrink:0; opacity:.7; width:14px; height:14px; }
 .sidebar-link:hover{ background:rgba(255,255,255,0.05); color:#fff; }
 .sidebar-link.is-active{ 
   background:linear-gradient(135deg, #1A3A7A, #2A4A8A);
@@ -235,12 +235,12 @@ nav.sidenav{
   background:transparent;
   border:none;
   color:#B0C8E0;
-  font-size:14.4px;
+  font-size:12.2px;
   font-weight:500;
   transition:background .15s ease, color .15s ease;
 }
 .flyout-trigger .lbl{ display:flex; align-items:center; gap:10px; }
-.flyout-trigger .lbl svg{ width:17px; height:17px; }
+.flyout-trigger .lbl svg{ width:14px; height:14px; }
 .flyout-trigger .chev{
   width:7px; height:7px;
   border-right:1.5px solid #4A6A8E;
@@ -286,7 +286,7 @@ nav.sidenav{
 }
 .flyout-section-title{
   font-family:'IBM Plex Mono', monospace;
-  font-size:10.7px;
+  font-size:9px;
   letter-spacing:0.12em;
   text-transform:uppercase;
   color:#4A6A8E;
@@ -302,7 +302,7 @@ nav.sidenav{
   padding:8px 10px;
   border-radius:6px;
   border-left:2px solid transparent;
-  font-size:13.9px;
+  font-size:11.7px;
   color:#B0C8E0;
   font-weight:500;
   background:transparent;
@@ -315,7 +315,7 @@ nav.sidenav{
 .sidebar-footer{
   padding:16px 16px;
   border-top:1px solid rgba(255,255,255,0.04);
-  font-size:11.7px;
+  font-size:9.9px;
   color:#4A6A8E;
   text-align:center;
   line-height:1.6;
@@ -355,14 +355,14 @@ nav.sidenav{
   align-items:center;
   justify-content:center;
   font-weight:600;
-  font-size:14.9px;
+  font-size:12.6px;
 }
 .logout-btn{
   background:transparent;
   border:1px solid var(--border);
   border-radius:6px;
   padding:4px 12px;
-  font-size:12.9px;
+  font-size:10.8px;
   color:var(--text-muted);
   transition:all .15s ease;
 }
@@ -390,7 +390,7 @@ nav.sidenav{
   background:var(--paper);
   border-bottom:2px solid var(--border);
   color:var(--text-muted);
-  font-size:10.7px;
+  font-size:9px;
   letter-spacing:0.06em;
   text-transform:uppercase;
   font-weight:700;
@@ -408,7 +408,7 @@ nav.sidenav{
 .td-row td{
   padding:8px 10px;
   border-bottom:1px solid var(--border);
-  font-size:12.9px;
+  font-size:10.8px;
   border-right:1px solid var(--border);
   vertical-align:middle;
 }
@@ -435,7 +435,7 @@ nav.sidenav{
   box-shadow:0 2px 8px rgba(8,16,32,0.06);
 }
 .stat-label{
-  font-size:11.7px;
+  font-size:9.9px;
   letter-spacing:0.06em;
   text-transform:uppercase;
   color:var(--text-muted);
@@ -444,13 +444,13 @@ nav.sidenav{
 }
 .stat-value{
   font-family:'IBM Plex Mono', monospace;
-  font-size:23.5px;
+  font-size:19.8px;
   font-weight:600;
 }
 
 .label{
   display:block;
-  font-size:11.7px;
+  font-size:9.9px;
   font-weight:700;
   letter-spacing:0.05em;
   text-transform:uppercase;
@@ -462,7 +462,7 @@ nav.sidenav{
   border:1px solid var(--border);
   border-radius:8px;
   padding:7px 10px;
-  font-size:13.3px;
+  font-size:11.3px;
   background:var(--surface);
   color:var(--text);
   transition:border-color .15s ease, box-shadow .15s ease;
@@ -497,7 +497,7 @@ nav.sidenav{
   display:flex;
   align-items:center;
   gap:8px;
-  font-size:13.9px;
+  font-size:11.7px;
   color:var(--text);
   cursor:pointer;
   padding:4px 8px;
@@ -519,7 +519,7 @@ nav.sidenav{
   flex-wrap:wrap;
 }
 .password-strength .criteria {
-  font-size:11.7px;
+  font-size:9.9px;
   padding:3px 10px;
   border-radius:12px;
   background:var(--paper);
@@ -545,7 +545,7 @@ nav.sidenav{
   background:linear-gradient(135deg, #1A3A7A, #2A4A8A);
   color:#fff;
   font-weight:600;
-  font-size:13.9px;
+  font-size:11.7px;
   padding:10px 18px;
   border-radius:8px;
   border:1px solid var(--primary-dark);
@@ -559,7 +559,7 @@ nav.sidenav{
   background:var(--surface);
   color:var(--text);
   font-weight:600;
-  font-size:13.9px;
+  font-size:11.7px;
   padding:9px 14px;
   border-radius:8px;
   border:1px solid var(--border);
@@ -573,7 +573,7 @@ nav.sidenav{
   background:var(--danger);
   color:#fff;
   font-weight:600;
-  font-size:12.9px;
+  font-size:10.8px;
   padding:6px 12px;
   border-radius:6px;
   border:1px solid #8B1A1A;
@@ -585,7 +585,7 @@ nav.sidenav{
   background:var(--primary);
   color:#fff;
   font-weight:600;
-  font-size:12.9px;
+  font-size:10.8px;
   padding:6px 12px;
   border-radius:6px;
   border:1px solid var(--primary-dark);
@@ -597,7 +597,7 @@ nav.sidenav{
   background:var(--gold);
   color:#fff;
   font-weight:600;
-  font-size:12.9px;
+  font-size:10.8px;
   padding:6px 12px;
   border-radius:6px;
   border:1px solid #8A6A0A;
@@ -609,7 +609,7 @@ nav.sidenav{
   background:var(--text-soft);
   color:#fff;
   font-weight:600;
-  font-size:12.9px;
+  font-size:10.8px;
   padding:6px 12px;
   border-radius:6px;
   border:1px solid var(--text-muted);
@@ -621,7 +621,7 @@ nav.sidenav{
   background:var(--text-soft);
   color:#fff;
   font-weight:600;
-  font-size:13.9px;
+  font-size:11.7px;
   padding:8px 16px;
   border-radius:8px;
   border:1px solid var(--text-muted);
@@ -645,7 +645,7 @@ nav.sidenav{
   background:#217346;
   color:#fff;
   font-weight:600;
-  font-size:12.9px;
+  font-size:10.8px;
   padding:6px 12px;
   border-radius:6px;
   border:1px solid #1a5c38;
@@ -663,7 +663,7 @@ nav.sidenav{
 .table-actions{ display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
 .permissions-badge{
   display:inline-block;
-  font-size:10.7px;
+  font-size:9px;
   padding:2px 8px;
   border-radius:12px;
   background:var(--primary-100);
@@ -677,7 +677,7 @@ nav.sidenav{
   border:1px solid var(--border);
   border-radius:8px;
   padding:8px 12px;
-  font-size:21.4px;
+  font-size:18px;
   color:var(--text);
   cursor:pointer;
 }
@@ -707,13 +707,13 @@ nav.sidenav{
 .sidebar-mobile.active { left:0; }
 .sidebar-mobile .brand-box { padding:20px 16px; border-bottom:1px solid var(--line-dark); }
 .sidebar-mobile .sidenav { padding:16px 12px; flex:1; overflow-y:auto; }
-.sidebar-mobile .sidebar-footer { padding:16px 16px; border-top:1px solid rgba(255,255,255,0.04); font-size:11.7px; color:#4A6A8E; text-align:center; }
+.sidebar-mobile .sidebar-footer { padding:16px 16px; border-top:1px solid rgba(255,255,255,0.04); font-size:9.9px; color:#4A6A8E; text-align:center; }
 
 .close-sidebar-btn {
   background:transparent;
   border:none;
   color:#B0C8E0;
-  font-size:25.7px;
+  font-size:21.6px;
   cursor:pointer;
   padding:4px 12px;
   align-self:flex-end;
@@ -741,7 +741,7 @@ nav.sidenav{
 .dash-table-container table {
   width: 100%;
   border-collapse: collapse;
-  font-size:13.9px;
+  font-size:11.7px;
   min-width: 500px;
 }
 
@@ -752,7 +752,7 @@ nav.sidenav{
   background: var(--primary) !important;
   color: #fff !important;
   font-weight: 600 !important;
-  font-size:11.7px !important;
+  font-size:9.9px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   padding: 10px 12px !important;
@@ -775,7 +775,7 @@ nav.sidenav{
   background: #333333 !important;
   color: #fff !important;
   font-weight: 600 !important;
-  font-size:11.7px !important;
+  font-size:9.9px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   padding: 10px 12px !important;
@@ -797,7 +797,7 @@ nav.sidenav{
 .dash-table-container tbody td {
   padding: 10px 12px !important;
   border-bottom: 1px solid var(--border);
-  font-size:13.9px;
+  font-size:11.7px;
   vertical-align: middle;
   text-align: center !important;
   border-right: 1px solid var(--border);
@@ -847,7 +847,7 @@ nav.sidenav{
 
 .dash-table-container .total-row td:first-child {
   text-align: right !important;
-  font-size:13.9px;
+  font-size:11.7px;
   border-right: none;
 }
 
@@ -855,7 +855,7 @@ nav.sidenav{
   border-right: none;
   text-align: center !important;
   font-weight: 700;
-  font-size:14.9px;
+  font-size:12.6px;
 }
 
 .dash-table-container .total-row td.mes-coluna {
@@ -896,7 +896,7 @@ nav.sidenav{
 
 .dash-table-container .descricao-coluna {
   color: var(--text-soft);
-  font-size:12.9px;
+  font-size:10.8px;
   text-align: left !important;
 }
 
@@ -948,7 +948,7 @@ nav.sidenav{
 }
 
 .total-geral-label {
-  font-size:23.5px;
+  font-size:19.8px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -973,7 +973,7 @@ nav.sidenav{
 .total-geral-stat:last-child { border-right: none; }
 
 .total-geral-stat-label {
-  font-size:13.9px;
+  font-size:11.7px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -986,7 +986,7 @@ nav.sidenav{
 .theme-status .total-geral-stat-label { color: #333333; }
 
 .total-geral-stat-value {
-  font-size:21.4px;
+  font-size:18px;
   font-weight: 700;
   font-family: 'IBM Plex Mono', monospace;
 }
@@ -1036,12 +1036,12 @@ nav.sidenav{
 .dc-card .dc-number {
   font-family:'IBM Plex Mono', monospace;
   font-weight:600;
-  font-size:17.1px;
+  font-size:14.4px;
   color:var(--text);
   margin-bottom:4px;
 }
 .dc-card .dc-status {
-  font-size:12.9px;
+  font-size:10.8px;
   padding:2px 10px;
   border-radius:12px;
   display:inline-block;
@@ -1050,7 +1050,7 @@ nav.sidenav{
 .dc-card .dc-status.logictel { background:var(--primary-100); color:var(--logictel-color); }
 .dc-card .dc-status.vtal { background:var(--gold-bg); color:var(--vtal-color); }
 .dc-card .dc-motivo {
-  font-size:12.9px;
+  font-size:10.8px;
   color:var(--text-muted);
   margin:4px 0;
   padding:4px 8px;
@@ -1058,7 +1058,7 @@ nav.sidenav{
   border-radius:6px;
 }
 .dc-card .dc-responsavel {
-  font-size:11.7px;
+  font-size:9.9px;
   font-weight:600;
   margin-top:4px;
   padding:2px 8px;
@@ -1068,7 +1068,7 @@ nav.sidenav{
 .dc-card .dc-responsavel.logictel { background:var(--primary-100); color:var(--logictel-color); }
 .dc-card .dc-responsavel.vtal { background:var(--gold-bg); color:var(--vtal-color); }
 .dc-card .dc-aging {
-  font-size:13.9px;
+  font-size:11.7px;
   font-weight:600;
   margin-top:6px;
 }
@@ -1076,7 +1076,7 @@ nav.sidenav{
 .dc-card .dc-aging.amarelo { color:var(--gold); }
 .dc-card .dc-aging.vermelho { color:var(--danger); }
 .dc-card .dc-updated {
-  font-size:11.7px;
+  font-size:9.9px;
   color:var(--text-soft);
   margin-top:4px;
 }
@@ -1084,14 +1084,14 @@ nav.sidenav{
   position:absolute;
   top:8px;
   right:8px;
-  font-size:10.7px;
+  font-size:9px;
   padding:2px 8px;
   border-radius:10px;
   background:var(--paper);
   color:var(--text-muted);
 }
 .dc-card .dc-tipo-medicao {
-  font-size:10.7px;
+  font-size:9px;
   font-weight:700;
   padding:2px 8px;
   border-radius:4px;
@@ -1107,28 +1107,28 @@ nav.sidenav{
 
 @media (max-width: 900px){
   .sidebar{ display:none; }
-  .mobile-menu-toggle{ display:inline-flex; align-items:center; gap:8px; font-size:18.8px; }
+  .mobile-menu-toggle{ display:inline-flex; align-items:center; gap:8px; font-size:15.8px; }
   .filters-bar{ grid-template-columns:1fr 1fr; }
   .content-area{ padding:16px; }
   .topbar{ flex-wrap:wrap; gap:8px; }
-  #badge-ultima-atualizacao{ font-size:11.7px; }
+  #badge-ultima-atualizacao{ font-size:9.9px; }
   .checkbox-group{ grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); }
   .login-card{ padding:32px 24px; margin:16px; }
   .dc-cards-grid{ grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); }
   .dash-table-container thead th,
   .dash-table-container tbody td {
     padding: 8px 10px;
-    font-size: 12.9px;
+    font-size: 10.8px;
   }
 }
 @media (max-width: 600px){
   .filters-bar{ grid-template-columns:1fr; }
   .stats-grid{ grid-template-columns:1fr; }
   .topbar .flex.items-center{ flex-wrap:wrap; }
-  .stat-value{ font-size:18.8px; }
+  .stat-value{ font-size:15.8px; }
   .card-pad{ padding:16px; }
-  .td-row td{ padding:6px 8px; font-size:11.2px; }
-  .th-row th{ padding:6px 8px; font-size:9.5px; }
+  .td-row td{ padding:6px 8px; font-size:9.4px; }
+  .th-row th{ padding:6px 8px; font-size:8px; }
   .flyout{ left:0; top:100%; min-width:200px; margin-left:0; margin-top:2px; max-height:300px; min-height:auto; }
   .flyout-wrap{ position:static; }
   .checkbox-group{ grid-template-columns:1fr 1fr; }
@@ -1137,7 +1137,7 @@ nav.sidenav{
   .dash-table-container thead th,
   .dash-table-container tbody td {
     padding: 6px 8px;
-    font-size: 11.2px;
+    font-size: 9.4px;
   }
   .dash-table-container td.mes-coluna {
     min-width: 60px;
@@ -1171,7 +1171,7 @@ nav.sidenav{
   .dash-table-container thead th,
   .dash-table-container tbody td {
     padding: 4px 6px;
-    font-size: 10.3px;
+    font-size: 8.6px;
   }
   .filters-bar-don,
   .filters-bar-status {
@@ -1204,7 +1204,7 @@ nav.sidenav{
 }
 
 .filter-label {
-  font-size: 10.7px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1273,7 +1273,7 @@ nav.sidenav{
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.9px;
+  font-size: 10.8px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1324,7 +1324,7 @@ nav.sidenav{
   flex-wrap: wrap;
 }
 .pagination-info {
-  font-size: 13.9px;
+  font-size: 11.7px;
   color: var(--text-muted);
   font-weight: 600;
 }
@@ -1336,7 +1336,7 @@ nav.sidenav{
   background: var(--surface);
   color: var(--text);
   font-weight: 600;
-  font-size: 13.9px;
+  font-size: 11.7px;
   padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -1364,7 +1364,7 @@ nav.sidenav{
 .historico-table-container table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.9px;
+  font-size: 10.8px;
   min-width: 700px;
 }
 
@@ -1373,7 +1373,7 @@ nav.sidenav{
   background: var(--paper) !important;
   color: var(--text-muted) !important;
   font-weight: 700 !important;
-  font-size: 10.7px !important;
+  font-size: 9px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
   padding: 8px 10px !important;
@@ -1407,7 +1407,7 @@ nav.sidenav{
   padding: 7px 10px !important;
   border-bottom: 1px solid var(--border);
   border-right: 1px solid var(--border);
-  font-size: 12.9px !important;
+  font-size: 10.8px !important;
   vertical-align: middle;
   max-width: 150px;
   overflow: hidden;
@@ -1431,7 +1431,7 @@ nav.sidenav{
   text-align: right;
   font-family: 'IBM Plex Mono', monospace;
   font-weight: 600;
-  font-size: 12.9px !important;
+  font-size: 10.8px !important;
   white-space: nowrap;
 }
 
@@ -1445,7 +1445,7 @@ nav.sidenav{
 .historico-table-container .coluna-acoes .btn-edit,
 .historico-table-container .coluna-acoes .btn-danger,
 .historico-table-container .coluna-acoes .btn-excel {
-  font-size: 11.2px;
+  font-size: 9.4px;
   padding: 3px 8px;
   border-radius: 4px;
 }
@@ -1483,7 +1483,7 @@ nav.sidenav{
 /* Badge de status */
 .status-badge-compact {
   display: inline-block;
-  font-size: 10.7px;
+  font-size: 9px;
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 600;
@@ -1508,7 +1508,7 @@ nav.sidenav{
 /* Tipo de medição */
 .historico-table-container .tipo-badge {
   display: inline-block;
-  font-size: 10.7px;
+  font-size: 9px;
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 600;
@@ -1536,7 +1536,7 @@ nav.sidenav{
 .medicoes-table-container table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.9px;
+  font-size: 10.8px;
   min-width: 720px;
 }
 
@@ -1544,7 +1544,7 @@ nav.sidenav{
   background: var(--paper) !important;
   color: var(--text-muted) !important;
   font-weight: 700 !important;
-  font-size: 10.7px !important;
+  font-size: 9px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
   padding: 8px 10px !important;
@@ -1564,7 +1564,7 @@ nav.sidenav{
   padding: 7px 10px !important;
   border-bottom: 1px solid var(--border);
   border-right: 1px solid var(--border);
-  font-size: 12.9px !important;
+  font-size: 10.8px !important;
   vertical-align: middle;
   max-width: 150px;
   overflow: hidden;
@@ -1618,20 +1618,20 @@ nav.sidenav{
 /* Responsividade */
 @media (max-width: 768px) {
   .historico-table-container table {
-    font-size: 11.2px;
+    font-size: 9.4px;
     min-width: 580px;
   }
   .historico-table-container thead th {
-    font-size: 9.5px !important;
+    font-size: 8px !important;
     padding: 6px 8px !important;
   }
   .historico-table-container tbody td {
     padding: 5px 8px !important;
-    font-size: 11.2px !important;
+    font-size: 9.4px !important;
     max-width: 100px;
   }
   .historico-table-container .coluna-valor {
-    font-size: 11.2px !important;
+    font-size: 9.4px !important;
   }
   .historico-table-container .coluna-acoes {
     min-width: 70px;
@@ -1639,7 +1639,7 @@ nav.sidenav{
   .historico-table-container .coluna-acoes .btn-edit,
   .historico-table-container .coluna-acoes .btn-danger,
   .historico-table-container .coluna-acoes .btn-excel {
-    font-size: 10.3px;
+    font-size: 8.6px;
     padding: 2px 6px;
   }
   .historico-table-container .coluna-sticky {
@@ -1651,36 +1651,36 @@ nav.sidenav{
   }
   
   .medicoes-table-container table {
-    font-size: 11.2px;
+    font-size: 9.4px;
     min-width: 580px;
   }
   .medicoes-table-container thead th {
-    font-size: 9.5px !important;
+    font-size: 8px !important;
     padding: 6px 8px !important;
   }
   .medicoes-table-container tbody td {
     padding: 5px 8px !important;
-    font-size: 11.2px !important;
+    font-size: 9.4px !important;
     max-width: 100px;
   }
 }
 
 @media (max-width: 480px) {
   .historico-table-container table {
-    font-size: 10.3px;
+    font-size: 8.6px;
     min-width: 450px;
   }
   .historico-table-container thead th {
-    font-size: 8.6px !important;
+    font-size: 7.2px !important;
     padding: 5px 6px !important;
   }
   .historico-table-container tbody td {
     padding: 4px 6px !important;
-    font-size: 10.3px !important;
+    font-size: 8.6px !important;
     max-width: 70px;
   }
   .historico-table-container .coluna-valor {
-    font-size: 10.3px !important;
+    font-size: 8.6px !important;
   }
   .historico-table-container .coluna-acoes {
     min-width: 60px;
@@ -1688,7 +1688,7 @@ nav.sidenav{
   .historico-table-container .coluna-acoes .btn-edit,
   .historico-table-container .coluna-acoes .btn-danger,
   .historico-table-container .coluna-acoes .btn-excel {
-    font-size: 9.5px;
+    font-size: 8px;
     padding: 2px 4px;
   }
   .historico-table-container .coluna-sticky {
@@ -1700,16 +1700,16 @@ nav.sidenav{
   }
   
   .medicoes-table-container table {
-    font-size: 10.3px;
+    font-size: 8.6px;
     min-width: 420px;
   }
   .medicoes-table-container thead th {
-    font-size: 8.6px !important;
+    font-size: 7.2px !important;
     padding: 5px 6px !important;
   }
   .medicoes-table-container tbody td {
     padding: 4px 6px !important;
-    font-size: 10.3px !important;
+    font-size: 8.6px !important;
     max-width: 70px;
   }
 }
