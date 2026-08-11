@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.11.15 - Controle de Medições e DCs - Logictel</title>
+<title>V.11.18 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -209,97 +209,94 @@
 
 <!-- ===================== HISTÓRICO CONSUMO DAS DCS ===================== -->
 <div id="tab-historico-consumo-dcs" class="tab-content space-y-6">
-      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Histórico Consumo das DCs</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem completa de todos os lançamentos de consumo de DC.</p></div>
+    <div><h2 class="text-2xl font-bold" style="color:var(--text)">Histórico Consumo das DCs</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem completa de todos os lançamentos de consumo de DC.</p></div>
 
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
+    <div class="filters-section-title">🔍 Filtros</div>
+    <div class="filters-bar-grid">
         <div class="filter-group">
-          <label class="filter-label">DC *</label>
-          <input type="text" id="filt-consumo-dc" list="dclist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
-          <datalist id="dclist-consumo"></datalist>
+            <label class="filter-label">DC</label>
+            <input type="text" id="filt-consumo-dc" list="dclist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
+            <datalist id="dclist-consumo"></datalist>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Pedido</label>
-          <input type="text" id="filt-consumo-pedido" list="pedidolist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
-          <datalist id="pedidolist-consumo"></datalist>
+            <label class="filter-label">Pedido</label>
+            <input type="text" id="filt-consumo-pedido" list="pedidolist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
+            <datalist id="pedidolist-consumo"></datalist>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Projeto *</label>
-          <select id="filt-consumo-projeto" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+            <label class="filter-label">Projeto</label>
+            <select id="filt-consumo-projeto" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Tipo Medição *</label>
-          <select id="filt-consumo-tipo-medicao" class="input" onchange="filtrarConsumos()">
-            <option value="">Todos</option>
-            <option value="PA">PA - Parcial</option>
-            <option value="FI">FI - Final</option>
-          </select>
+            <label class="filter-label">Tipo</label>
+            <select id="filt-consumo-tipo-medicao" class="input" onchange="filtrarConsumos()">
+                <option value="">Todos</option>
+                <option value="PA">PA</option>
+                <option value="FI">FI</option>
+            </select>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Diretor Cliente</label>
-          <select id="filt-consumo-diretor" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+            <label class="filter-label">Diretor</label>
+            <select id="filt-consumo-diretor" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Mês Apropriação *</label>
-          <select id="filt-consumo-mes-apropriacao" class="input" onchange="filtrarConsumos()">
-            <option value="">Todos</option>
-            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-          </select>
+            <label class="filter-label">Mês Aprop.</label>
+            <select id="filt-consumo-mes-apropriacao" class="input" onchange="filtrarConsumos()">
+                <option value="">Todos</option>
+                <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
+                <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
+                <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
+                <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
+            </select>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Mês Medido *</label>
-          <select id="filt-consumo-mes-medido" class="input" onchange="filtrarConsumos()">
-            <option value="">Todos</option>
-            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-          </select>
+            <label class="filter-label">Mês Medido</label>
+            <select id="filt-consumo-mes-medido" class="input" onchange="filtrarConsumos()">
+                <option value="">Todos</option>
+                <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
+                <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
+                <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
+                <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
+            </select>
         </div>
         <div class="filter-group">
-          <label class="filter-label">Data Solicitação *</label>
-          <input type="text" id="filt-consumo-data-solicitacao" placeholder="dd/mm/aaaa" class="input date-input" oninput="filtrarConsumos()">
+            <label class="filter-label">FR</label>
+            <input type="text" id="filt-consumo-fr" placeholder="Nº da FR" class="input" oninput="filtrarConsumos()">
         </div>
         <div class="filter-group">
-          <label class="filter-label">FR (Folha de Registro)</label>
-          <input type="text" id="filt-consumo-fr" placeholder="Nº da FR" class="input" oninput="filtrarConsumos()">
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Status DC *</label>
-          <select id="filt-consumo-status-dc" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Status NF *</label>
-          <select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Nº da NF</label>
-          <input type="text" id="filt-consumo-num-nf" placeholder="Nº da NF" class="input" oninput="filtrarConsumos()">
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Data Emissão NF</label>
-          <input type="text" id="filt-consumo-data-emissao-nf" placeholder="dd/mm/aaaa" class="input date-input" oninput="filtrarConsumos()">
+            <label class="filter-label">Status NF</label>
+            <select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group filter-actions">
-          <button onclick="filtrarConsumos()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosConsumo()" class="btn-clear-filters">Limpar</button>
+            <button onclick="filtrarConsumos()" class="btn-primary">Filtrar</button>
+            <button onclick="limparFiltrosConsumo()" class="btn-clear-filters">Limpar</button>
         </div>
-      </div>
+    </div>
 
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>DC</th><th>Pedido</th><th>Projeto</th><th>Gestor</th><th>Tipo</th><th>Diretor</th><th>Mês Aprop.</th><th>Ano</th><th>Mês Medido</th><th>Status DC</th><th>Status NF</th><th class="text-right">Valor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-consumos"><tr><td colspan="14" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
+    <div class="card">
+        <div class="historico-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-sticky col-dc">DC</th>
+                        <th class="col-projeto">Projeto</th>
+                        <th class="col-gestor">Gestor</th>
+                        <th class="col-tipo">Tipo</th>
+                        <th class="col-mes-aprop">Mês Aprop.</th>
+                        <th class="col-mes-medido">Mês Medido</th>
+                        <th class="col-status-nf">Status</th>
+                        <th class="col-valor">Valor</th>
+                        <th class="col-acoes">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-consumos">
+                    <tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+                </tbody>
+            </table>
         </div>
-      </div>
-      <div id="consumo-pagination"></div>
+    </div>
+    <div id="consumo-pagination"></div>
 </div>
-
 
 <!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
 <div id="tab-cad-medicao" class="tab-content space-y-6">
@@ -374,20 +371,20 @@
         </div>
     </div>
     <div class="card">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead><tr class="th-row">
-                    <th>ID</th>
-                    <th>Projeto</th>
-                    <th>Gestor Logictel</th>
-                    <th>Diretor Cliente</th>
-                    <th>Mês</th>
-                    <th>Ano</th>
-                    <th class="text-right">Valor DON</th>
-                    <th class="text-right">Valor Status</th>
-                    <th>Status</th>
-                    <th>Obs</th>
-                    <th class="text-right">Ações</th>
+        <div class="medicoes-table-container">
+            <table>
+                <thead><tr>
+                    <th class="col-id">ID</th>
+                    <th class="col-projeto">Projeto</th>
+                    <th class="col-gestor">Gestor</th>
+                    <th class="col-diretor">Diretor</th>
+                    <th class="col-mes">Mês</th>
+                    <th class="col-ano">Ano</th>
+                    <th class="col-valor">Valor DON</th>
+                    <th class="col-valor">Valor Status</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-obs">Obs</th>
+                    <th class="col-acoes">Ações</th>
                 </tr></thead>
                 <tbody id="tabela-medicoes"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
             </table>
@@ -395,7 +392,8 @@
     </div>
     <div id="medicoes-pagination"></div>
 </div>
-    <!-- ===================== CONSUMO DC ===================== -->
+
+<!-- ===================== CONSUMO DC ===================== -->
     <div id="tab-cad-consumo" class="tab-content space-y-6">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Consumo DC</h2>
       <div class="card card-pad">
