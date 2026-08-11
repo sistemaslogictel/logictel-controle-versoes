@@ -7,9 +7,9 @@ import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
 import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessivel } from './navigation.js';
 
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, exportarExcelDON, exportarExcelStatus, exportarExcelCRE } from './dashboards.js';
-import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards } from './dccards.js';
+import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
-import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed } from './medicoes.js';
+import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed, carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed } from './medicoes.js';
 
 import {
     initFormEmpresa, editarEmpresa, excluirEmpresa,
@@ -40,12 +40,13 @@ Object.assign(window, {
     // dashboards
     carregarDashApropriacao, carregarDashDON, carregarDashCRE, exportarExcelDON, exportarExcelStatus, exportarExcelCRE,
     // DC cards
-    carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards,
+    carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards,
     // consumo
     carregarGestoresPorProjeto, controlarCamposNF, editarConsumo, excluirConsumo, exportarExcel,
     filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo,
     // medições
     editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed,
+    carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,

@@ -5,13 +5,22 @@ import { carregarFiltros } from './selects.js';
 // Guarda a última lista buscada no banco, para os filtros da tela
 // (Projeto / Diretor Cliente / Mês) filtrarem sem precisar refazer a consulta.
 let _todasMedicoes = [];
+let _todasMedicoesHistorico = [];
 
 const ITENS_POR_PAGINA_MED = 15;
 let _paginaAtualMed = 1;
 
+const ITENS_POR_PAGINA_HIST_MED = 15;
+let _paginaAtualHistMed = 1;
+
 export function irParaPaginaMed(pagina) {
     _paginaAtualMed = pagina;
     renderizarTabelaMedicoes();
+}
+
+export function irParaPaginaHistMed(pagina) {
+    _paginaAtualHistMed = pagina;
+    renderizarTabelaHistoricoMedicoes();
 }
 
 export async function carregarMedicoes() {
@@ -53,6 +62,135 @@ export async function carregarMedicoes() {
     } catch (e) {
         console.error('Erro inesperado:', e);
         tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+    }
+}
+
+// =====================================================
+// HISTÓRICO DAS MEDIÇÕES
+// =====================================================
+export async function carregarHistoricoMedicoes() {
+    const tbody = document.getElementById('tabela-historico-medicoes');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('medicoes')
+            .select(`
+                id,
+                projeto_id,
+                gestor_logictel_id,
+                diretor_id,
+                mes,
+                ano,
+                valor_don,
+                valor_status,
+                observacao,
+                data_email_medicao,
+                status_medicao,
+                projetos(nome),
+                gestores_logictel(nome),
+                diretores(nome),
+                created_at
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Erro ao carregar histórico de medições:', error);
+            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</td></tr>`;
+            return;
+        }
+
+        _todasMedicoesHistorico = data || [];
+        _paginaAtualHistMed = 1;
+        renderizarTabelaHistoricoMedicoes();
+    } catch (e) {
+        console.error('Erro inesperado:', e);
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+    }
+}
+
+// =====================================================
+// FILTROS DA LISTAGEM DE HISTÓRICO (Projeto / Diretor / Status)
+// =====================================================
+function lerFiltrosHistoricoMedicoes() {
+    return {
+        projeto: document.getElementById('filt-hist-med-projeto')?.value || '',
+        diretor: document.getElementById('filt-hist-med-diretor')?.value || '',
+        status: document.getElementById('filt-hist-med-status')?.value || ''
+    };
+}
+
+export function filtrarHistoricoMedicoes() {
+    _paginaAtualHistMed = 1;
+    renderizarTabelaHistoricoMedicoes();
+}
+
+export function limparFiltrosHistoricoMedicoes() {
+    ['filt-hist-med-projeto', 'filt-hist-med-diretor', 'filt-hist-med-status'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    _paginaAtualHistMed = 1;
+    renderizarTabelaHistoricoMedicoes();
+}
+
+function renderizarTabelaHistoricoMedicoes() {
+    const tbody = document.getElementById('tabela-historico-medicoes');
+    if (!tbody) return;
+
+    const f = lerFiltrosHistoricoMedicoes();
+    const data = _todasMedicoesHistorico.filter(m => {
+        if (f.projeto && String(m.projeto_id) !== f.projeto) return false;
+        if (f.diretor && String(m.diretor_id) !== f.diretor) return false;
+        if (f.status && String(m.status_medicao) !== f.status) return false;
+        return true;
+    });
+
+    const paginacaoEl = document.getElementById('historico-medicoes-pagination');
+
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhuma medição encontrada.</td></tr>';
+        if (paginacaoEl) paginacaoEl.innerHTML = '';
+        return;
+    }
+
+    const totalPaginas = Math.max(1, Math.ceil(data.length / ITENS_POR_PAGINA_HIST_MED));
+    if (_paginaAtualHistMed > totalPaginas) _paginaAtualHistMed = totalPaginas;
+    const pagina = paginar(data, _paginaAtualHistMed, ITENS_POR_PAGINA_HIST_MED);
+
+    try {
+        tbody.innerHTML = '';
+        pagina.forEach(m => {
+            const valorDon = Number(m.valor_don || 0);
+            const valorStatus = Number(m.valor_status || 0);
+            const dataCriacao = m.created_at ? new Date(m.created_at).toLocaleString('pt-BR') : '-';
+            
+            tbody.innerHTML += `
+                <tr class="td-row">
+                    <td>${m.id}</td>
+                    <td>${m.projetos?.nome || '-'}</td>
+                    <td>${m.gestores_logictel?.nome || '-'}</td>
+                    <td>${m.diretores?.nome || '-'}</td>
+                    <td>${m.mes}/${m.ano}</td>
+                    <td class="text-right mono">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    <td class="text-right mono">R$ ${valorStatus.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    <td>${m.status_medicao || '-'}</td>
+                    <td class="text-right">
+                        <div class="table-actions" style="justify-content:flex-end;">
+                            <button onclick="editarMedicao(${m.id})" class="btn-edit">Editar</button>
+                            <button onclick="excluirMedicao(${m.id})" class="btn-danger">Excluir</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+        if (paginacaoEl) {
+            paginacaoEl.innerHTML = renderizarPaginacao(_paginaAtualHistMed, data.length, ITENS_POR_PAGINA_HIST_MED, 'irParaPaginaHistMed');
+        }
+    } catch (e) {
+        console.error('Erro inesperado:', e);
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -203,6 +341,7 @@ export function initFormMedicao() {
             document.getElementById('med-cancel-btn').style.display = 'none';
             
             carregarMedicoes();
+            carregarHistoricoMedicoes();
             carregarFiltros();
             aplicarMascaras();
         } catch (err) {
@@ -280,6 +419,7 @@ export async function excluirMedicao(id) {
 
         alert('Medição excluída!');
         carregarMedicoes();
+        carregarHistoricoMedicoes();
         carregarFiltros();
     } catch (e) {
         console.error('Erro ao excluir medição:', e);

@@ -5,7 +5,7 @@ import { setPermissoes } from './usuarios.js';
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE } from './dashboards.js';
 import { carregarDCCards } from './dccards.js';
 import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom } from './selects.js';
-import { carregarMedicoes } from './medicoes.js';
+import { carregarMedicoes, carregarHistoricoMedicoes } from './medicoes.js';
 import { carregarConsumos } from './consumo.js';
 import { carregarUsuarios } from './usuarios.js';
 import {
@@ -26,13 +26,14 @@ export function gerarMenu(permissoes) {
             { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' },
             { id: 'dash-cre', label: 'Tratitando CRE', area: 'dash-cre' }
         ]},
+        { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
+            { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
+            { id: 'historico-medicoes', label: 'Histórico das Medições', area: 'medicoes' }
+        ]},
         { id: 'dcs', label: 'DC\'s', icon: 'dcs', area: 'dcs', type: 'flyout', children: [
             { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' },
             { id: 'historico-consumo-dcs', label: 'Histórico Consumo das DCs', area: 'consumos' },
             { id: 'dcs', label: 'DC\'s', area: 'dcs' }
-        ]},
-        { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
-            { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' }
         ]},
         { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
             { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
@@ -156,10 +157,11 @@ const AREA_MAP = {
     'dash-don': 'dash-don',
     'dash-apropriacao': 'dash-apropriacao',
     'dash-cre': 'dash-cre',
+    'cad-medicao': 'medicoes',
+    'historico-medicoes': 'medicoes',
     'cad-consumo': 'consumos',
     'historico-consumo-dcs': 'consumos',
     'dcs': 'dcs',
-    'cad-medicao': 'medicoes',
     'adm-user': 'adm-user',
     'adm-empresa': 'adm-cliente',
     'adm-diretor': 'adm-cliente',
@@ -198,6 +200,21 @@ export function carregarDadosAba(nomeAba) {
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
     else if (nomeAba === 'dash-cre') carregarDashCRE();
+    else if (nomeAba === 'cad-medicao') {
+        carregarMedicoes();
+        carregarSelectProjetos('filt-med-projeto');
+        carregarSelectDiretores('filt-med-diretor');
+        carregarSelectProjetos('med-projeto');
+        carregarSelectGestores('med-gestor', 'gestores_logictel');
+        carregarSelectDiretores('med-diretor');
+        carregarSelectStatus('med-status', 'status_medicao');
+    }
+    else if (nomeAba === 'historico-medicoes') {
+        carregarHistoricoMedicoes();
+        carregarSelectProjetos('filt-hist-med-projeto');
+        carregarSelectDiretores('filt-hist-med-diretor');
+        carregarSelectStatus('filt-hist-med-status', 'status_medicao');
+    }
     else if (nomeAba === 'cad-consumo') {
         carregarStatusDCCustom();
         carregarSelectStatus('dc-status-nf', 'status_nf');
@@ -219,15 +236,6 @@ export function carregarDadosAba(nomeAba) {
         carregarFiltroStatus();
         carregarSelectProjetos('filt-dcs-projeto');
         carregarSelectGestores('filt-dcs-gestor', 'gestores_logictel');
-    }
-    else if (nomeAba === 'cad-medicao') {
-        carregarMedicoes();
-        carregarSelectProjetos('filt-med-projeto');
-        carregarSelectDiretores('filt-med-diretor');
-        carregarSelectProjetos('med-projeto');
-        carregarSelectGestores('med-gestor', 'gestores_logictel');
-        carregarSelectDiretores('med-diretor');
-        carregarSelectStatus('med-status', 'status_medicao');
     }
     else if (nomeAba === 'adm-user') carregarUsuarios();
     else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
@@ -252,6 +260,7 @@ export function irParaPrimeiraAbaAcessivel() {
 
 export function carregarTodasListas() {
     carregarMedicoes();
+    carregarHistoricoMedicoes();
     carregarConsumos();
     carregarUsuarios();
     carregarEmpresas();
@@ -286,6 +295,10 @@ export function carregarTodasListas() {
     carregarFiltroStatus();
     carregarSelectProjetos('filt-med-projeto');
     carregarSelectDiretores('filt-med-diretor');
+    carregarSelectStatus('filt-med-status', 'status_medicao');
+    carregarSelectProjetos('filt-hist-med-projeto');
+    carregarSelectDiretores('filt-hist-med-diretor');
+    carregarSelectStatus('filt-hist-med-status', 'status_medicao');
     carregarSelectProjetos('filt-consumo-projeto');
     carregarSelectDiretores('filt-consumo-diretor');
     carregarStatusDCCustom('filt-consumo-status-dc');

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.14.2 - Controle de Medições e DCs - Logictel</title>
+<title>V.15.0 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -336,6 +336,58 @@
       <div id="medicoes-pagination"></div>
     </div>
 
+    <!-- ===================== HISTÓRICO DAS MEDIÇÕES ===================== -->
+    <div id="tab-historico-medicoes" class="tab-content space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Histórico das Medições</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem completa de todas as medições cadastradas.</p>
+      </div>
+
+      <div class="filters-section-title">🔍 Filtros</div>
+      <div class="filters-bar-grid">
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-hist-med-projeto" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Diretor Cliente</label>
+          <select id="filt-hist-med-diretor" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status Medição</label>
+          <select id="filt-hist-med-status" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="filtrarHistoricoMedicoes()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltrosHistoricoMedicoes()" class="btn-clear-filters">Limpar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="medicoes-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-id">ID</th>
+                <th class="col-projeto">Projeto</th>
+                <th class="col-gestor">Gestor</th>
+                <th class="col-diretor">Diretor</th>
+                <th class="col-mes">Mês/Ano</th>
+                <th class="col-valor">Valor DON</th>
+                <th class="col-valor">Valor Status</th>
+                <th class="col-status">Status</th>
+                <th class="col-acoes">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-historico-medicoes">
+              <tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="historico-medicoes-pagination"></div>
+    </div>
+
     <!-- ===================== DC CARDS ===================== -->
     <div id="tab-dcs" class="tab-content space-y-6">
       <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p></div>
@@ -570,6 +622,7 @@
               <span class="text-xs font-semibold" style="color:var(--text-muted);">📋 Medições</span>
               <div class="checkbox-group">
                 <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Cadastro de Medição</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Histórico das Medições</span></label>
               </div>
             </div>
             
