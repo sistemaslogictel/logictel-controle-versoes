@@ -28,24 +28,24 @@ export function limparFiltrosDCCards() {
     carregarDCCards();
 }
 
-// Função para formatar data no formato dd/mm/aaaa
+// Função para formatar data no formato dd/mm/aaaa a partir de uma string YYYY-MM-DD
 function formatarDataBr(dataStr) {
     if (!dataStr) return '-';
     try {
-        // Se já for uma string no formato YYYY-MM-DD
-        if (typeof dataStr === 'string' && dataStr.includes('-')) {
-            const partes = dataStr.split('T')[0].split('-');
+        // Se for string no formato YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
+        if (typeof dataStr === 'string') {
+            // Extrair apenas a parte da data (YYYY-MM-DD)
+            let dataPart = dataStr;
+            if (dataStr.includes('T')) {
+                dataPart = dataStr.split('T')[0];
+            }
+            const partes = dataPart.split('-');
             if (partes.length === 3) {
+                // partes[0] = ano, partes[1] = mês, partes[2] = dia
                 return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
         }
-        // Tentar criar a data de outra forma
-        const data = new Date(dataStr);
-        if (isNaN(data.getTime())) return '-';
-        const dia = String(data.getDate()).padStart(2, '0');
-        const mes = String(data.getMonth() + 1).padStart(2, '0');
-        const ano = data.getFullYear();
-        return `${dia}/${mes}/${ano}`;
+        return '-';
     } catch {
         return '-';
     }
@@ -63,9 +63,18 @@ function calcularAging(dataSolicitacaoStr) {
     try {
         let dataSolicitacao;
         // Se for string no formato YYYY-MM-DD
-        if (typeof dataSolicitacaoStr === 'string' && dataSolicitacaoStr.includes('-')) {
-            const partes = dataSolicitacaoStr.split('T')[0].split('-');
-            dataSolicitacao = new Date(partes[0], partes[1] - 1, partes[2]);
+        if (typeof dataSolicitacaoStr === 'string') {
+            let dataPart = dataSolicitacaoStr;
+            if (dataSolicitacaoStr.includes('T')) {
+                dataPart = dataSolicitacaoStr.split('T')[0];
+            }
+            const partes = dataPart.split('-');
+            if (partes.length === 3) {
+                // partes[0] = ano, partes[1] = mês, partes[2] = dia
+                dataSolicitacao = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+            } else {
+                dataSolicitacao = new Date(dataSolicitacaoStr);
+            }
         } else {
             dataSolicitacao = new Date(dataSolicitacaoStr);
         }
@@ -75,7 +84,7 @@ function calcularAging(dataSolicitacaoStr) {
         }
         
         dataSolicitacao.setHours(0, 0, 0, 0);
-        const diffTime = Math.abs(hoje - dataSolicitacao);
+        const diffTime = hoje - dataSolicitacao;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
         let agingClass = 'verde';
@@ -179,7 +188,7 @@ export async function carregarDCCards() {
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-            // Projeto (usar o campo correto)
+            // Projeto - CORRIGIDO para buscar o nome do projeto
             const projetoNome = c.projeto || 'N/A';
 
             // Data de solicitação para Aging
@@ -199,7 +208,7 @@ export async function carregarDCCards() {
                         <div style="font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:700; color:var(--text);">R$ ${valorDc}</div>
                     </div>
                     
-                    <!-- Linha 2: Status + Tipo -->
+                    <!-- Linha 2: Status + Tipo (lado a lado) -->
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
                         <div class="dc-status ${statusClass}">${statusNome}</div>
                         <div class="dc-tipo-medicao ${tipoClass}">${tipoMedicao === 'FI' ? '🔴 FINAL' : '🟢 PARCIAL'}</div>
@@ -208,18 +217,18 @@ export async function carregarDCCards() {
                     <!-- Linha 3: Projeto -->
                     <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${projetoNome}</div>
                     
-                    <!-- Linha 4: Motivo/Observação -->
+                    <!-- Linha 4: Motivo/Observação (com fundo) -->
                     <div class="dc-motivo" style="margin-bottom:6px;">${statusResponsavel === 'V.tal' ? '⚠️' : '✅'} ${statusMotivo || 'Sem observação'}</div>
                     
-                    <!-- Linha 5: Data + Aging (alinhados) -->
+                    <!-- Linha 5: Data + Aging (alinhados em uma linha) -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
-                        <div class="dc-updated" style="margin:0;">📅 ${dataExibicao}</div>
-                        <div class="dc-aging ${aging.class}" style="margin:0;">🏠 Aging: ${aging.texto}</div>
+                        <div class="dc-updated" style="margin:0; font-size:10.8px;">📅 ${dataExibicao}</div>
+                        <div class="dc-aging ${aging.class}" style="margin:0; font-size:10.8px;">🏠 Aging: ${aging.texto}</div>
                     </div>
                     
                     <!-- Metadados adicionais (opcionais) -->
                     ${c.pedido ? `<div style="font-size:10px;color:var(--text-soft);margin-top:4px;">👤 Pedido: ${c.pedido}</div>` : ''}
-                    ${c.fr ? `<div style="font-size:10px;color:var(--text-soft);">📄 FR: ${c.fr}</div>` : ''}
+                    ${c.fr ? `<div style="font-size:10px;color:var(--text-soft);margin-top:2px;">📄 FR: ${c.fr}</div>` : ''}
                 </div>
             `;
         });
