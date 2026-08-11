@@ -145,9 +145,13 @@ export function gerarMenu(permissoes) {
     buildMenuHTML(desktopNav, desktopItems, false);
     buildMenuHTML(mobileNav, desktopItems, true);
 
+    // Reativa os flyouts (hover/click) para o menu recém-gerado
     initFlyouts();
 }
 
+// =====================================================
+// MAPA DE ABAS -> ÁREA DE PERMISSÃO
+// =====================================================
 const AREA_MAP = {
     'dash-don': 'dash-don',
     'dash-apropriacao': 'dash-apropriacao',
@@ -166,8 +170,14 @@ const AREA_MAP = {
     'adm-status-nf': 'adm-status'
 };
 
+// Ordem de prioridade usada para decidir em qual aba cair logo após o login
+// (a antiga "Visão Geral de Saldos" servia de tela inicial universal; agora
+// caímos na primeira aba, nessa ordem, que o usuário tiver permissão de ver)
 const ORDEM_ABAS_PADRAO = Object.keys(AREA_MAP);
 
+// =====================================================
+// NAVEGAÇÃO ENTRE ABAS
+// =====================================================
 export function mudarAba(nomeAba) {
     const area = AREA_MAP[nomeAba] || nomeAba;
     if (!temPermissao(area)) {
@@ -201,10 +211,12 @@ export function carregarDadosAba(nomeAba) {
         carregarSelectDiretores('dc-diretor');
         carregarSelectEmpresas('dc-empresa');
         carregarSelectProjetos('dc-projeto');
+        // Consumos e datalists (DC/Pedido) usados no próprio formulário
         carregarConsumos();
     }
     else if (nomeAba === 'historico-consumo-dcs') {
         carregarConsumos();
+        // Selects do bloco de filtros da listagem
         carregarSelectProjetos('filt-consumo-projeto');
         carregarSelectDiretores('filt-consumo-diretor');
         carregarStatusDCCustom('filt-consumo-status-dc');
@@ -221,6 +233,10 @@ export function carregarDadosAba(nomeAba) {
     else if (nomeAba === 'adm-status-nf') carregarStatusNF();
 }
 
+// =====================================================
+// PRIMEIRA ABA ACESSÍVEL (usada no login/restauração de sessão,
+// já que não existe mais uma dashboard universal como tela inicial)
+// =====================================================
 export function irParaPrimeiraAbaAcessivel() {
     for (const nomeAba of ORDEM_ABAS_PADRAO) {
         const area = AREA_MAP[nomeAba];
@@ -229,6 +245,7 @@ export function irParaPrimeiraAbaAcessivel() {
             return;
         }
     }
+    // Nenhuma área liberada: não força nenhuma aba (usuário sem permissões)
 }
 
 export function carregarTodasListas() {
@@ -265,6 +282,7 @@ export function carregarTodasListas() {
     carregarDCCards();
     carregarStatusDCCustom();
     carregarFiltroStatus();
+    // Selects dos blocos de filtro das listagens de Medição e Consumo DC
     carregarSelectProjetos('filt-med-projeto');
     carregarSelectDiretores('filt-med-diretor');
     carregarSelectProjetos('filt-consumo-projeto');
@@ -273,6 +291,9 @@ export function carregarTodasListas() {
     carregarSelectStatus('filt-consumo-status-nf', 'status_nf');
 }
 
+// =====================================================
+// CANCELAR EDIÇÃO (genérico para todos os formulários)
+// =====================================================
 export function cancelarEdicao(tipo) {
     const prefixos = {
         'med': 'med',
