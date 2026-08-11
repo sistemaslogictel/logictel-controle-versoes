@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.13.2 - Controle de Medições e DCs - Logictel</title>
+<title>V.13.3 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -189,7 +189,7 @@
       </div>
       <div id="aprop-total-geral" class="total-geral-card theme-status"></div>
     </div>
-    
+
     <!-- ===================== DASHBOARD CRE (TRATITANDO CRE) ===================== -->
     <div id="tab-dash-cre" class="tab-content space-y-6">
       <div>
@@ -240,7 +240,7 @@
       </div>
       <div id="cre-total-geral" class="total-geral-card theme-cre"></div>
     </div>
-
+    
     <!-- ===================== DC CARDS ===================== -->
     <div id="tab-dcs" class="tab-content space-y-6">
       <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p></div>
@@ -258,193 +258,193 @@
       <div id="dc-cards-pagination"></div>
     </div>
 
-<!-- ===================== HISTÓRICO CONSUMO DAS DCS ===================== -->
-<div id="tab-historico-consumo-dcs" class="tab-content space-y-6">
-    <div><h2 class="text-2xl font-bold" style="color:var(--text)">Histórico Consumo das DCs</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem completa de todos os lançamentos de consumo de DC.</p></div>
+    <!-- ===================== HISTÓRICO CONSUMO DAS DCS ===================== -->
+    <div id="tab-historico-consumo-dcs" class="tab-content space-y-6">
+      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Histórico Consumo das DCs</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Listagem completa de todos os lançamentos de consumo de DC.</p></div>
 
-    <div class="filters-section-title">🔍 Filtros</div>
-    <div class="filters-bar-grid">
+      <div class="filters-section-title">🔍 Filtros</div>
+      <div class="filters-bar-grid">
         <div class="filter-group">
-            <label class="filter-label">DC</label>
-            <input type="text" id="filt-consumo-dc" list="dclist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
-            <datalist id="dclist-consumo"></datalist>
+          <label class="filter-label">DC</label>
+          <input type="text" id="filt-consumo-dc" list="dclist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
+          <datalist id="dclist-consumo"></datalist>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Pedido</label>
-            <input type="text" id="filt-consumo-pedido" list="pedidolist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
-            <datalist id="pedidolist-consumo"></datalist>
+          <label class="filter-label">Pedido</label>
+          <input type="text" id="filt-consumo-pedido" list="pedidolist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
+          <datalist id="pedidolist-consumo"></datalist>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Projeto</label>
-            <select id="filt-consumo-projeto" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+          <label class="filter-label">Projeto</label>
+          <select id="filt-consumo-projeto" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Tipo</label>
-            <select id="filt-consumo-tipo-medicao" class="input" onchange="filtrarConsumos()">
-                <option value="">Todos</option>
-                <option value="PA">PA</option>
-                <option value="FI">FI</option>
-            </select>
+          <label class="filter-label">Tipo</label>
+          <select id="filt-consumo-tipo-medicao" class="input" onchange="filtrarConsumos()">
+            <option value="">Todos</option>
+            <option value="PA">PA</option>
+            <option value="FI">FI</option>
+          </select>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Diretor</label>
-            <select id="filt-consumo-diretor" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+          <label class="filter-label">Diretor</label>
+          <select id="filt-consumo-diretor" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Mês Aprop.</label>
-            <select id="filt-consumo-mes-apropriacao" class="input" onchange="filtrarConsumos()">
-                <option value="">Todos</option>
-                <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-                <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-                <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-                <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-            </select>
+          <label class="filter-label">Mês Aprop.</label>
+          <select id="filt-consumo-mes-apropriacao" class="input" onchange="filtrarConsumos()">
+            <option value="">Todos</option>
+            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
+            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
+            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
+            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
+          </select>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Mês Medido</label>
-            <select id="filt-consumo-mes-medido" class="input" onchange="filtrarConsumos()">
-                <option value="">Todos</option>
-                <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-                <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-                <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-                <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-            </select>
+          <label class="filter-label">Mês Medido</label>
+          <select id="filt-consumo-mes-medido" class="input" onchange="filtrarConsumos()">
+            <option value="">Todos</option>
+            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
+            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
+            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
+            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
+          </select>
         </div>
         <div class="filter-group">
-            <label class="filter-label">FR</label>
-            <input type="text" id="filt-consumo-fr" placeholder="Nº da FR" class="input" oninput="filtrarConsumos()">
+          <label class="filter-label">FR</label>
+          <input type="text" id="filt-consumo-fr" placeholder="Nº da FR" class="input" oninput="filtrarConsumos()">
         </div>
         <div class="filter-group">
-            <label class="filter-label">Status NF</label>
-            <select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
+          <label class="filter-label">Status NF</label>
+          <select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group filter-actions">
-            <button onclick="filtrarConsumos()" class="btn-primary">Filtrar</button>
-            <button onclick="limparFiltrosConsumo()" class="btn-clear-filters">Limpar</button>
+          <button onclick="filtrarConsumos()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltrosConsumo()" class="btn-clear-filters">Limpar</button>
         </div>
-    </div>
+      </div>
 
-    <div class="card">
+      <div class="card">
         <div class="historico-table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-sticky col-dc">DC</th>
-                        <th class="col-projeto">Projeto</th>
-                        <th class="col-gestor">Gestor</th>
-                        <th class="col-tipo">Tipo</th>
-                        <th class="col-mes-aprop">Mês Aprop.</th>
-                        <th class="col-mes-medido">Mês Medido</th>
-                        <th class="col-status-nf">Status</th>
-                        <th class="col-valor">Valor</th>
-                        <th class="col-acoes">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-consumos">
-                    <tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-                </tbody>
-            </table>
+          <table>
+            <thead>
+              <tr>
+                <th class="col-sticky col-dc">DC</th>
+                <th class="col-projeto">Projeto</th>
+                <th class="col-gestor">Gestor</th>
+                <th class="col-tipo">Tipo</th>
+                <th class="col-mes-aprop">Mês Aprop.</th>
+                <th class="col-mes-medido">Mês Medido</th>
+                <th class="col-status-nf">Status</th>
+                <th class="col-valor">Valor</th>
+                <th class="col-acoes">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-consumos">
+              <tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+      <div id="consumo-pagination"></div>
     </div>
-    <div id="consumo-pagination"></div>
-</div>
 
-<!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
-<div id="tab-cad-medicao" class="tab-content space-y-6">
-    <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Medição</h2>
-    <div class="card card-pad">
+    <!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
+    <div id="tab-cad-medicao" class="tab-content space-y-6">
+      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Medição</h2>
+      <div class="card card-pad">
         <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input type="hidden" id="med-edit-id" value="">
-            
-            <div><label class="label">Projeto *</label><select id="med-projeto" required class="input"><option value="">Selecione...</option></select></div>
-            <div><label class="label">Gestor Logictel *</label><select id="med-gestor" required class="input"><option value="">Selecione...</option></select></div>
-            <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
-            <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-            <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
-            
-            <!-- Valor DON -->
-            <div>
-                <label class="label">Valor DON *</label>
-                <input type="text" id="med-valor-don" required placeholder="0,00" class="input money-input">
-            </div>
-            
-            <!-- Valor Status -->
-            <div>
-                <label class="label">Valor Status *</label>
-                <input type="text" id="med-valor-status" required placeholder="0,00" class="input money-input">
-            </div>
-            
-            <div>
-                <label class="label">Data E-mail</label>
-                <input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input">
-            </div>
-            
-            <div>
-                <label class="label">Status Medição *</label>
-                <select id="med-status" required class="input"><option value="">Selecione...</option></select>
-            </div>
-            
-            <!-- Observação - Último campo ocupando toda a largura -->
-            <div class="md:col-span-3">
-                <label class="label">Observação</label>
-                <textarea id="med-observacao" rows="2" placeholder="Observações sobre a medição..." class="input"></textarea>
-            </div>
-            
-            <div class="md:col-span-3 flex justify-end pt-2 gap-2">
-                <button type="button" onclick="cancelarEdicao('med')" class="btn-cancel" style="display:none;" id="med-cancel-btn">Cancelar</button>
-                <button type="submit" class="btn-primary">Salvar Medição</button>
-            </div>
+          <input type="hidden" id="med-edit-id" value="">
+          
+          <div><label class="label">Projeto *</label><select id="med-projeto" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Gestor Logictel *</label><select id="med-gestor" required class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
+          <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
+          <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
+          
+          <!-- Valor DON -->
+          <div>
+            <label class="label">Valor DON *</label>
+            <input type="text" id="med-valor-don" required placeholder="0,00" class="input money-input">
+          </div>
+          
+          <!-- Valor Status -->
+          <div>
+            <label class="label">Valor Status *</label>
+            <input type="text" id="med-valor-status" required placeholder="0,00" class="input money-input">
+          </div>
+          
+          <div>
+            <label class="label">Data E-mail</label>
+            <input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input">
+          </div>
+          
+          <div>
+            <label class="label">Status Medição *</label>
+            <select id="med-status" required class="input"><option value="">Selecione...</option></select>
+          </div>
+          
+          <!-- Observação - Último campo ocupando toda a largura -->
+          <div class="md:col-span-3">
+            <label class="label">Observação</label>
+            <textarea id="med-observacao" rows="2" placeholder="Observações sobre a medição..." class="input"></textarea>
+          </div>
+          
+          <div class="md:col-span-3 flex justify-end pt-2 gap-2">
+            <button type="button" onclick="cancelarEdicao('med')" class="btn-cancel" style="display:none;" id="med-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar Medição</button>
+          </div>
         </form>
-    </div>
-    <div class="filters-section-title">🔍 Filtros</div>
-    <div class="filters-bar-grid">
+      </div>
+      <div class="filters-section-title">🔍 Filtros</div>
+      <div class="filters-bar-grid">
         <div class="filter-group">
-            <label class="filter-label">Projeto *</label>
-            <select id="filt-med-projeto" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
+          <label class="filter-label">Projeto *</label>
+          <select id="filt-med-projeto" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Diretor Cliente</label>
-            <select id="filt-med-diretor" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
+          <label class="filter-label">Diretor Cliente</label>
+          <select id="filt-med-diretor" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
         </div>
         <div class="filter-group">
-            <label class="filter-label">Mês *</label>
-            <select id="filt-med-mes" class="input" onchange="filtrarMedicoes()">
-                <option value="">Todos</option>
-                <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-                <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-                <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-                <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-            </select>
+          <label class="filter-label">Mês *</label>
+          <select id="filt-med-mes" class="input" onchange="filtrarMedicoes()">
+            <option value="">Todos</option>
+            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
+            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
+            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
+            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
+          </select>
         </div>
         <div class="filter-group filter-actions">
-            <button onclick="filtrarMedicoes()" class="btn-primary">Filtrar</button>
-            <button onclick="limparFiltrosMedicoes()" class="btn-clear-filters">Limpar</button>
+          <button onclick="filtrarMedicoes()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltrosMedicoes()" class="btn-clear-filters">Limpar</button>
         </div>
-    </div>
-    <div class="card">
+      </div>
+      <div class="card">
         <div class="medicoes-table-container">
-            <table>
-                <thead><tr>
-                    <th class="col-id">ID</th>
-                    <th class="col-projeto">Projeto</th>
-                    <th class="col-gestor">Gestor</th>
-                    <th class="col-diretor">Diretor</th>
-                    <th class="col-mes">Mês</th>
-                    <th class="col-ano">Ano</th>
-                    <th class="col-valor">Valor DON</th>
-                    <th class="col-valor">Valor Status</th>
-                    <th class="col-status">Status</th>
-                    <th class="col-obs">Obs</th>
-                    <th class="col-acoes">Ações</th>
-                </tr></thead>
-                <tbody id="tabela-medicoes"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-            </table>
+          <table>
+            <thead><tr>
+              <th class="col-id">ID</th>
+              <th class="col-projeto">Projeto</th>
+              <th class="col-gestor">Gestor</th>
+              <th class="col-diretor">Diretor</th>
+              <th class="col-mes">Mês</th>
+              <th class="col-ano">Ano</th>
+              <th class="col-valor">Valor DON</th>
+              <th class="col-valor">Valor Status</th>
+              <th class="col-status">Status</th>
+              <th class="col-obs">Obs</th>
+              <th class="col-acoes">Ações</th>
+            </tr></thead>
+            <tbody id="tabela-medicoes"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
         </div>
+      </div>
+      <div id="medicoes-pagination"></div>
     </div>
-    <div id="medicoes-pagination"></div>
-</div>
 
-<!-- ===================== CONSUMO DC ===================== -->
+    <!-- ===================== CONSUMO DC ===================== -->
     <div id="tab-cad-consumo" class="tab-content space-y-6">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Consumo DC</h2>
       <div class="card card-pad">
@@ -549,24 +549,40 @@
               <button type="submit" class="btn-primary w-full" id="user-submit-btn" disabled>Salvar Usuário</button>
             </div>
           </div>
+          
           <div class="mt-4 pt-4 border-t border-gray-200">
             <label class="label" style="font-size:13px; color:var(--text);">Permissões de Acesso</label>
             <p class="text-xs text-muted mb-2" style="color:var(--text-soft);">Selecione as áreas que este usuário terá acesso</p>
-            <div class="checkbox-group">
-              <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Status</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="dcs" class="permission-check"><span>DC's</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="historico-aprop" class="permission-check"><span>Hist. Apropriação</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="historico-gestor" class="permission-check"><span>Hist. Gestor</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="atualizacoes" class="permission-check"><span>Atualizações</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="relatorios" class="permission-check"><span>Relatórios</span></label>
-              <label class="checkbox-item"><input type="checkbox" value="configuracoes" class="permission-check"><span>Configurações</span></label>
+            
+            <div class="mb-3">
+              <span class="text-xs font-semibold" style="color:var(--text-muted);">📊 Dashboards</span>
+              <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Status</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="dash-cre" class="permission-check"><span>Dash Tratitando CRE</span></label>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <span class="text-xs font-semibold" style="color:var(--text-muted);">📋 Cadastros</span>
+              <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Medições</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumos</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="dcs" class="permission-check"><span>DC's</span></label>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <span class="text-xs font-semibold" style="color:var(--text-muted);">⚙️ Administração</span>
+              <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="atualizacoes" class="permission-check"><span>Atualizações</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="relatorios" class="permission-check"><span>Relatórios</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="configuracoes" class="permission-check"><span>Configurações</span></label>
+              </div>
             </div>
           </div>
         </form>
