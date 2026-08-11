@@ -43,7 +43,7 @@ Object.assign(window, {
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards,
     // consumo
-    carregarGestoresPorProjeto, controlarCamposNF, editarConsumo, excluirConsumo, exportarExcel,
+    carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel,
     filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo,
     // medições
     editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed,

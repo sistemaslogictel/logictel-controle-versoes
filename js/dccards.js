@@ -174,18 +174,12 @@ export function irParaConsumo(dc) {
     carregarConsumos();
 }
 
-// Função para abrir a edição completa do consumo
+// Função para abrir a edição completa do consumo - usa funções já expostas no window
 window.abrirEdicaoConsumo = function(id) {
-    // Verificar se a função editarConsumo está disponível no window
-    if (typeof window.editarConsumo === 'function') {
-        // Mudar para a aba de cadastro de consumo
-        window.mudarAba('cad-consumo');
-        // Aguardar um pequeno delay para a aba carregar
-        setTimeout(function() {
-            window.editarConsumo(id);
-        }, 200);
-    } else {
-        console.error('Função editarConsumo não encontrada');
-        alert('Erro ao carregar os dados para edição. Tente novamente.');
-    }
+    // Mudar para a aba de cadastro de consumo
+    window.mudarAba('cad-consumo');
+    // Aguardar um pequeno delay para a aba carregar
+    setTimeout(function() {
+        window.editarConsumo(id);
+    }, 300);
 };
