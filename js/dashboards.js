@@ -8,6 +8,47 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 // "Exportar Excel" não precisar refazer a consulta ao banco.
 let _ultimoRenderDON = null;
 let _ultimoRenderStatus = null;
+let _ultimoRenderCRE = null;
+
+// =====================================================
+// FUNÇÃO PARA VERIFICAR SE UM CONSUMO DEVE SER EXCLUÍDO
+// (status "MF - Medição Concluída" não entra nas dashboards DON e Status)
+// =====================================================
+function consumoDeveSerExcluido(consumo, statusDCMap) {
+    if (!consumo || !consumo.status_id) return false;
+    const statusInfo = statusDCMap[consumo.status_id];
+    if (!statusInfo) return false;
+    // Verifica se o código do status é "MF" (Medição Concluída)
+    return statusInfo.codigo === 'MF';
+}
+
+// =====================================================
+// FUNÇÃO PARA VERIFICAR SE UM CONSUMO É "CRE" (MF - Medição Concluída)
+// =====================================================
+function consumoEHCRE(consumo, statusDCMap) {
+    if (!consumo || !consumo.status_id) return false;
+    const statusInfo = statusDCMap[consumo.status_id];
+    if (!statusInfo) return false;
+    return statusInfo.codigo === 'MF';
+}
+
+// =====================================================
+// BUSCAR STATUS DC PARA MAPEAMENTO
+// =====================================================
+async function carregarStatusDCMap() {
+    const { data, error } = await supabaseClient
+        .from('status_dc')
+        .select('id, codigo, nome');
+    if (error) {
+        console.error('Erro ao carregar status DC:', error);
+        return {};
+    }
+    const map = {};
+    if (data) {
+        data.forEach(s => { map[s.id] = s; });
+    }
+    return map;
+}
 
 // =====================================================
 // EXPORTAÇÃO PARA EXCEL (XLSX) — reflete exatamente o que está na tela
@@ -54,16 +95,18 @@ export function exportarExcelStatus() {
     exportarTabelaParaExcel('Dashboard_Status', headers, linhas);
 }
 
+export function exportarExcelCRE() {
+    if (!_ultimoRenderCRE) { alert('Não há dados para exportar.'); return; }
+    const { linhas: grupos, mesesExibir } = _ultimoRenderCRE;
+    const headers = ['Gestão', 'Projeto', 'Descrição', ...mesesExibir, 'Total'];
+    const linhas = grupos.map(g => [g.gestor, g.projeto, g.descricao, ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+    exportarTabelaParaExcel('Dashboard_CRE', headers, linhas);
+}
+
 // =====================================================
-// CÁLCULO COMPARTILHADO DE SALDO POR MÊS (para STATUS)
+// CÁLCULO COMPARTILHADO DE SALDO POR MÊS (para STATUS e CRE)
 // =====================================================
-// IMPORTANTE: o Status agora quita em cascata ("waterfall"). O consumo
-// lançado deixou de ficar preso ao "Mês de Apropriação" informado no
-// formulário — ele vira um caixa único por gestor+projeto+ano, que é
-// aplicado nos meses mais antigos primeiro (quita pendências pra trás
-// antes de seguir para os meses seguintes). Por isso o campo "Mês de
-// Apropriação" do Consumo DC não influencia mais este cálculo.
-function calcularGruposSaldo(medicoes, consumos, campoValor) {
+function calcularGruposSaldo(medicoes, consumos, campoValor, filtroCRE = false, statusDCMap = {}) {
     const grupos = {};
 
     function garantirGrupo(key, origem) {
@@ -92,6 +135,14 @@ function calcularGruposSaldo(medicoes, consumos, campoValor) {
     // 2) Todo consumo lançado para aquele gestor+projeto+ano entra no
     // mesmo caixa, independente do mês de apropriação informado.
     consumos.forEach(c => {
+        // Se for filtro CRE, só inclui consumos com status MF
+        if (filtroCRE) {
+            if (!consumoEHCRE(c, statusDCMap)) return;
+        } else {
+            // Se NÃO for filtro CRE, exclui consumos com status MF
+            if (consumoDeveSerExcluido(c, statusDCMap)) return;
+        }
+        
         const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
         const g = garantirGrupo(key, c);
         g._caixa += Math.abs(Number(c.valor || 0));
@@ -148,7 +199,7 @@ function calcularGruposSaldo(medicoes, consumos, campoValor) {
 // =====================================================
 // CÁLCULO DE SALDO PARA DON - AGRUPADO POR PROJETO E DIRETOR
 // =====================================================
-function calcularGruposSaldoDON(medicoes, consumos) {
+function calcularGruposSaldoDON(medicoes, consumos, statusDCMap = {}) {
     const grupos = {};
     const todosMeses = new Set();
 
@@ -191,8 +242,11 @@ function calcularGruposSaldoDON(medicoes, consumos) {
         dir.meses[med.mes].medicao += valor;
     });
 
-    // Processar consumos
+    // Processar consumos - EXCLUIR os com status MF
     consumos.forEach(c => {
+        // Excluir consumos com status MF
+        if (consumoDeveSerExcluido(c, statusDCMap)) return;
+        
         const mes = c.mes_medido;
         if (!mes) return;
         const key = `${c.projeto_id}`;
@@ -245,6 +299,7 @@ function calcularGruposSaldoDON(medicoes, consumos) {
 // ÍCONE DO CARD "TOTAL GERAL"
 // =====================================================
 const ICONE_TOTAL_GERAL = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>`;
+const ICONE_CRE = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>`;
 
 function classeValor(v) {
     if (v > 0) return 'valor-positivo';
@@ -295,6 +350,46 @@ function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalG
     `;
 }
 
+function renderizarTotalGeralCardCRE(containerId, tema, mesesExibir, linhas, totalGeral) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.className = `total-geral-card theme-${tema}`;
+
+    if (!linhas || linhas.length === 0) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = '';
+
+    let statsHtml = '';
+    mesesExibir.forEach(mes => {
+        let totalMes = 0;
+        linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
+        const displayValor = totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-';
+        statsHtml += `
+            <div class="total-geral-stat">
+                <div class="total-geral-stat-label">${mes}</div>
+                <div class="total-geral-stat-value ${classeValor(totalMes)}">${displayValor}</div>
+            </div>`;
+    });
+
+    statsHtml += `
+        <div class="total-geral-stat">
+            <div class="total-geral-stat-label">Total</div>
+            <div class="total-geral-stat-value ${classeValor(totalGeral)}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</div>
+        </div>`;
+
+    container.innerHTML = `
+        <div class="total-geral-icon-wrap">
+            <div class="total-geral-icon">${ICONE_CRE}</div>
+            <div class="total-geral-label">TOTAL CRE</div>
+        </div>
+        <div class="total-geral-stats">${statsHtml}</div>
+    `;
+}
+
 // =====================================================
 // RENDERIZAÇÃO DA TABELA STATUS
 // =====================================================
@@ -318,8 +413,6 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
     const linhas = Object.values(grupos);
     if (linhas.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" style="padding:20px;text-align:center;color:var(--text-soft);">Nenhum registro encontrado.</td></tr>`;
-        _ultimoRenderStatus = null;
-        renderizarTotalGeralCard(totalCardId, tema, mesesExibir, [], 0);
         return;
     }
 
@@ -370,8 +463,9 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
         tbody.innerHTML += html;
     });
 
-    _ultimoRenderStatus = { linhas, mesesExibir };
-    renderizarTotalGeralCard(totalCardId, tema, mesesExibir, linhas, totalGeral);
+    // Usar a função de renderização apropriada
+    const renderFn = tema === 'cre' ? renderizarTotalGeralCardCRE : renderizarTotalGeralCard;
+    renderFn(totalCardId, tema, mesesExibir, linhas, totalGeral);
 }
 
 // =====================================================
@@ -397,7 +491,6 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
     const projetos = Object.values(grupos);
     if (projetos.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" style="padding:20px;text-align:center;color:var(--text-soft);">Nenhum registro encontrado.</td></tr>`;
-        _ultimoRenderDON = null;
         renderizarTotalGeralCard(totalCardId, 'don', mesesExibir, [], 0);
         return;
     }
@@ -436,12 +529,6 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         `;
         tbody.innerHTML += html;
 
-        // Sub-linhas: Diretores do Projeto (inicialmente ocultas)
-        // IMPORTANTE: não usar <tbody> aninhada aqui — uma <tbody> dentro de
-        // outra <tbody> é HTML inválido e o navegador descarta a tag ao
-        // fazer o parse do innerHTML, então o id nunca existe de fato no DOM.
-        // Por isso cada <tr> de diretor recebe data-parent-projeto e a
-        // ocultação/exibição é feita linha a linha.
         const diretores = Object.values(proj.diretores).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
         diretores.forEach(dir => {
             const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
@@ -470,9 +557,6 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         });
     });
 
-    // Adicionar event listener para clique nas linhas de projeto (após renderizar).
-    // Usamos onclick direto (em vez de addEventListener acumulado) para evitar
-    // qualquer risco de listeners duplicados em re-renderizações.
     document.querySelectorAll('.projeto-row').forEach(row => {
         row.onclick = function () {
             const projetoId = this.dataset.projeto;
@@ -503,6 +587,13 @@ function lerFiltrosDashboard(prefixo) {
             ano: document.getElementById('filt-don-ano')?.value || '',
             mes: document.getElementById('filt-don-mes')?.value || ''
         };
+    } else if (prefixo === 'cre') {
+        return {
+            gestor: document.getElementById('filt-cre-gestor')?.value || '',
+            projeto: document.getElementById('filt-cre-projeto')?.value || '',
+            ano: document.getElementById('filt-cre-ano')?.value || '',
+            mes: document.getElementById('filt-cre-mes')?.value || ''
+        };
     } else {
         // 'aprop' (Status)
         return {
@@ -520,8 +611,6 @@ function aplicarFiltrosDashboard(lista, filtros, prefixo) {
             if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
             if (filtros.diretor && item.diretores?.nome !== filtros.diretor) return false;
             if (filtros.ano && String(item.ano) !== String(filtros.ano)) return false;
-            // Medições usam o campo "mes"; consumos usam "mes_medido" (é o que
-            // o DON usa para abater). Só filtra quando o registro tem esse campo.
             if (filtros.mes) {
                 const mesDoRegistro = item.mes ?? item.mes_medido;
                 if (mesDoRegistro && mesDoRegistro !== filtros.mes) return false;
@@ -529,14 +618,11 @@ function aplicarFiltrosDashboard(lista, filtros, prefixo) {
             return true;
         });
     } else {
-        // 'aprop' (Status)
+        // 'aprop' ou 'cre'
         return lista.filter(item => {
             if (filtros.gestor && item.gestores_logictel?.nome !== filtros.gestor) return false;
             if (filtros.projeto && item.projetos?.nome !== filtros.projeto) return false;
             if (filtros.ano && String(item.ano) !== String(filtros.ano)) return false;
-            // No Status, consumo agora é um caixa único por gestor+projeto+ano
-            // (sem mês fixo) — o filtro de mês só se aplica às medições, que
-            // continuam tendo um mês específico (o mês da dívida).
             if (filtros.mes && item.mes && item.mes !== filtros.mes) return false;
             return true;
         });
@@ -554,6 +640,7 @@ export async function carregarDashApropriacao() {
 
     try {
         const filtros = lerFiltrosDashboard('aprop');
+        const statusDCMap = await carregarStatusDCMap();
         
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
@@ -566,7 +653,7 @@ export async function carregarDashApropriacao() {
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id,
+                id, projeto_id, gestor_logictel_id, diretor_id, status_id,
                 mes_apropriacao, mes_medido, ano, valor,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
@@ -578,9 +665,12 @@ export async function carregarDashApropriacao() {
         const { grupos, mesesExibir } = calcularGruposSaldo(
             medicoesFiltradas, 
             consumosFiltrados, 
-            'valor_status'
+            'valor_status',
+            false, // não é CRE
+            statusDCMap
         );
         
+        _ultimoRenderStatus = { linhas: Object.values(grupos), mesesExibir };
         renderizarDashboardStatus('aprop-header', 'tabela-dash-apropriacao', grupos, mesesExibir, 'status-header', 'aprop-total-geral', 'status');
         registrarUltimaAtualizacao();
     } catch (e) {
@@ -600,6 +690,7 @@ export async function carregarDashDON() {
 
     try {
         const filtros = lerFiltrosDashboard('don');
+        const statusDCMap = await carregarStatusDCMap();
         
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
@@ -612,7 +703,7 @@ export async function carregarDashDON() {
         const { data: consumos, error: errorCons } = await supabaseClient
             .from('consumo_dc')
             .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id,
+                id, projeto_id, gestor_logictel_id, diretor_id, status_id,
                 mes_apropriacao, mes_medido, ano, valor,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
@@ -623,13 +714,65 @@ export async function carregarDashDON() {
         
         const { grupos, mesesExibir } = calcularGruposSaldoDON(
             medicoesFiltradas, 
-            consumosFiltrados
+            consumosFiltrados,
+            statusDCMap
         );
         
         renderizarDashboardDON('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-total-geral');
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard DON:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+    }
+}
+
+// =====================================================
+// DASHBOARD CRE (DC em tramitação CRE) - COM EXPANSÃO POR CLIQUE
+// =====================================================
+export async function carregarDashCRE() {
+    const tbody = document.getElementById('tabela-dash-cre');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
+
+    try {
+        const filtros = lerFiltrosDashboard('cre');
+        const statusDCMap = await carregarStatusDCMap();
+        
+        const { data: medicoes, error: errorMed } = await supabaseClient
+            .from('medicoes')
+            .select(`
+                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_status,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorMed) throw errorMed;
+
+        const { data: consumos, error: errorCons } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id, projeto_id, gestor_logictel_id, diretor_id, status_id,
+                mes_apropriacao, mes_medido, ano, valor,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros, 'cre');
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'cre');
+        
+        // Para CRE, usamos o mesmo cálculo do Status, mas com filtro CRE = true
+        const { grupos, mesesExibir } = calcularGruposSaldo(
+            medicoesFiltradas, 
+            consumosFiltrados, 
+            'valor_status',
+            true, // é CRE - só inclui MF
+            statusDCMap
+        );
+        
+        _ultimoRenderCRE = { linhas: Object.values(grupos), mesesExibir };
+        renderizarDashboardStatus('cre-header', 'tabela-dash-cre', grupos, mesesExibir, 'cre-header', 'cre-total-geral', 'cre');
+        registrarUltimaAtualizacao();
+    } catch (e) {
+        console.error('Erro ao carregar dashboard CRE:', e);
         tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
     }
 }

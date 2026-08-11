@@ -2,7 +2,7 @@ import { temPermissao } from './session.js';
 import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
 
-import { carregarDashApropriacao, carregarDashDON } from './dashboards.js';
+import { carregarDashApropriacao, carregarDashDON, carregarDashCRE } from './dashboards.js';
 import { carregarDCCards } from './dccards.js';
 import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom } from './selects.js';
 import { carregarMedicoes } from './medicoes.js';
@@ -23,7 +23,8 @@ export function gerarMenu(permissoes) {
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', area: 'dash-don', type: 'flyout', children: [
             { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' },
-            { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' }
+            { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' },
+            { id: 'dash-cre', label: 'Dashboard CRE', area: 'dash-cre' }
         ]},
         { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
             { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
@@ -155,6 +156,7 @@ export function gerarMenu(permissoes) {
 const AREA_MAP = {
     'dash-don': 'dash-don',
     'dash-apropriacao': 'dash-apropriacao',
+    'dash-cre': 'dash-cre',
     'cad-medicao': 'medicoes',
     'cad-consumo': 'consumos',
     'dcs': 'dcs',
@@ -198,6 +200,7 @@ export function mudarAba(nomeAba) {
 export function carregarDadosAba(nomeAba) {
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
+    else if (nomeAba === 'dash-cre') carregarDashCRE();
     else if (nomeAba === 'dcs') { carregarDCCards(); carregarFiltroStatus(); }
     else if (nomeAba === 'cad-medicao') {
         carregarMedicoes();

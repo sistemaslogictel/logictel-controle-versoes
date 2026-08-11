@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.12.1 - Controle de Medições e DCs - Logictel</title>
+<title>V.13.0 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -188,6 +188,57 @@
         </div>
       </div>
       <div id="aprop-total-geral" class="total-geral-card theme-status"></div>
+    </div>
+
+        <!-- ===================== DASHBOARD CRE ===================== -->
+    <div id="tab-dash-cre" class="tab-content space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard CRE - DC em Tramitação</h2>
+        <p class="text-sm mt-0.5" style="color:var(--text-muted)">DCs com status "MF - Medição Concluída" que ainda não foram contabilizadas nas dashboards DON e Status.</p>
+      </div>
+      <div class="filters-bar-status">
+        <div class="filter-group">
+          <label class="filter-label">Gestor</label>
+          <select id="filt-cre-gestor" class="input" onchange="carregarDashCRE()"><option value="">Todos os Gestores</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-cre-projeto" class="input" onchange="carregarDashCRE()"><option value="">Todos os Projetos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Ano</label>
+          <select id="filt-cre-ano" class="input" onchange="carregarDashCRE()"><option value="">Todos os Anos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Mês</label>
+          <select id="filt-cre-mes" class="input" onchange="carregarDashCRE()"><option value="">Todos os Meses</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="carregarDashCRE()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltros('cre')" class="btn-clear-filters">Limpar</button>
+          <button onclick="exportarExcelCRE()" class="btn-excel">📊 Exportar Excel</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="dash-table-container">
+          <table>
+            <thead id="cre-header" class="cre-header">
+              <tr>
+                <th>Gestão</th>
+                <th>Projeto</th>
+                <th>Descrição</th>
+                <th class="mes-header">Mês 1</th>
+                <th class="mes-header">Mês 2</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-dash-cre">
+              <tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="cre-total-geral" class="total-geral-card theme-cre"></div>
     </div>
     
     <!-- ===================== DC CARDS ===================== -->
