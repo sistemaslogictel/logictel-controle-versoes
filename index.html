@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.15.0 - Controle de Medições e DCs - Logictel</title>
+<title>V.15.1 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -288,52 +288,6 @@
           </div>
         </form>
       </div>
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group">
-          <label class="filter-label">Projeto *</label>
-          <select id="filt-med-projeto" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Diretor Cliente</label>
-          <select id="filt-med-diretor" class="input" onchange="filtrarMedicoes()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês *</label>
-          <select id="filt-med-mes" class="input" onchange="filtrarMedicoes()">
-            <option value="">Todos</option>
-            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-          </select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarMedicoes()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosMedicoes()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="medicoes-table-container">
-          <table>
-            <thead><tr>
-              <th class="col-id">ID</th>
-              <th class="col-projeto">Projeto</th>
-              <th class="col-gestor">Gestor</th>
-              <th class="col-diretor">Diretor</th>
-              <th class="col-mes">Mês</th>
-              <th class="col-ano">Ano</th>
-              <th class="col-valor">Valor DON</th>
-              <th class="col-valor">Valor Status</th>
-              <th class="col-status">Status</th>
-              <th class="col-obs">Obs</th>
-              <th class="col-acoes">Ações</th>
-            </tr></thead>
-            <tbody id="tabela-medicoes"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="medicoes-pagination"></div>
     </div>
 
     <!-- ===================== HISTÓRICO DAS MEDIÇÕES ===================== -->
@@ -372,15 +326,17 @@
                 <th class="col-projeto">Projeto</th>
                 <th class="col-gestor">Gestor</th>
                 <th class="col-diretor">Diretor</th>
-                <th class="col-mes">Mês/Ano</th>
+                <th class="col-mes">Mês</th>
+                <th class="col-ano">Ano</th>
                 <th class="col-valor">Valor DON</th>
                 <th class="col-valor">Valor Status</th>
                 <th class="col-status">Status</th>
+                <th class="col-obs">Obs</th>
                 <th class="col-acoes">Ações</th>
               </tr>
             </thead>
             <tbody id="tabela-historico-medicoes">
-              <tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
+              <tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
