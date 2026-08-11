@@ -10,7 +10,7 @@ import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
 import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessivel } from './navigation.js';
 
-import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, exportarExcelDON, exportarExcelStatus, exportarExcelCRE } from './dashboards.js';
+import { carregarDashApropriacao, carregarDashDON, exportarExcelDON, exportarExcelStatus } from './dashboards.js';
 import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
 import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed } from './medicoes.js';
@@ -38,11 +38,10 @@ Object.assign(window, {
     mudarAba, cancelarEdicao, toggleSidebar,
     limparFiltros: (tipo) => limparFiltros(tipo, {
         aprop: carregarDashApropriacao,
-        don: carregarDashDON,
-        cre: carregarDashCRE
+        don: carregarDashDON
     }),
     // dashboards
-    carregarDashApropriacao, carregarDashDON, carregarDashCRE, exportarExcelDON, exportarExcelStatus, exportarExcelCRE,
+    carregarDashApropriacao, carregarDashDON, exportarExcelDON, exportarExcelStatus,
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards,
     // consumo
