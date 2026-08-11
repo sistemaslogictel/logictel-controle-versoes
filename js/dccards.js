@@ -100,8 +100,9 @@ export async function carregarDCCards() {
         container.innerHTML = '';
 
         pagina.forEach(c => {
-            const ultimaAtualizacao = c.ultima_atualizacao || c.criado_em;
-            const dataAtualizacao = new Date(ultimaAtualizacao);
+            // ALTERADO: Usar data_solicitacao_faturamento em vez de ultima_atualizacao
+            const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
+            const dataAtualizacao = new Date(dataSolicitacao);
             const diffTime = Math.abs(hoje - dataAtualizacao);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -147,7 +148,8 @@ export async function carregarDCCards() {
                     
                     <!-- Linha 5: Data + Aging (alinhados) -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
-                        <div class="dc-updated" style="margin:0;">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <!-- ALTERADO: Usar dataSolicitacao para exibir a data -->
+                        <div class="dc-updated" style="margin:0;">📅 ${new Date(dataSolicitacao).toLocaleDateString('pt-BR')} ${new Date(dataSolicitacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
                         <div class="dc-aging ${agingClass}" style="margin:0;">🏠 Aging: ${agingText}</div>
                     </div>
                     
