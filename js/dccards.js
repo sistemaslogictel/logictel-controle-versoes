@@ -1,7 +1,7 @@
 // dccards.js
 import { supabaseClient } from './config.js';
 import { mudarAba } from './navigation.js';
-import { carregarConsumos } from './consumo.js';
+import { carregarConsumos, editarConsumo } from './consumo.js';
 import { paginar, renderizarPaginacao } from './utils.js';
 
 const ITENS_POR_PAGINA_DC = 12;
@@ -148,7 +148,7 @@ export async function carregarDCCards() {
             const statusIcon = statusResponsavel === 'V.tal' ? '⚠️' : '✅';
 
             container.innerHTML += `
-                <div class="dc-card" onclick="irParaConsumo('${c.dc}')" style="border-left-color: ${borderColor};">
+                <div class="dc-card" onclick="irParaConsumoCompleto(${c.id})" style="border-left-color: ${borderColor};">
                     <!-- Linha 1: DC + Valor -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <div class="dc-number">DC ${c.dc}</div>
@@ -189,8 +189,14 @@ export async function carregarDCCards() {
     }
 }
 
-export function irParaConsumo(dc) {
+// Função para abrir a edição completa do consumo
+export async function irParaConsumoCompleto(id) {
+    // Primeiro, mudar para a aba de cadastro de consumo
     mudarAba('cad-consumo');
-    document.getElementById('dc-numero').value = dc;
-    carregarConsumos();
+    
+    // Aguardar um pequeno delay para a aba carregar
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Chamar a função de edição com o ID do consumo
+    await editarConsumo(id);
 }
