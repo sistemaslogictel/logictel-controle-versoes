@@ -22,7 +22,6 @@ export function filtrarDCCards() {
 export function limparFiltrosDCCards() {
     document.getElementById('filt-dcs-dc').value = '';
     document.getElementById('filt-dcs-status').value = '';
-    document.getElementById('filt-dcs-status-nf').value = '';
     document.getElementById('filt-dcs-projeto').value = '';
     document.getElementById('filt-dcs-gestor').value = '';
     _paginaAtualDC = 1;
@@ -33,13 +32,16 @@ export function limparFiltrosDCCards() {
 function formatarDataBr(dataStr) {
     if (!dataStr) return '-';
     try {
+        // Se for string no formato YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
         if (typeof dataStr === 'string') {
+            // Extrair apenas a parte da data (YYYY-MM-DD)
             let dataPart = dataStr;
             if (dataStr.includes('T')) {
                 dataPart = dataStr.split('T')[0];
             }
             const partes = dataPart.split('-');
             if (partes.length === 3) {
+                // partes[0] = ano, partes[1] = mês, partes[2] = dia
                 return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
         }
@@ -60,6 +62,7 @@ function calcularAging(dataSolicitacaoStr) {
     
     try {
         let dataSolicitacao;
+        // Se for string no formato YYYY-MM-DD
         if (typeof dataSolicitacaoStr === 'string') {
             let dataPart = dataSolicitacaoStr;
             if (dataSolicitacaoStr.includes('T')) {
@@ -67,6 +70,7 @@ function calcularAging(dataSolicitacaoStr) {
             }
             const partes = dataPart.split('-');
             if (partes.length === 3) {
+                // partes[0] = ano, partes[1] = mês, partes[2] = dia
                 dataSolicitacao = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
             } else {
                 dataSolicitacao = new Date(dataSolicitacaoStr);
@@ -105,7 +109,6 @@ export async function carregarDCCards() {
 
     const filtroDC = document.getElementById('filt-dcs-dc')?.value?.toLowerCase() || '';
     const filtroStatus = document.getElementById('filt-dcs-status')?.value || '';
-    const filtroStatusNf = document.getElementById('filt-dcs-status-nf')?.value || '';
     const filtroProjeto = document.getElementById('filt-dcs-projeto')?.value || '';
     const filtroGestor = document.getElementById('filt-dcs-gestor')?.value || '';
 
@@ -153,7 +156,6 @@ export async function carregarDCCards() {
         const filtrados = dcs.filter(c => {
             if (filtroDC && !c.dc.toLowerCase().includes(filtroDC)) return false;
             if (filtroStatus && c.status_id && c.status_id.toString() !== filtroStatus) return false;
-            if (filtroStatusNf && c.status_nf && c.status_nf.toString() !== filtroStatusNf) return false;
             return true;
         });
 
@@ -186,7 +188,7 @@ export async function carregarDCCards() {
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-            // Projeto - CORRIGIDO
+            // Projeto - CORRIGIDO para buscar o nome do projeto
             const projetoNome = c.projeto || 'N/A';
 
             // Data de solicitação para Aging
@@ -200,28 +202,28 @@ export async function carregarDCCards() {
 
             container.innerHTML += `
                 <div class="dc-card" onclick="abrirEdicaoConsumo(${c.id})" style="border-left-color: ${borderColor};">
-                    <!-- Linha 1: DC + Valor (alinhados horizontalmente) -->
+                    <!-- Linha 1: DC + Valor -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <div class="dc-number" style="font-size:15px;">DC ${c.dc}</div>
-                        <div style="font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; color:var(--text);">R$ ${valorDc}</div>
+                        <div class="dc-number">DC ${c.dc}</div>
+                        <div style="font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:700; color:var(--text);">R$ ${valorDc}</div>
                     </div>
                     
-                    <!-- Linha 2: Status + Tipo (alinhados horizontalmente) -->
+                    <!-- Linha 2: Status + Tipo (lado a lado) -->
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
-                        <div class="dc-status ${statusClass}" style="font-size:10px; padding:2px 8px;">${statusNome}</div>
-                        <div class="dc-tipo-medicao ${tipoClass}" style="font-size:9px; padding:2px 8px;">${tipoMedicao === 'FI' ? '🔴 FINAL' : '🟢 PARCIAL'}</div>
+                        <div class="dc-status ${statusClass}">${statusNome}</div>
+                        <div class="dc-tipo-medicao ${tipoClass}">${tipoMedicao === 'FI' ? '🔴 FINAL' : '🟢 PARCIAL'}</div>
                     </div>
                     
                     <!-- Linha 3: Projeto -->
                     <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${projetoNome}</div>
                     
-                    <!-- Linha 4: Motivo/Observação -->
-                    <div class="dc-motivo" style="font-size:10.5px; padding:4px 8px; margin-bottom:6px;">${statusResponsavel === 'V.tal' ? '⚠️' : '✅'} ${statusMotivo || 'Sem observação'}</div>
+                    <!-- Linha 4: Motivo/Observação (com fundo) -->
+                    <div class="dc-motivo" style="margin-bottom:6px;">${statusResponsavel === 'V.tal' ? '⚠️' : '✅'} ${statusMotivo || 'Sem observação'}</div>
                     
-                    <!-- Linha 5: Data + Aging (alinhados horizontalmente) -->
+                    <!-- Linha 5: Data + Aging (alinhados em uma linha) -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
-                        <div class="dc-updated" style="margin:0; font-size:10.5px;">📅 ${dataExibicao}</div>
-                        <div class="dc-aging ${aging.class}" style="margin:0; font-size:10.5px;">🏠 Aging: ${aging.texto}</div>
+                        <div class="dc-updated" style="margin:0; font-size:10.8px;">📅 ${dataExibicao}</div>
+                        <div class="dc-aging ${aging.class}" style="margin:0; font-size:10.8px;">🏠 Aging: ${aging.texto}</div>
                     </div>
                     
                     <!-- Metadados adicionais (opcionais) -->
@@ -249,7 +251,9 @@ export function irParaConsumo(dc) {
 
 // Função para abrir a edição completa do consumo - usa funções já expostas no window
 window.abrirEdicaoConsumo = function(id) {
+    // Mudar para a aba de cadastro de consumo
     window.mudarAba('cad-consumo');
+    // Aguardar um pequeno delay para a aba carregar
     setTimeout(function() {
         window.editarConsumo(id);
     }, 300);

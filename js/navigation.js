@@ -4,7 +4,7 @@ import { setPermissoes } from './usuarios.js';
 
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE } from './dashboards.js';
 import { carregarDCCards } from './dccards.js';
-import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom, carregarFiltroStatusNF } from './selects.js';
+import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom } from './selects.js';
 import { carregarMedicoes, carregarHistoricoMedicoes } from './medicoes.js';
 import { carregarConsumos } from './consumo.js';
 import { carregarUsuarios } from './usuarios.js';
@@ -240,7 +240,6 @@ export function carregarDadosAba(nomeAba) {
     else if (nomeAba === 'dcs') { 
         carregarDCCards(); 
         carregarFiltroStatus();
-        carregarFiltroStatusNF();
         carregarSelectProjetos('filt-dcs-projeto');
         carregarSelectGestores('filt-dcs-gestor', 'gestores_logictel');
     }
@@ -302,7 +301,6 @@ export function carregarTodasListas() {
     carregarDCCards();
     carregarStatusDCCustom();
     carregarFiltroStatus();
-    carregarFiltroStatusNF();
     carregarSelectProjetos('filt-med-projeto');
     carregarSelectDiretores('filt-med-diretor');
     carregarSelectStatus('filt-med-status', 'status_medicao');
@@ -316,7 +314,6 @@ export function carregarTodasListas() {
     carregarSelectProjetos('filt-dcs-projeto');
     carregarSelectGestores('filt-dcs-gestor', 'gestores_logictel');
     carregarFiltroStatus();
-    carregarFiltroStatusNF();
     atualizarTopbarDatasLimites();
 }
 
