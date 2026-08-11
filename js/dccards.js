@@ -17,6 +17,16 @@ export function filtrarDCCards() {
     carregarDCCards();
 }
 
+// Limpar todos os filtros da aba DC's
+export function limparFiltrosDCCards() {
+    document.getElementById('filt-dcs-dc').value = '';
+    document.getElementById('filt-dcs-status').value = '';
+    document.getElementById('filt-dcs-projeto').value = '';
+    document.getElementById('filt-dcs-gestor').value = '';
+    _paginaAtualDC = 1;
+    carregarDCCards();
+}
+
 export async function carregarDCCards() {
     const container = document.getElementById('dc-cards-container');
     if (!container) return;
