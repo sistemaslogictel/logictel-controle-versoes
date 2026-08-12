@@ -157,35 +157,6 @@ export async function carregarFiltroStatus() {
 }
 
 // =====================================================
-// FILTRO DE STATUS NF (aba DC's)
-// =====================================================
-export async function carregarFiltroStatusNF() {
-    const select = document.getElementById('filt-dcs-status-nf');
-    if (!select) return;
-
-    try {
-        const { data, error } = await supabaseClient
-            .from('status_nf')
-            .select('id, nome')
-            .order('nome');
-
-        if (error) {
-            console.error('Erro ao carregar Status NF:', error);
-            return;
-        }
-
-        select.innerHTML = '<option value="">Todos</option>';
-        if (data && data.length > 0) {
-            data.forEach(s => {
-                select.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
-            });
-        }
-    } catch (e) {
-        console.error('Erro ao carregar Status NF:', e);
-    }
-}
-
-// =====================================================
 // FILTROS DOS DASHBOARDS - DINÂMICOS BASEADOS NO BANCO
 // =====================================================
 export async function carregarFiltros() {

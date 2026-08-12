@@ -10,7 +10,6 @@ import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, exportarExce
 import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
 import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed, carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed } from './medicoes.js';
-import { carregarDatasLimites, initFormDataLimite, editarDataLimite, excluirDataLimite, atualizarTopbarDatasLimites, filtrarDatasLimites, limparFiltrosDatasLimites } from './datasLimites.js';
 
 import {
     initFormEmpresa, editarEmpresa, excluirEmpresa,
@@ -43,13 +42,11 @@ Object.assign(window, {
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards,
     // consumo
-    carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel,
+    carregarGestoresPorProjeto, controlarCamposNF, editarConsumo, excluirConsumo, exportarExcel,
     filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo,
     // medições
     editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed,
     carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed,
-    // datas limites
-    editarDataLimite, excluirDataLimite, filtrarDatasLimites, limparFiltrosDatasLimites,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,
@@ -75,7 +72,6 @@ function initFormListeners() {
     initFormStatusMed();
     initFormStatusNF();
     initFormUsuario();
-    initFormDataLimite();
 }
 
 function iniciarApp() {

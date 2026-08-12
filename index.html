@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.17.14 - Controle de Medições e DCs - Logictel</title>
+<title>V.15.2 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -70,39 +70,22 @@
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="content-area">
 
-    <!-- TOPBAR -->
-    <div class="topbar mb-3">
+    <div class="topbar mb-6">
       <div class="flex items-center gap-2.5">
         <button class="mobile-menu-toggle md:hidden" onclick="toggleSidebar()">☰ Menu</button>
         <span class="status-dot"></span>
         <span class="text-xs font-medium" style="color:var(--text-muted)">Banco sincronizado</span>
       </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <div id="datas-limites-topbar" class="flex items-center gap-2">
-          <!-- Será preenchido via JavaScript -->
+      <div class="flex items-center gap-3">
+        <div id="badge-ultima-atualizacao" class="mono text-xs font-semibold px-3 py-1 rounded-lg" style="background:var(--paper); color:var(--text)">
+          Última atualização: carregando...
         </div>
-        <span class="text-xs font-medium" style="color:var(--text-muted)">|</span>
-        <span class="text-xs font-mono" style="color:var(--text-soft);" id="badge-ultima-atualizacao"></span>
         <div class="user-info">
           <div class="user-avatar" id="userAvatar">U</div>
           <span class="text-sm font-medium" id="userNameDisplay">Usuário</span>
           <button onclick="fazerLogout()" class="logout-btn">Sair</button>
         </div>
       </div>
-    </div>
-
-    <!-- ===================== LEGENDA GLOBAL (LINHA SEPARADA) ===================== -->
-    <div style="display:flex; align-items:center; gap:16px; padding:4px 12px; background:var(--paper); border:1px solid var(--border); border-radius:8px; margin-bottom:16px; flex-wrap:wrap; font-size:9.9px; color:var(--text-muted);">
-      <span style="font-weight:600;color:var(--text);">Legenda limites:</span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;"></span> 7 dias antes
-      </span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FF0000;"></span> 3 dias antes
-      </span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#000;border:1px solid #666;animation:piscar 0.8s ease-in-out infinite;"></span> Dia (piscando)
-      </span>
     </div>
 
     <!-- ===================== DASHBOARD DON ===================== -->
@@ -363,38 +346,22 @@
 
     <!-- ===================== DC CARDS ===================== -->
     <div id="tab-dcs" class="tab-content space-y-6">
-        <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p></div>
-        <div class="filters-section-title">🔍 Filtros</div>
-        <div class="filters-bar" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;">
-            <div class="filter-group">
-                <label class="filter-label">DC</label>
-                <input type="text" id="filt-dcs-dc" placeholder="Digite para buscar..." oninput="filtrarDCCards()" class="input">
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Status DC</label>
-                <select id="filt-dcs-status" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Status NF</label>
-                <select id="filt-dcs-status-nf" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Projeto</label>
-                <select id="filt-dcs-projeto" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Gestor</label>
-                <select id="filt-dcs-gestor" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-actions" style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
-                <button onclick="filtrarDCCards()" class="btn-primary">Filtrar</button>
-                <button onclick="limparFiltrosDCCards()" class="btn-clear-filters">Limpar</button>
-            </div>
+      <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p></div>
+      <div class="filters-section-title">🔍 Filtros</div>
+      <div class="filters-bar">
+        <input type="text" id="filt-dcs-dc" placeholder="Filtrar por DC..." oninput="filtrarDCCards()" class="input">
+        <select id="filt-dcs-status" class="input" onchange="filtrarDCCards()"><option value="">Todos os Status</option></select>
+        <select id="filt-dcs-projeto" class="input" onchange="filtrarDCCards()"><option value="">Todos os Projetos</option></select>
+        <select id="filt-dcs-gestor" class="input" onchange="filtrarDCCards()"><option value="">Todos os Gestores</option></select>
+        <div class="filter-actions" style="display:flex; gap:8px; align-items:center;">
+          <button onclick="filtrarDCCards()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltrosDCCards()" class="btn-clear-filters">Limpar</button>
         </div>
-        <div class="dc-cards-grid" id="dc-cards-container">
-            <div class="p-6 text-center" style="color:var(--text-soft)">Carregando DC's...</div>
-        </div>
-        <div id="dc-cards-pagination"></div>
+      </div>
+      <div class="dc-cards-grid" id="dc-cards-container">
+        <div class="p-6 text-center" style="color:var(--text-soft)">Carregando DC's...</div>
+      </div>
+      <div id="dc-cards-pagination"></div>
     </div>
 
     <!-- ===================== CONSUMO DC ===================== -->
@@ -630,7 +597,6 @@
                 <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="adm-datas" class="permission-check"><span>Datas Limites</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="atualizacoes" class="permission-check"><span>Atualizações</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="relatorios" class="permission-check"><span>Relatórios</span></label>
                 <label class="checkbox-item"><input type="checkbox" value="configuracoes" class="permission-check"><span>Configurações</span></label>
@@ -845,94 +811,6 @@
           <table class="w-full text-left border-collapse">
             <thead><tr class="th-row"><th>ID</th><th>Status NF</th><th class="text-right">Ações</th></tr></thead>
             <tbody id="tabela-statusnf"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== DATAS LIMITES ===================== -->
-    <div id="tab-adm-datas-limites" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Datas Limites</h2>
-      <p class="text-sm mt-0.5" style="color:var(--text-muted)">Defina as datas limites para emissão de FR e NF por mês/ano.</p>
-
-      <div class="card card-pad">
-        <form id="form-datas-limites" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="hidden" id="datalimite-edit-id" value="">
-          <div>
-            <label class="label">Mês *</label>
-            <select id="datalimite-mes" required class="input">
-              <option value="">Selecione...</option>
-              <option value="Janeiro">Janeiro</option>
-              <option value="Fevereiro">Fevereiro</option>
-              <option value="Março">Março</option>
-              <option value="Abril">Abril</option>
-              <option value="Maio">Maio</option>
-              <option value="Junho">Junho</option>
-              <option value="Julho">Julho</option>
-              <option value="Agosto">Agosto</option>
-              <option value="Setembro">Setembro</option>
-              <option value="Outubro">Outubro</option>
-              <option value="Novembro">Novembro</option>
-              <option value="Dezembro">Dezembro</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Ano *</label>
-            <input type="number" id="datalimite-ano" value="2026" required class="input">
-          </div>
-          <div>
-            <label class="label">Data Limite FR *</label>
-            <input type="date" id="datalimite-data-fr" required class="input">
-            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 12h)</span>
-          </div>
-          <div>
-            <label class="label">Data Limite NF *</label>
-            <input type="date" id="datalimite-data-nf" required class="input">
-            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 23h)</span>
-          </div>
-          <div class="md:col-span-4 flex justify-end pt-2 gap-2">
-            <button type="button" onclick="cancelarEdicao('datalimite')" class="btn-cancel" style="display:none;" id="datalimite-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Data Limite</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Filtros -->
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-datas-mes" class="input" onchange="filtrarDatasLimites()">
-            <option value="">Todos os Meses</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-datas-ano" class="input" onchange="filtrarDatasLimites()">
-            <option value="">Todos os Anos</option>
-          </select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarDatasLimites()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosDatasLimites()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="th-row">
-                <th>Mês</th>
-                <th>Ano</th>
-                <th>Data Limite FR</th>
-                <th>Data Limite NF</th>
-                <th class="text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-datas-limites">
-              <tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
           </table>
         </div>
       </div>
