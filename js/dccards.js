@@ -31,10 +31,17 @@ export function limparFiltrosDCCards() {
     carregarDCCards();
 }
 
-// Função para formatar data no formato dd/mm/aaaa a partir de uma string YYYY-MM-DD
+// Função para formatar data no formato dd/mm/aaaa
+// Recebe uma string que pode estar em YYYY-MM-DD ou DD/MM/YYYY
 function formatarDataBr(dataStr) {
     if (!dataStr) return '-';
     try {
+        // Se for uma string com barras (DD/MM/YYYY), já está no formato correto
+        if (typeof dataStr === 'string' && dataStr.includes('/')) {
+            return dataStr;
+        }
+        
+        // Se for YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
         if (typeof dataStr === 'string') {
             let dataPart = dataStr;
             if (dataStr.includes('T')) {
@@ -42,20 +49,51 @@ function formatarDataBr(dataStr) {
             }
             const partes = dataPart.split('-');
             if (partes.length === 3) {
+                // partes[0] = ano, partes[1] = mês, partes[2] = dia
                 return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
-        }
-        // Se não for YYYY-MM-DD, tenta criar a data e formatar
-        const data = new Date(dataStr);
-        if (!isNaN(data.getTime())) {
-            const dia = String(data.getDate()).padStart(2, '0');
-            const mes = String(data.getMonth() + 1).padStart(2, '0');
-            const ano = data.getFullYear();
-            return `${dia}/${mes}/${ano}`;
         }
         return '-';
     } catch {
         return '-';
+    }
+}
+
+// Função para criar uma data a partir de uma string, interpretando corretamente
+function criarData(dataStr) {
+    if (!dataStr) return null;
+    
+    try {
+        // Se for uma string com barras (DD/MM/YYYY)
+        if (typeof dataStr === 'string' && dataStr.includes('/')) {
+            const partes = dataStr.split('/');
+            if (partes.length === 3) {
+                // partes[0] = dia, partes[1] = mês, partes[2] = ano
+                return new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+            }
+        }
+        
+        // Se for YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
+        if (typeof dataStr === 'string') {
+            let dataPart = dataStr;
+            if (dataStr.includes('T')) {
+                dataPart = dataStr.split('T')[0];
+            }
+            const partes = dataPart.split('-');
+            if (partes.length === 3) {
+                // partes[0] = ano, partes[1] = mês, partes[2] = dia
+                return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+            }
+        }
+        
+        // Fallback
+        const data = new Date(dataStr);
+        if (!isNaN(data.getTime())) {
+            return data;
+        }
+        return null;
+    } catch {
+        return null;
     }
 }
 
@@ -69,28 +107,9 @@ function calcularAging(dataSolicitacaoStr) {
     }
     
     try {
-        let dataSolicitacao;
-        if (typeof dataSolicitacaoStr === 'string') {
-            let dataPart = dataSolicitacaoStr;
-            if (dataSolicitacaoStr.includes('T')) {
-                dataPart = dataSolicitacaoStr.split('T')[0];
-            }
-            const partes = dataPart.split('-');
-            if (partes.length === 3) {
-                dataSolicitacao = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-            } else {
-                // Tentar criar a data de outra forma
-                dataSolicitacao = new Date(dataSolicitacaoStr);
-                if (isNaN(dataSolicitacao.getTime())) {
-                    // Se ainda for inválido, retorna 0
-                    return { dias: 0, class: 'verde', texto: '0 dia(s)' };
-                }
-            }
-        } else {
-            dataSolicitacao = new Date(dataSolicitacaoStr);
-        }
+        const dataSolicitacao = criarData(dataSolicitacaoStr);
         
-        if (isNaN(dataSolicitacao.getTime())) {
+        if (!dataSolicitacao || isNaN(dataSolicitacao.getTime())) {
             return { dias: 0, class: 'verde', texto: '0 dia(s)' };
         }
         
@@ -98,14 +117,17 @@ function calcularAging(dataSolicitacaoStr) {
         const diffTime = hoje - dataSolicitacao;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
+        // Se diffDays for negativo, significa que a data é futura, mostra 0
+        const dias = diffDays < 0 ? 0 : diffDays;
+        
         let agingClass = 'verde';
-        if (diffDays >= 4 && diffDays <= 6) { agingClass = 'amarelo'; }
-        else if (diffDays > 6) { agingClass = 'vermelho'; }
+        if (dias >= 4 && dias <= 6) { agingClass = 'amarelo'; }
+        else if (dias > 6) { agingClass = 'vermelho'; }
         
         return { 
-            dias: diffDays, 
+            dias: dias, 
             class: agingClass, 
-            texto: `${diffDays} dia(s)` 
+            texto: `${dias} dia(s)` 
         };
     } catch {
         return { dias: 0, class: 'verde', texto: '0 dia(s)' };
@@ -171,18 +193,6 @@ export async function carregarDCCards() {
 
         const dcs = Array.from(dcMap.values());
 
-        // LOG DE DEBUG - Mostrar os dados de cada DC
-        console.log('===== DADOS DAS DCs =====');
-        dcs.forEach(c => {
-            console.log(`DC: ${c.dc}`);
-            console.log(`  - data_solicitacao_faturamento: "${c.data_solicitacao_faturamento}" (${typeof c.data_solicitacao_faturamento})`);
-            console.log(`  - criado_em: "${c.criado_em}" (${typeof c.criado_em})`);
-            console.log(`  - projeto: "${c.projeto}"`);
-            console.log(`  - projeto_id: "${c.projeto_id}"`);
-            console.log(`  - projetos.nome: "${c.projetos?.nome}"`);
-            console.log('---');
-        });
-
         // Aplicar filtros em memória
         const filtrados = dcs.filter(c => {
             if (filtroDC && !c.dc.toLowerCase().includes(filtroDC)) return false;
@@ -194,30 +204,13 @@ export async function carregarDCCards() {
             }
             if (filtroGestor && c.gestor_logictel !== filtroGestor) return false;
             
-            // Filtro de data - usar data_solicitacao_faturamento
+            // Filtro de data
             if (filtroDataInicio || filtroDataFim) {
                 const dataRef = c.data_solicitacao_faturamento || c.criado_em;
                 if (!dataRef) return false;
                 
-                // Tentar criar a data de forma robusta
-                let dataObj;
-                if (typeof dataRef === 'string') {
-                    // Tentar diferentes formatos
-                    let dataStr = dataRef;
-                    if (dataRef.includes('T')) {
-                        dataStr = dataRef.split('T')[0];
-                    }
-                    const partes = dataStr.split('-');
-                    if (partes.length === 3) {
-                        dataObj = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-                    } else {
-                        dataObj = new Date(dataStr);
-                    }
-                } else {
-                    dataObj = new Date(dataRef);
-                }
-                
-                if (isNaN(dataObj.getTime())) return false;
+                const dataObj = criarData(dataRef);
+                if (!dataObj || isNaN(dataObj.getTime())) return false;
                 
                 const dataStr = dataObj.toISOString().split('T')[0];
                 
@@ -227,8 +220,6 @@ export async function carregarDCCards() {
             
             return true;
         });
-
-        console.log(`Total de DCs: ${dcs.length}, Filtrados: ${filtrados.length}`);
 
         if (filtrados.length === 0) {
             container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma DC encontrada.</div>';
