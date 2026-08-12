@@ -45,6 +45,14 @@ function formatarDataBr(dataStr) {
                 return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
         }
+        // Se não for YYYY-MM-DD, tenta criar a data e formatar
+        const data = new Date(dataStr);
+        if (!isNaN(data.getTime())) {
+            const dia = String(data.getDate()).padStart(2, '0');
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const ano = data.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        }
         return '-';
     } catch {
         return '-';
@@ -71,7 +79,12 @@ function calcularAging(dataSolicitacaoStr) {
             if (partes.length === 3) {
                 dataSolicitacao = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
             } else {
+                // Tentar criar a data de outra forma
                 dataSolicitacao = new Date(dataSolicitacaoStr);
+                if (isNaN(dataSolicitacao.getTime())) {
+                    // Se ainda for inválido, retorna 0
+                    return { dias: 0, class: 'verde', texto: '0 dia(s)' };
+                }
             }
         } else {
             dataSolicitacao = new Date(dataSolicitacaoStr);
@@ -158,6 +171,18 @@ export async function carregarDCCards() {
 
         const dcs = Array.from(dcMap.values());
 
+        // LOG DE DEBUG - Mostrar os dados de cada DC
+        console.log('===== DADOS DAS DCs =====');
+        dcs.forEach(c => {
+            console.log(`DC: ${c.dc}`);
+            console.log(`  - data_solicitacao_faturamento: "${c.data_solicitacao_faturamento}" (${typeof c.data_solicitacao_faturamento})`);
+            console.log(`  - criado_em: "${c.criado_em}" (${typeof c.criado_em})`);
+            console.log(`  - projeto: "${c.projeto}"`);
+            console.log(`  - projeto_id: "${c.projeto_id}"`);
+            console.log(`  - projetos.nome: "${c.projetos?.nome}"`);
+            console.log('---');
+        });
+
         // Aplicar filtros em memória
         const filtrados = dcs.filter(c => {
             if (filtroDC && !c.dc.toLowerCase().includes(filtroDC)) return false;
@@ -174,7 +199,24 @@ export async function carregarDCCards() {
                 const dataRef = c.data_solicitacao_faturamento || c.criado_em;
                 if (!dataRef) return false;
                 
-                const dataObj = new Date(dataRef);
+                // Tentar criar a data de forma robusta
+                let dataObj;
+                if (typeof dataRef === 'string') {
+                    // Tentar diferentes formatos
+                    let dataStr = dataRef;
+                    if (dataRef.includes('T')) {
+                        dataStr = dataRef.split('T')[0];
+                    }
+                    const partes = dataStr.split('-');
+                    if (partes.length === 3) {
+                        dataObj = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+                    } else {
+                        dataObj = new Date(dataStr);
+                    }
+                } else {
+                    dataObj = new Date(dataRef);
+                }
+                
                 if (isNaN(dataObj.getTime())) return false;
                 
                 const dataStr = dataObj.toISOString().split('T')[0];
@@ -185,6 +227,8 @@ export async function carregarDCCards() {
             
             return true;
         });
+
+        console.log(`Total de DCs: ${dcs.length}, Filtrados: ${filtrados.length}`);
 
         if (filtrados.length === 0) {
             container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma DC encontrada.</div>';
