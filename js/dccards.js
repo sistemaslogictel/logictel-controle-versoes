@@ -180,23 +180,19 @@ export async function carregarDCCards() {
             const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
             const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
 
-            // Tipo Medição
-            const tipoMedicao = c.tipo_medicao || 'PA';
-            const tipoClass = tipoMedicao === 'FI' ? 'final' : '';
-
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-            // Projeto - usando o campo projeto diretamente
+            // Projeto - usando o campo projeto diretamente da tabela consumo_dc
             const projetoNome = c.projeto || 'N/A';
 
-            // Data de solicitação para Aging
+            // Data de solicitação para Aging e exibição
             const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
             
             // Calcular Aging
             const aging = calcularAging(dataSolicitacao);
             
-            // Formatar data para exibição (apenas data, sem hora)
+            // Formatar data para exibição (apenas data, sem hora) usando a função formatarDataBr
             const dataExibicao = formatarDataBr(dataSolicitacao);
 
             const statusIcon = statusResponsavel === 'V.tal' ? '⚠️' : '✅';
@@ -209,10 +205,9 @@ export async function carregarDCCards() {
                         <div style="font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; color:var(--text);">R$ ${valorDc}</div>
                     </div>
                     
-                    <!-- Linha 2: Status + Tipo alinhados horizontalmente -->
+                    <!-- Linha 2: Status -->
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
                         <div class="dc-status ${statusClass}" style="font-size:10px; padding:2px 8px;">${statusNome}</div>
-                        <div class="dc-tipo-medicao ${tipoClass}" style="font-size:9px; padding:2px 8px;">${tipoMedicao === 'FI' ? '🔴 FINAL' : '🟢 PARCIAL'}</div>
                     </div>
                     
                     <!-- Linha 3: Projeto -->
