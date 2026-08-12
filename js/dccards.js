@@ -103,8 +103,9 @@ export async function carregarDCCards() {
         container.innerHTML = '';
 
         pagina.forEach(c => {
-            const ultimaAtualizacao = c.ultima_atualizacao || c.criado_em;
-            const dataAtualizacao = new Date(ultimaAtualizacao);
+            // Data de solicitação para exibição e aging
+            const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
+            const dataAtualizacao = new Date(dataSolicitacao);
             const diffTime = Math.abs(hoje - dataAtualizacao);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -127,13 +128,17 @@ export async function carregarDCCards() {
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-            // Projeto - usando o campo projeto diretamente
+            // Projeto - usando o campo projeto (nome do projeto)
             const projetoNome = c.projeto || 'N/A';
 
             const statusIcon = statusResponsavel === 'V.tal' ? '⚠️' : '✅';
 
+            // Formatar data de solicitação para exibição
+            const dataExibicao = new Date(dataSolicitacao).toLocaleDateString('pt-BR');
+            const horaExibicao = new Date(dataSolicitacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
             container.innerHTML += `
-                <div class="dc-card" onclick="irParaConsumo('${c.dc}')" style="border-left-color: ${borderColor};">
+                <div class="dc-card" onclick="abrirEdicaoConsumo(${c.id})" style="border-left-color: ${borderColor};">
                     <!-- Linha 1: DC + Valor alinhados horizontalmente com fonte menor -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <div class="dc-number" style="font-size:15px;">DC ${c.dc}</div>
@@ -152,9 +157,9 @@ export async function carregarDCCards() {
                     <!-- Linha 4: Motivo/Observação -->
                     <div class="dc-motivo" style="font-size:10.5px; padding:4px 8px; margin-bottom:6px;">${statusIcon} ${statusMotivo || 'Sem observação'}</div>
                     
-                    <!-- Linha 5: Data + Aging alinhados horizontalmente -->
+                    <!-- Linha 5: Data Solicitação + Aging alinhados horizontalmente -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
-                        <div class="dc-updated" style="margin:0; font-size:10.5px;">📅 ${new Date(ultimaAtualizacao).toLocaleDateString('pt-BR')} ${new Date(ultimaAtualizacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div class="dc-updated" style="margin:0; font-size:10.5px;">📅 ${dataExibicao} ${horaExibicao}</div>
                         <div class="dc-aging ${agingClass}" style="margin:0; font-size:10.5px;">🏠 Aging: ${agingText}</div>
                     </div>
                     
@@ -180,3 +185,13 @@ export function irParaConsumo(dc) {
     document.getElementById('dc-numero').value = dc;
     carregarConsumos();
 }
+
+// Função para abrir a edição completa do consumo - usa funções já expostas no window
+window.abrirEdicaoConsumo = function(id) {
+    // Mudar para a aba de cadastro de consumo
+    window.mudarAba('cad-consumo');
+    // Aguardar um pequeno delay para a aba carregar
+    setTimeout(function() {
+        window.editarConsumo(id);
+    }, 300);
+};
