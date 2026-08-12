@@ -25,6 +25,8 @@ export function limparFiltrosDCCards() {
     document.getElementById('filt-dcs-status-nf').value = '';
     document.getElementById('filt-dcs-projeto').value = '';
     document.getElementById('filt-dcs-gestor').value = '';
+    document.getElementById('filt-dcs-data-inicio').value = '';
+    document.getElementById('filt-dcs-data-fim').value = '';
     _paginaAtualDC = 1;
     carregarDCCards();
 }
@@ -40,7 +42,6 @@ function formatarDataBr(dataStr) {
             }
             const partes = dataPart.split('-');
             if (partes.length === 3) {
-                // partes[0] = ano, partes[1] = mês, partes[2] = dia
                 return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
         }
@@ -109,9 +110,10 @@ export async function carregarDCCards() {
     const filtroStatusNf = document.getElementById('filt-dcs-status-nf')?.value || '';
     const filtroProjeto = document.getElementById('filt-dcs-projeto')?.value || '';
     const filtroGestor = document.getElementById('filt-dcs-gestor')?.value || '';
+    const filtroDataInicio = document.getElementById('filt-dcs-data-inicio')?.value || '';
+    const filtroDataFim = document.getElementById('filt-dcs-data-fim')?.value || '';
 
     try {
-        // Fazer a consulta com JOIN para buscar o nome do projeto
         let query = supabaseClient
             .from('consumo_dc')
             .select(`
@@ -166,6 +168,21 @@ export async function carregarDCCards() {
                 if (!nomeProjeto.toLowerCase().includes(filtroProjeto.toLowerCase())) return false;
             }
             if (filtroGestor && c.gestor_logictel !== filtroGestor) return false;
+            
+            // Filtro de data - usar data_solicitacao_faturamento
+            if (filtroDataInicio || filtroDataFim) {
+                const dataRef = c.data_solicitacao_faturamento || c.criado_em;
+                if (!dataRef) return false;
+                
+                const dataObj = new Date(dataRef);
+                if (isNaN(dataObj.getTime())) return false;
+                
+                const dataStr = dataObj.toISOString().split('T')[0];
+                
+                if (filtroDataInicio && dataStr < filtroDataInicio) return false;
+                if (filtroDataFim && dataStr > filtroDataFim) return false;
+            }
+            
             return true;
         });
 
@@ -182,7 +199,6 @@ export async function carregarDCCards() {
         container.innerHTML = '';
 
         pagina.forEach(c => {
-            // Status DC
             const statusInfo = c.status_id ? statusMap[c.status_id] : null;
             const statusNome = statusInfo ? `${statusInfo.codigo} - ${statusInfo.nome}` : (c.status_dc || 'Sem status');
             const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
@@ -191,53 +207,35 @@ export async function carregarDCCards() {
             const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
             const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
 
-            // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
-
-            // Projeto - buscando do join projetos(nome)
             const projetoNome = c.projetos?.nome || 'N/A';
 
-            // Data de solicitação para Aging e exibição
-            // Usar data_solicitacao_faturamento ou fallback para criado_em
             const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
-            
-            // Log para debug - ver o que está vindo do banco
-            console.log('DC:', c.dc, 'data_solicitacao_faturamento:', c.data_solicitacao_faturamento, 'criado_em:', c.criado_em);
-            
-            // Calcular Aging
             const aging = calcularAging(dataSolicitacao);
-            
-            // Formatar data para exibição
             const dataExibicao = formatarDataBr(dataSolicitacao);
 
             const statusIcon = statusResponsavel === 'V.tal' ? '⚠️' : '✅';
 
             container.innerHTML += `
                 <div class="dc-card" onclick="abrirEdicaoConsumo(${c.id})" style="border-left-color: ${borderColor};">
-                    <!-- Linha 1: DC + Valor alinhados horizontalmente com fonte menor -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <div class="dc-number" style="font-size:15px;">DC ${c.dc}</div>
                         <div style="font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; color:var(--text);">R$ ${valorDc}</div>
                     </div>
                     
-                    <!-- Linha 2: Status -->
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
                         <div class="dc-status ${statusClass}" style="font-size:10px; padding:2px 8px;">${statusNome}</div>
                     </div>
                     
-                    <!-- Linha 3: Projeto -->
                     <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${projetoNome}</div>
                     
-                    <!-- Linha 4: Motivo/Observação -->
                     <div class="dc-motivo" style="font-size:10.5px; padding:4px 8px; margin-bottom:6px;">${statusIcon} ${statusMotivo || 'Sem observação'}</div>
                     
-                    <!-- Linha 5: Data Solicitação + Aging alinhados horizontalmente -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
                         <div class="dc-updated" style="margin:0; font-size:10.5px;">📅 ${dataExibicao}</div>
                         <div class="dc-aging ${aging.class}" style="margin:0; font-size:10.5px;">🏠 Aging: ${aging.texto}</div>
                     </div>
                     
-                    <!-- Metadados adicionais (opcionais) -->
                     ${c.pedido ? `<div style="font-size:10px;color:var(--text-soft);margin-top:4px;">👤 Pedido: ${c.pedido}</div>` : ''}
                     ${c.fr ? `<div style="font-size:10px;color:var(--text-soft);margin-top:2px;">📄 FR: ${c.fr}</div>` : ''}
                 </div>
@@ -253,18 +251,14 @@ export async function carregarDCCards() {
     }
 }
 
-// Função que mantém o comportamento original (apenas preenche o campo DC)
 export function irParaConsumo(dc) {
     mudarAba('cad-consumo');
     document.getElementById('dc-numero').value = dc;
     carregarConsumos();
 }
 
-// Função para abrir a edição completa do consumo - usa funções já expostas no window
 window.abrirEdicaoConsumo = function(id) {
-    // Mudar para a aba de cadastro de consumo
     window.mudarAba('cad-consumo');
-    // Aguardar um pequeno delay para a aba carregar
     setTimeout(function() {
         window.editarConsumo(id);
     }, 300);
