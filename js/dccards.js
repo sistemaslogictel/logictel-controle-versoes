@@ -119,9 +119,6 @@ export async function carregarDCCards() {
                 projetos (nome)
             `);
 
-        // Os filtros de projeto e gestor precisam ser feitos no join ou após
-        // Como o filtro de projeto é pelo nome, vamos fazer após buscar os dados
-        
         const { data: consumos, error } = await query.order('criado_em', { ascending: false });
 
         const paginacaoEl = document.getElementById('dc-cards-pagination');
@@ -201,7 +198,11 @@ export async function carregarDCCards() {
             const projetoNome = c.projetos?.nome || 'N/A';
 
             // Data de solicitação para Aging e exibição
+            // Usar data_solicitacao_faturamento ou fallback para criado_em
             const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
+            
+            // Log para debug - ver o que está vindo do banco
+            console.log('DC:', c.dc, 'data_solicitacao_faturamento:', c.data_solicitacao_faturamento, 'criado_em:', c.criado_em);
             
             // Calcular Aging
             const aging = calcularAging(dataSolicitacao);
