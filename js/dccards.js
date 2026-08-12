@@ -111,10 +111,17 @@ export async function carregarDCCards() {
     const filtroGestor = document.getElementById('filt-dcs-gestor')?.value || '';
 
     try {
-        let query = supabaseClient.from('consumo_dc').select('*');
-        if (filtroProjeto) query = query.eq('projeto', filtroProjeto);
-        if (filtroGestor) query = query.eq('gestor_logictel', filtroGestor);
+        // Fazer a consulta com JOIN para buscar o nome do projeto
+        let query = supabaseClient
+            .from('consumo_dc')
+            .select(`
+                *,
+                projetos (nome)
+            `);
 
+        // Os filtros de projeto e gestor precisam ser feitos no join ou após
+        // Como o filtro de projeto é pelo nome, vamos fazer após buscar os dados
+        
         const { data: consumos, error } = await query.order('criado_em', { ascending: false });
 
         const paginacaoEl = document.getElementById('dc-cards-pagination');
@@ -151,10 +158,17 @@ export async function carregarDCCards() {
         });
 
         const dcs = Array.from(dcMap.values());
+
+        // Aplicar filtros em memória
         const filtrados = dcs.filter(c => {
             if (filtroDC && !c.dc.toLowerCase().includes(filtroDC)) return false;
             if (filtroStatus && c.status_id && c.status_id.toString() !== filtroStatus) return false;
             if (filtroStatusNf && c.status_nf && c.status_nf.toString() !== filtroStatusNf) return false;
+            if (filtroProjeto) {
+                const nomeProjeto = c.projetos?.nome || '';
+                if (!nomeProjeto.toLowerCase().includes(filtroProjeto.toLowerCase())) return false;
+            }
+            if (filtroGestor && c.gestor_logictel !== filtroGestor) return false;
             return true;
         });
 
@@ -183,8 +197,8 @@ export async function carregarDCCards() {
             // Valor DC
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
-            // Projeto - usando o campo projeto diretamente da tabela consumo_dc
-            const projetoNome = c.projeto || 'N/A';
+            // Projeto - buscando do join projetos(nome)
+            const projetoNome = c.projetos?.nome || 'N/A';
 
             // Data de solicitação para Aging e exibição
             const dataSolicitacao = c.data_solicitacao_faturamento || c.criado_em;
@@ -192,7 +206,7 @@ export async function carregarDCCards() {
             // Calcular Aging
             const aging = calcularAging(dataSolicitacao);
             
-            // Formatar data para exibição (apenas data, sem hora) usando a função formatarDataBr
+            // Formatar data para exibição
             const dataExibicao = formatarDataBr(dataSolicitacao);
 
             const statusIcon = statusResponsavel === 'V.tal' ? '⚠️' : '✅';
