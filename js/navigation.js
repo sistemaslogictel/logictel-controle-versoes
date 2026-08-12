@@ -3,7 +3,7 @@ import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
 
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE } from './dashboards.js';
-import { carregarDCCards } from './dccards.js';
+import { carregarDCCards, inicializarFiltrosDCCards } from './dccards.js';
 import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom, carregarFiltroStatusNF } from './selects.js';
 import { carregarMedicoes, carregarHistoricoMedicoes } from './medicoes.js';
 import { carregarConsumos } from './consumo.js';
@@ -202,7 +202,7 @@ export function mudarAba(nomeAba) {
     carregarDadosAba(nomeAba);
 }
 
-export function carregarDadosAba(nomeAba) {
+export async function carregarDadosAba(nomeAba) {
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
     else if (nomeAba === 'dash-cre') carregarDashCRE();
@@ -238,11 +238,11 @@ export function carregarDadosAba(nomeAba) {
         carregarSelectStatus('filt-consumo-status-nf', 'status_nf');
     }
     else if (nomeAba === 'dcs') { 
-        carregarDCCards(); 
+        // Inicializar os filtros com "Falta Aprovar CRE" e carregar os cards
+        await inicializarFiltrosDCCards();
         carregarFiltroStatus();
         carregarFiltroStatusNF();
         carregarSelectProjetos('filt-dcs-projeto');
-        carregarSelectGestores('filt-dcs-gestor', 'gestores_logictel');
     }
     else if (nomeAba === 'adm-user') carregarUsuarios();
     else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
@@ -299,7 +299,6 @@ export function carregarTodasListas() {
     carregarSelectGestores('dc-gestor', 'gestores_logictel');
     carregarSelectGestores('med-gestor', 'gestores_logictel');
     carregarFiltros();
-    carregarDCCards();
     carregarStatusDCCustom();
     carregarFiltroStatus();
     carregarFiltroStatusNF();
@@ -314,7 +313,6 @@ export function carregarTodasListas() {
     carregarStatusDCCustom('filt-consumo-status-dc');
     carregarSelectStatus('filt-consumo-status-nf', 'status_nf');
     carregarSelectProjetos('filt-dcs-projeto');
-    carregarSelectGestores('filt-dcs-gestor', 'gestores_logictel');
     carregarFiltroStatus();
     carregarFiltroStatusNF();
     atualizarTopbarDatasLimites();

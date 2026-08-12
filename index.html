@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.17.22 - Controle de Medições e DCs - Logictel</title>
+<title>V.17.23 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260804">
+<link rel="stylesheet" href="css/styles.css?v=20260812">
 </head>
 <body>
 
@@ -365,7 +365,7 @@
     <div id="tab-dcs" class="tab-content space-y-6">
         <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2><p class="text-sm mt-0.5" style="color:var(--text-muted)">Visão geral de todas as DC's cadastradas. Clique em um card para editar.</p></div>
         <div class="filters-section-title">🔍 Filtros</div>
-        <div class="filters-bar" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr auto;">
+        <div class="filters-bar" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;">
             <div class="filter-group">
                 <label class="filter-label">DC</label>
                 <input type="text" id="filt-dcs-dc" placeholder="Digite para buscar..." oninput="filtrarDCCards()" class="input">
@@ -383,16 +383,8 @@
                 <select id="filt-dcs-projeto" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
             </div>
             <div class="filter-group">
-                <label class="filter-label">Gestor</label>
-                <select id="filt-dcs-gestor" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Data Início</label>
-                <input type="date" id="filt-dcs-data-inicio" class="input" onchange="filtrarDCCards()">
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Data Fim</label>
-                <input type="date" id="filt-dcs-data-fim" class="input" onchange="filtrarDCCards()">
+                <label class="filter-label">Data</label>
+                <input type="date" id="filt-dcs-data" class="input" onchange="filtrarDCCards()">
             </div>
             <div class="filter-actions" style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
                 <button onclick="filtrarDCCards()" class="btn-primary">Filtrar</button>
@@ -949,6 +941,6 @@
   </main>
 </div>
 
-<script type="module" src="js/main.js?v=20260806"></script>
+<script type="module" src="js/main.js?v=20260812"></script>
 </body>
 </html>

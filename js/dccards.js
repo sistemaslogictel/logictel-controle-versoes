@@ -7,6 +7,9 @@ import { paginar, renderizarPaginacao } from './utils.js';
 const ITENS_POR_PAGINA_DC = 12;
 let _paginaAtualDC = 1;
 
+// Guardar o status ID de "Falta Aprovar CRE" para o filtro inicial
+let _statusFaltaAprovarCREId = null;
+
 export function irParaPaginaDC(pagina) {
     _paginaAtualDC = pagina;
     carregarDCCards();
@@ -24,24 +27,18 @@ export function limparFiltrosDCCards() {
     document.getElementById('filt-dcs-status').value = '';
     document.getElementById('filt-dcs-status-nf').value = '';
     document.getElementById('filt-dcs-projeto').value = '';
-    document.getElementById('filt-dcs-gestor').value = '';
-    document.getElementById('filt-dcs-data-inicio').value = '';
-    document.getElementById('filt-dcs-data-fim').value = '';
+    document.getElementById('filt-dcs-data').value = '';
     _paginaAtualDC = 1;
     carregarDCCards();
 }
 
 // Função para formatar data no formato dd/mm/aaaa
-// Recebe uma string que pode estar em YYYY-MM-DD ou DD/MM/YYYY
 function formatarDataBr(dataStr) {
     if (!dataStr) return '-';
     try {
-        // Se for uma string com barras (DD/MM/YYYY), já está no formato correto
         if (typeof dataStr === 'string' && dataStr.includes('/')) {
             return dataStr;
         }
-        
-        // Se for YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
         if (typeof dataStr === 'string') {
             let dataPart = dataStr;
             if (dataStr.includes('T')) {
@@ -49,7 +46,6 @@ function formatarDataBr(dataStr) {
             }
             const partes = dataPart.split('-');
             if (partes.length === 3) {
-                // partes[0] = ano, partes[1] = mês, partes[2] = dia
                 return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
         }
@@ -62,18 +58,13 @@ function formatarDataBr(dataStr) {
 // Função para criar uma data a partir de uma string, interpretando corretamente
 function criarData(dataStr) {
     if (!dataStr) return null;
-    
     try {
-        // Se for uma string com barras (DD/MM/YYYY)
         if (typeof dataStr === 'string' && dataStr.includes('/')) {
             const partes = dataStr.split('/');
             if (partes.length === 3) {
-                // partes[0] = dia, partes[1] = mês, partes[2] = ano
                 return new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
             }
         }
-        
-        // Se for YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
         if (typeof dataStr === 'string') {
             let dataPart = dataStr;
             if (dataStr.includes('T')) {
@@ -81,12 +72,9 @@ function criarData(dataStr) {
             }
             const partes = dataPart.split('-');
             if (partes.length === 3) {
-                // partes[0] = ano, partes[1] = mês, partes[2] = dia
                 return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
             }
         }
-        
-        // Fallback
         const data = new Date(dataStr);
         if (!isNaN(data.getTime())) {
             return data;
@@ -97,7 +85,7 @@ function criarData(dataStr) {
     }
 }
 
-// Função para calcular Aging a partir da data de solicitação
+// Função para calcular Aging
 function calcularAging(dataSolicitacaoStr) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -108,29 +96,47 @@ function calcularAging(dataSolicitacaoStr) {
     
     try {
         const dataSolicitacao = criarData(dataSolicitacaoStr);
-        
         if (!dataSolicitacao || isNaN(dataSolicitacao.getTime())) {
             return { dias: 0, class: 'verde', texto: '0 dia(s)' };
         }
-        
         dataSolicitacao.setHours(0, 0, 0, 0);
         const diffTime = hoje - dataSolicitacao;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        // Se diffDays for negativo, significa que a data é futura, mostra 0
         const dias = diffDays < 0 ? 0 : diffDays;
         
         let agingClass = 'verde';
         if (dias >= 4 && dias <= 6) { agingClass = 'amarelo'; }
         else if (dias > 6) { agingClass = 'vermelho'; }
         
-        return { 
-            dias: dias, 
-            class: agingClass, 
-            texto: `${dias} dia(s)` 
-        };
+        return { dias: dias, class: agingClass, texto: `${dias} dia(s)` };
     } catch {
         return { dias: 0, class: 'verde', texto: '0 dia(s)' };
+    }
+}
+
+// Função para buscar o ID do status "Falta Aprovar CRE"
+async function buscarStatusFaltaAprovarCRE() {
+    if (_statusFaltaAprovarCREId) return _statusFaltaAprovarCREId;
+    
+    try {
+        const { data, error } = await supabaseClient
+            .from('status_nf')
+            .select('id')
+            .ilike('nome', '%Falta aprovar CRE%')
+            .maybeSingle();
+        
+        if (error) {
+            console.error('Erro ao buscar status Falta Aprovar CRE:', error);
+            return null;
+        }
+        if (data) {
+            _statusFaltaAprovarCREId = String(data.id);
+            return _statusFaltaAprovarCREId;
+        }
+        return null;
+    } catch (e) {
+        console.error('Erro ao buscar status Falta Aprovar CRE:', e);
+        return null;
     }
 }
 
@@ -144,9 +150,7 @@ export async function carregarDCCards() {
     const filtroStatus = document.getElementById('filt-dcs-status')?.value || '';
     const filtroStatusNf = document.getElementById('filt-dcs-status-nf')?.value || '';
     const filtroProjeto = document.getElementById('filt-dcs-projeto')?.value || '';
-    const filtroGestor = document.getElementById('filt-dcs-gestor')?.value || '';
-    const filtroDataInicio = document.getElementById('filt-dcs-data-inicio')?.value || '';
-    const filtroDataFim = document.getElementById('filt-dcs-data-fim')?.value || '';
+    const filtroData = document.getElementById('filt-dcs-data')?.value || '';
 
     try {
         let query = supabaseClient
@@ -202,22 +206,14 @@ export async function carregarDCCards() {
                 const nomeProjeto = c.projetos?.nome || '';
                 if (!nomeProjeto.toLowerCase().includes(filtroProjeto.toLowerCase())) return false;
             }
-            if (filtroGestor && c.gestor_logictel !== filtroGestor) return false;
-            
-            // Filtro de data
-            if (filtroDataInicio || filtroDataFim) {
+            if (filtroData) {
                 const dataRef = c.data_solicitacao_faturamento || c.criado_em;
                 if (!dataRef) return false;
-                
                 const dataObj = criarData(dataRef);
                 if (!dataObj || isNaN(dataObj.getTime())) return false;
-                
                 const dataStr = dataObj.toISOString().split('T')[0];
-                
-                if (filtroDataInicio && dataStr < filtroDataInicio) return false;
-                if (filtroDataFim && dataStr > filtroDataFim) return false;
+                if (dataStr !== filtroData) return false;
             }
-            
             return true;
         });
 
@@ -284,6 +280,22 @@ export async function carregarDCCards() {
         console.error('Erro inesperado:', e);
         container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar DC\'s.</div>';
     }
+}
+
+// Função para carregar os filtros e definir o filtro inicial "Falta Aprovar CRE"
+export async function inicializarFiltrosDCCards() {
+    // Buscar o ID do status "Falta Aprovar CRE"
+    const statusId = await buscarStatusFaltaAprovarCRE();
+    
+    if (statusId) {
+        const selectStatusNf = document.getElementById('filt-dcs-status-nf');
+        if (selectStatusNf) {
+            selectStatusNf.value = statusId;
+        }
+    }
+    
+    // Carregar os cards com o filtro aplicado
+    await carregarDCCards();
 }
 
 export function irParaConsumo(dc) {
