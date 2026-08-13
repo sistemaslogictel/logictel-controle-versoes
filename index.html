@@ -1,963 +1,176 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.18.0.2 - Controle de Medições e DCs - Logictel</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260812">
-</head>
-<body>
+// =====================================================
+// MÁSCARA DE VALOR (MOEDA)
+// =====================================================
+export function mascaraMoeda(input) {
+    input.addEventListener('input', function (e) {
+        let valor = this.value.replace(/\D/g, '');
+        if (valor === '') { this.value = '0,00'; return; }
+        valor = valor.replace(/^0+/, '');
+        if (valor === '') valor = '0';
+        while (valor.length < 3) { valor = '0' + valor; }
+        let inteiro = valor.slice(0, -2);
+        let centavos = valor.slice(-2);
+        let inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        this.value = inteiroFormatado + ',' + centavos;
+        this.setSelectionRange(this.value.length, this.value.length);
+    });
+    input.addEventListener('blur', function () {
+        if (this.value === '' || this.value === '0,00') { this.value = '0,00'; }
+    });
+    input.addEventListener('focus', function () {
+        this.setSelectionRange(this.value.length, this.value.length);
+    });
+}
 
-<!-- ===================== TELA DE LOGIN ===================== -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-card">
-    <div class="login-logo">
-      <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
-    </div>
-    <div class="login-system-name">Sistema Financeiro</div>
-    <div class="login-title">Bem-vindo de volta</div>
-    <div class="login-subtitle">Faça login para acessar o sistema</div>
+export function mascaraData(input) {
+    input.addEventListener('input', function (e) {
+        let valor = this.value.replace(/\D/g, '');
+        if (valor.length > 8) valor = valor.slice(0, 8);
+        let formatado = '';
+        if (valor.length > 0) {
+            formatado = valor.slice(0, 2);
+            if (valor.length > 2) formatado += '/' + valor.slice(2, 4);
+            if (valor.length > 4) formatado += '/' + valor.slice(4, 8);
+        }
+        this.value = formatado;
+    });
+}
 
-    <div class="login-error" id="loginError">Usuário ou senha incorretos. Tente novamente.</div>
+export function aplicarMascaras() {
+    document.querySelectorAll('.money-input').forEach(function (el) {
+        el.replaceWith(el.cloneNode(true));
+    });
+    document.querySelectorAll('.date-input').forEach(function (el) {
+        el.replaceWith(el.cloneNode(true));
+    });
+    document.querySelectorAll('.money-input').forEach(mascaraMoeda);
+    document.querySelectorAll('.date-input').forEach(mascaraData);
+}
 
-    <form id="loginForm" onsubmit="return fazerLogin(event)">
-      <input type="text" id="loginUser" class="input" placeholder="Usuário" required autofocus>
-      <input type="password" id="loginPassword" class="input" placeholder="Senha" required>
-      <button type="submit" class="btn-primary">Entrar</button>
-    </form>
-  </div>
-</div>
+export function valorParaNumero(valorFormatado) {
+    if (!valorFormatado || valorFormatado === '' || valorFormatado === '0,00') return 0;
+    // Remove pontos de milhar e substitui vírgula por ponto
+    let valorLimpo = String(valorFormatado).replace(/\./g, '');
+    valorLimpo = valorLimpo.replace(',', '.');
+    const numero = parseFloat(valorLimpo);
+    return isNaN(numero) ? 0 : numero;
+}
 
-<!-- ===================== APP SHELL ===================== -->
-<div class="app-shell" id="appShell" style="display:none;">
+// =====================================================
+// PAGINAÇÃO (genérica, usada por DC's, Medições e Consumo DC)
+// =====================================================
+// Recorta a página atual de uma lista já filtrada/ordenada em memória.
+export function paginar(lista, paginaAtual, itensPorPagina) {
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    return lista.slice(inicio, inicio + itensPorPagina);
+}
 
-  <!-- SIDEBAR MOBILE -->
-  <div class="sidebar-mobile-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-  <div class="sidebar-mobile" id="sidebarMobile">
-    <div>
-      <div class="brand-box flex justify-between items-center">
-        <div class="brand-chip">
-          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
-          <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
+// Gera o HTML dos controles (Anterior / Página X de Y / Próxima).
+// `funcaoGlobal` é o nome (string) da função exposta em window que deve
+// ser chamada ao trocar de página, ex: "irParaPaginaDC".
+export function renderizarPaginacao(paginaAtual, totalItens, itensPorPagina, funcaoGlobal) {
+    const totalPaginas = Math.max(1, Math.ceil(totalItens / itensPorPagina));
+    if (totalPaginas <= 1) return '';
+    return `
+        <div class="pagination">
+            <button type="button" class="btn-page" ${paginaAtual <= 1 ? 'disabled' : ''} onclick="${funcaoGlobal}(${paginaAtual - 1})">‹ Anterior</button>
+            <span class="pagination-info">Página ${paginaAtual} de ${totalPaginas} <span class="pagination-total">(${totalItens} registro${totalItens === 1 ? '' : 's'})</span></span>
+            <button type="button" class="btn-page" ${paginaAtual >= totalPaginas ? 'disabled' : ''} onclick="${funcaoGlobal}(${paginaAtual + 1})">Próxima ›</button>
         </div>
-        <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
-      </div>
-      <nav class="sidenav" id="mobileNav"></nav>
-    </div>
-    <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
-  </div>
+    `;
+}
 
-  <!-- SIDEBAR DESKTOP -->
-  <aside class="sidebar hidden md:flex">
-    <div>
-      <div class="brand-box">
-        <div class="brand-chip">
-          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
-          <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
-        </div>
-      </div>
-      <nav class="sidenav" id="desktopNav"></nav>
-    </div>
-    <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
-  </aside>
+export function registrarUltimaAtualizacao() {
+    const agora = new Date().toLocaleString('pt-BR');
+    const badge = document.getElementById('badge-ultima-atualizacao');
+    if (badge) {
+        badge.innerText = agora;
+    }
+}
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="content-area">
+export function getMesesDoAno(ano) {
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const anoAtual = new Date().getFullYear();
+    const mesAtual = new Date().getMonth();
 
-    <!-- TOPBAR -->
-    <div class="topbar mb-3">
-      <div class="flex items-center gap-2.5">
-        <button class="mobile-menu-toggle md:hidden" onclick="toggleSidebar()">☰ Menu</button>
-        <span class="status-dot"></span>
-        <span class="text-xs font-medium" style="color:var(--text-muted)">Banco sincronizado</span>
-      </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <div id="datas-limites-topbar" class="flex items-center gap-2">
-          <!-- Será preenchido via JavaScript -->
-        </div>
-        <span class="text-xs font-medium" style="color:var(--text-muted)">|</span>
-        <span class="text-xs font-mono" style="color:var(--text-soft);" id="badge-ultima-atualizacao"></span>
-        <div class="user-info">
-          <div class="user-avatar" id="userAvatar">U</div>
-          <span class="text-sm font-medium" id="userNameDisplay">Usuário</span>
-          <button onclick="fazerLogout()" class="logout-btn">Sair</button>
-        </div>
-      </div>
-    </div>
+    if (ano === anoAtual) {
+        return meses.slice(0, mesAtual + 1);
+    }
+    return meses;
+}
 
-    <!-- ===================== LEGENDA GLOBAL (LINHA SEPARADA) ===================== -->
-    <div style="display:flex; align-items:center; gap:16px; padding:4px 12px; background:var(--paper); border:1px solid var(--border); border-radius:8px; margin-bottom:16px; flex-wrap:wrap; font-size:9.9px; color:var(--text-muted);">
-      <span style="font-weight:600;color:var(--text);">Legenda limites:</span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFD700;border:1px solid #D4A800;"></span> 7 dias antes
-      </span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FF0000;"></span> 3 dias antes
-      </span>
-      <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#000;border:1px solid #666;animation:piscar 0.8s ease-in-out infinite;"></span> Dia (piscando)
-      </span>
-    </div>
+// =====================================================
+// TOGGLE SIDEBAR (MOBILE)
+// =====================================================
+export function toggleSidebar() {
+    document.getElementById('sidebarOverlay').classList.toggle('active');
+    document.getElementById('sidebarMobile').classList.toggle('active');
+}
 
-    <!-- ===================== DASHBOARD DON ===================== -->
-    <div id="tab-dash-don" class="tab-content active space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2>
-      </div>
-      <div class="filters-bar-don">
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Diretor</label>
-          <select id="filt-don-diretor" class="input" onchange="carregarDashDON()"><option value="">Todos os Diretores</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-don-mes" class="input" onchange="carregarDashDON()"><option value="">Todos os Meses</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="carregarDashDON()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelDON()" class="btn-excel">📊 Exportar Excel</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="dash-table-container">
-          <table>
-            <thead id="don-header" class="don-header">
-              <tr>
-                <th>Projeto</th>
-                <th>Diretor</th>
-                <th>Descrição</th>
-                <th class="mes-header">Mês 1</th>
-                <th class="mes-header">Mês 2</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dash-don">
-              <tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div id="don-total-geral" class="total-geral-card theme-don"></div>
-    </div>
+// =====================================================
+// LIMPAR FILTROS
+// =====================================================
+export function limparFiltros(tipo, callbacks) {
+    if (tipo === 'don') {
+        const ids = ['filt-don-projeto', 'filt-don-diretor', 'filt-don-ano', 'filt-don-mes'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (callbacks && callbacks.don) callbacks.don();
+    } else if (tipo === 'aprop') {
+        const ids = ['filt-aprop-gestor', 'filt-aprop-projeto', 'filt-aprop-ano', 'filt-aprop-mes'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (callbacks && callbacks.aprop) callbacks.aprop();
+    } else if (tipo === 'cre') {
+        const ids = ['filt-cre-gestor', 'filt-cre-projeto', 'filt-cre-ano', 'filt-cre-mes'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (callbacks && callbacks.cre) callbacks.cre();
+    }
+}
 
-    <!-- ===================== DASHBOARD STATUS ===================== -->
-    <div id="tab-dash-apropriacao" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Status</h2>
-      </div>
-      <div class="filters-bar-status">
-        <div class="filter-group">
-          <label class="filter-label">Gestor</label>
-          <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Anos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Meses</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="carregarDashApropriacao()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelStatus()" class="btn-excel">📊 Exportar Excel</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="dash-table-container">
-          <table>
-            <thead id="aprop-header" class="status-header">
-              <tr>
-                <th>Gestão</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th class="mes-header">Mês 1</th>
-                <th class="mes-header">Mês 2</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dash-apropriacao">
-              <tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div id="aprop-total-geral" class="total-geral-card theme-status"></div>
-    </div>
-
-    <!-- ===================== DASHBOARD CRE (TRATITANDO CRE) ===================== -->
-    <div id="tab-dash-cre" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Tratitando CRE</h2>
-      </div>
-      <div class="filters-bar-status">
-        <div class="filter-group">
-          <label class="filter-label">Gestor</label>
-          <select id="filt-cre-gestor" class="input" onchange="carregarDashCRE()"><option value="">Todos os Gestores</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-cre-projeto" class="input" onchange="carregarDashCRE()"><option value="">Todos os Projetos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-cre-ano" class="input" onchange="carregarDashCRE()"><option value="">Todos os Anos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-cre-mes" class="input" onchange="carregarDashCRE()"><option value="">Todos os Meses</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="carregarDashCRE()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltros('cre')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelCRE()" class="btn-excel">📊 Exportar Excel</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="dash-table-container">
-          <table>
-            <thead id="cre-header" class="cre-header">
-              <tr>
-                <th>Gestão</th>
-                <th>Projeto</th>
-                <th>Descrição</th>
-                <th class="mes-header">Mês 1</th>
-                <th class="mes-header">Mês 2</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-dash-cre">
-              <tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div id="cre-total-geral" class="total-geral-card theme-cre"></div>
-    </div>
-    
-    <!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
-    <div id="tab-cad-medicao" class="tab-content space-y-6">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Medição</h2>
-      <div class="card card-pad">
-        <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="hidden" id="med-edit-id" value="">
-          
-          <div><label class="label">Projeto *</label><select id="med-projeto" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Gestor Logictel *</label><select id="med-gestor" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-          <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
-          
-          <!-- Valor DON -->
-          <div>
-            <label class="label">Valor DON *</label>
-            <input type="text" id="med-valor-don" required placeholder="0,00" class="input money-input">
-          </div>
-          
-          <!-- Valor Status -->
-          <div>
-            <label class="label">Valor Status *</label>
-            <input type="text" id="med-valor-status" required placeholder="0,00" class="input money-input">
-          </div>
-          
-          <div>
-            <label class="label">Data E-mail</label>
-            <input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input">
-          </div>
-          
-          <div>
-            <label class="label">Status Medição *</label>
-            <select id="med-status" required class="input"><option value="">Selecione...</option></select>
-          </div>
-          
-          <!-- Observação - Último campo ocupando toda a largura -->
-          <div class="md:col-span-3">
-            <label class="label">Observação</label>
-            <textarea id="med-observacao" rows="2" placeholder="Observações sobre a medição..." class="input"></textarea>
-          </div>
-          
-          <div class="md:col-span-3 flex justify-end pt-2 gap-2">
-            <button type="button" onclick="cancelarEdicao('med')" class="btn-cancel" style="display:none;" id="med-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Medição</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- ===================== HISTÓRICO DAS MEDIÇÕES ===================== -->
-    <div id="tab-historico-medicoes" class="tab-content space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold" style="color:var(--text)">Histórico das Medições</h2>
-      </div>
-
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-hist-med-projeto" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Diretor Cliente</label>
-          <select id="filt-hist-med-diretor" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Status Medição</label>
-          <select id="filt-hist-med-status" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarHistoricoMedicoes()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosHistoricoMedicoes()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="medicoes-table-container">
-          <table>
-            <thead>
-              <tr>
-                <th class="col-id">ID</th>
-                <th class="col-projeto">Projeto</th>
-                <th class="col-gestor">Gestor</th>
-                <th class="col-diretor">Diretor</th>
-                <th class="col-mes">Mês</th>
-                <th class="col-ano">Ano</th>
-                <th class="col-valor">Valor DON</th>
-                <th class="col-valor">Valor Status</th>
-                <th class="col-status">Status</th>
-                <th class="col-obs">Obs</th>
-                <th class="col-acoes">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-historico-medicoes">
-              <tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div id="historico-medicoes-pagination"></div>
-    </div>
-
-    <!-- ===================== DC CARDS ===================== -->
-    <div id="tab-dcs" class="tab-content space-y-6">
-        <div><h2 class="text-2xl font-bold" style="color:var(--text)">📋 DC's</h2></div>
-        <div class="filters-section-title">🔍 Filtros</div>
-        <div class="filters-bar" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;">
-            <div class="filter-group">
-                <label class="filter-label">DC</label>
-                <input type="text" id="filt-dcs-dc" placeholder="Digite para buscar..." oninput="filtrarDCCards()" class="input">
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Status DC</label>
-                <select id="filt-dcs-status" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Status NF</label>
-                <select id="filt-dcs-status-nf" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Projeto</label>
-                <select id="filt-dcs-projeto" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Data</label>
-                <input type="date" id="filt-dcs-data" class="input" onchange="filtrarDCCards()">
-            </div>
-            <div class="filter-actions" style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
-                <button onclick="filtrarDCCards()" class="btn-primary">Filtrar</button>
-                <button onclick="limparFiltrosDCCards()" class="btn-clear-filters">Limpar</button>
-            </div>
-        </div>
-        <div class="dc-cards-grid" id="dc-cards-container">
-            <div class="p-6 text-center" style="color:var(--text-soft)">Carregando DC's...</div>
-        </div>
-        <div id="dc-cards-pagination"></div>
-    </div>
-
-    <!-- ===================== CONSUMO DC ===================== -->
-    <div id="tab-cad-consumo" class="tab-content space-y-6">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Consumo DC</h2>
-      <div class="card card-pad">
-        <form id="form-consumo" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="hidden" id="consumo-edit-id" value="">
-
-          <!-- DC -->
-          <div><label class="label">DC *</label><input type="text" id="dc-numero" required placeholder="Número da DC" class="input"></div>
-
-          <!-- Pedido -->
-          <div><label class="label">Pedido</label><input type="text" id="dc-pedido" placeholder="Número do pedido" class="input"></div>
-
-          <!-- Projeto -->
-          <div><label class="label">Projeto *</label><select id="dc-projeto" required class="input" onchange="carregarGestoresPorProjeto()"><option value="">Selecione...</option></select></div>
-
-          <!-- Gestor Logictel (filtrado por projeto) -->
-          <div><label class="label">Gestor Logictel *</label><select id="dc-gestor" required class="input"><option value="">Selecione...</option></select></div>
-
-          <!-- Tipo Medição -->
-          <div><label class="label">Tipo Medição *</label><select id="dc-tipo-medicao" required class="input"><option value="">Selecione...</option><option value="PA">PA - Parcial</option><option value="FI">FI - Final</option></select></div>
-
-          <!-- Diretor Cliente -->
-          <div><label class="label">Diretor Cliente</label><select id="dc-diretor" class="input"><option value="">Selecione...</option></select></div>
-
-          <!-- Empresa -->
-          <div><label class="label">Empresa *</label><select id="dc-empresa" required class="input"><option value="">Selecione...</option></select></div>
-
-          <!-- Mês Apropriação -->
-          <div><label class="label">Mês Apropriação *</label><select id="dc-mes-apropriacao" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-
-          <!-- Ano -->
-          <div><label class="label">Ano *</label><input type="number" id="dc-ano" value="2026" required class="input"></div>
-
-          <!-- Valor -->
-          <div><label class="label">Valor (R$) *</label><input type="text" id="dc-valor" required placeholder="0,00" class="input money-input"></div>
-
-          <!-- Mês Medido -->
-          <div><label class="label">Mês Medido *</label><select id="dc-mes-medido" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-
-          <!-- Data Solicitação -->
-          <div><label class="label">Data Solicitação *</label><input type="text" id="dc-data-solicitacao" required placeholder="dd/mm/aaaa" class="input date-input"></div>
-
-          <!-- FR - Folha de Registro -->
-          <div><label class="label">FR (Folha de Registro)</label><input type="text" id="dc-fr" placeholder="Nº da Folha de Registro" class="input"></div>
-
-          <!-- Status DC -->
-          <div><label class="label">Status DC *</label><select id="dc-status-dc" required class="input"><option value="">Selecione...</option></select></div>
-
-          <!-- Status NF -->
-          <div><label class="label">Status NF *</label><select id="dc-status-nf" required onchange="controlarCamposNF()" class="input"><option value="">Selecione...</option></select></div>
-
-          <!-- Nº da NF -->
-          <div><label class="label">Nº da NF</label><input type="text" id="dc-num-nf" disabled placeholder="Obrigatório se emitida" class="input"></div>
-
-          <!-- Data Emissão NF -->
-          <div><label class="label">Data Emissão NF</label><input type="text" id="dc-data-nf" disabled placeholder="dd/mm/aaaa" class="input date-input"></div>
-
-          <!-- Campos Extras -->
-          <div class="md:col-span-4 campos-extras" id="campos-extras-consumo">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div><label class="label">Centro de Custo</label><input type="text" id="dc-centro-custo" placeholder="Centro de Custo" class="input"></div>
-              <div><label class="label">Item</label><input type="text" id="dc-item" placeholder="Item" class="input"></div>
-              <div><label class="label">PO</label><input type="text" id="dc-po" placeholder="PO" class="input"></div>
-            </div>
-          </div>
-
-          <div class="md:col-span-4 flex justify-end pt-2 gap-2">
-            <button type="button" onclick="cancelarEdicao('consumo')" class="btn-cancel" style="display:none;" id="consumo-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Consumo</button>
-          </div>
-        </form>
-      </div>
-      <p class="text-sm" style="color:var(--text-muted)">A listagem completa e o histórico de consumos ficam na aba <strong>Histórico Consumo das DCs</strong>, no menu DC's.</p>
-    </div>
-
-    <!-- ===================== HISTÓRICO CONSUMO DAS DCS ===================== -->
-    <div id="tab-historico-consumo-dcs" class="tab-content space-y-6">
-      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Histórico Consumo das DCs</h2></div>
-
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group">
-          <label class="filter-label">DC</label>
-          <input type="text" id="filt-consumo-dc" list="dclist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
-          <datalist id="dclist-consumo"></datalist>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Pedido</label>
-          <input type="text" id="filt-consumo-pedido" list="pedidolist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()">
-          <datalist id="pedidolist-consumo"></datalist>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-consumo-projeto" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Tipo</label>
-          <select id="filt-consumo-tipo-medicao" class="input" onchange="filtrarConsumos()">
-            <option value="">Todos</option>
-            <option value="PA">PA</option>
-            <option value="FI">FI</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Diretor</label>
-          <select id="filt-consumo-diretor" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês Aprop.</label>
-          <select id="filt-consumo-mes-apropriacao" class="input" onchange="filtrarConsumos()">
-            <option value="">Todos</option>
-            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês Medido</label>
-          <select id="filt-consumo-mes-medido" class="input" onchange="filtrarConsumos()">
-            <option value="">Todos</option>
-            <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
-            <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
-            <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
-            <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">FR</label>
-          <input type="text" id="filt-consumo-fr" placeholder="Nº da FR" class="input" oninput="filtrarConsumos()">
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Status NF</label>
-          <select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarConsumos()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosConsumo()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="historico-table-container">
-          <table>
-            <thead>
-              <tr>
-                <th class="col-sticky col-dc">DC</th>
-                <th class="col-projeto">Projeto</th>
-                <th class="col-gestor">Gestor</th>
-                <th class="col-tipo">Tipo</th>
-                <th class="col-mes-aprop">Mês Aprop.</th>
-                <th class="col-mes-medido">Mês Medido</th>
-                <th class="col-status-nf">Status</th>
-                <th class="col-valor">Valor</th>
-                <th class="col-acoes">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-consumos">
-              <tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div id="consumo-pagination"></div>
-    </div>
-
-    <!-- ===================== CADASTRO USUÁRIO ===================== -->
-    <div id="tab-adm-user" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Usuário</h2>
-      <div class="card card-pad">
-        <form id="form-usuario" class="space-y-4">
-          <input type="hidden" id="user-edit-id" value="">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label class="label">Usuário *</label><input type="text" id="user-nome" required placeholder="Nome do usuário" class="input"></div>
-            <div>
-              <label class="label">Senha *</label>
-              <div class="flex flex-col gap-2">
-                <div class="flex gap-2">
-                  <input type="text" id="user-senha" required placeholder="Senha" class="input" oninput="validarSenha()">
-                  <button type="button" onclick="gerarSenhaForte()" class="btn-generate" style="white-space:nowrap;">Gerar</button>
-                </div>
-                <div class="password-strength" id="senha-criterios">
-                  <span class="criteria unmet" id="criterio-tamanho"><span class="check">✕</span> Mínimo 8 caracteres</span>
-                  <span class="criteria unmet" id="criterio-maiuscula"><span class="check">✕</span> 1 maiúscula</span>
-                  <span class="criteria unmet" id="criterio-minuscula"><span class="check">✕</span> 1 minúscula</span>
-                  <span class="criteria unmet" id="criterio-numero"><span class="check">✕</span> 1 número</span>
-                  <span class="criteria unmet" id="criterio-especial"><span class="check">✕</span> 1 caractere especial</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex items-end gap-2">
-              <button type="button" onclick="cancelarEdicao('user')" class="btn-cancel" style="display:none;" id="user-cancel-btn">Cancelar</button>
-              <button type="submit" class="btn-primary w-full" id="user-submit-btn" disabled>Salvar Usuário</button>
-            </div>
-          </div>
-          
-          <div class="mt-4 pt-4 border-t border-gray-200">
-            <label class="label" style="font-size:13px; color:var(--text);">Permissões de Acesso</label>
-            <p class="text-xs text-muted mb-2" style="color:var(--text-soft);">Selecione as áreas que este usuário terá acesso</p>
-            
-            <div class="mb-3">
-              <span class="text-xs font-semibold" style="color:var(--text-muted);">📊 Dashboards</span>
-              <div class="checkbox-group">
-                <label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Status</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="dash-cre" class="permission-check"><span>Dash Tratitando CRE</span></label>
-              </div>
-            </div>
-            
-            <div class="mb-3">
-              <span class="text-xs font-semibold" style="color:var(--text-muted);">📋 Medições</span>
-              <div class="checkbox-group">
-                <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Cadastro de Medição</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Histórico das Medições</span></label>
-              </div>
-            </div>
-            
-            <div class="mb-3">
-              <span class="text-xs font-semibold" style="color:var(--text-muted);">📋 DC's</span>
-              <div class="checkbox-group">
-                <label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumo DC</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="dcs" class="permission-check"><span>DC's</span></label>
-              </div>
-            </div>
-            
-            <div class="mb-3">
-              <span class="text-xs font-semibold" style="color:var(--text-muted);">⚙️ Administração</span>
-              <div class="checkbox-group">
-                <label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="adm-datas" class="permission-check"><span>Datas Limites</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="atualizacoes" class="permission-check"><span>Atualizações</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="relatorios" class="permission-check"><span>Relatórios</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="configuracoes" class="permission-check"><span>Configurações</span></label>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Usuário</th><th>Senha</th><th>Permissões</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-usuarios"><tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== CLIENTE: EMPRESA ===================== -->
-    <div id="tab-adm-empresa" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Empresa</h2>
-      <div class="card card-pad">
-        <form id="form-empresa" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="empresa-edit-id" value="">
-          <div><label class="label">Nome da Empresa *</label><input type="text" id="empresa-nome" required placeholder="Nome da empresa" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('empresa')" class="btn-cancel" style="display:none;" id="empresa-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Empresa</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-empresas"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== CLIENTE: DIRETOR CLIENTE ===================== -->
-    <div id="tab-adm-diretor" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Diretor Cliente</h2>
-      <div class="card card-pad">
-        <form id="form-diretor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="diretor-edit-id" value="">
-          <div><label class="label">Nome do Diretor *</label><input type="text" id="diretor-nome" required placeholder="Nome do diretor" class="input"></div>
-          <div><label class="label">Empresa *</label><select id="diretor-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('diretor')" class="btn-cancel" style="display:none;" id="diretor-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Diretor</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Diretor</th><th>Empresa</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-diretores"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== CLIENTE: CONTRATO ===================== -->
-    <div id="tab-adm-contrato" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Contrato</h2>
-      <div class="card card-pad">
-        <form id="form-contrato" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="hidden" id="contrato-edit-id" value="">
-          <div><label class="label">Número do Contrato *</label><input type="text" id="contrato-numero" required placeholder="Número do contrato" class="input"></div>
-          <div><label class="label">Empresa *</label><select id="contrato-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Diretor *</label><select id="contrato-diretor" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('contrato')" class="btn-cancel" style="display:none;" id="contrato-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Contrato</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Contrato</th><th>Empresa</th><th>Diretor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-contratos"><tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== LOGICTEL: PROJETO ===================== -->
-    <div id="tab-adm-projeto" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
-      <div class="card card-pad">
-        <form id="form-projeto" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="projeto-edit-id" value="">
-          <div>
-            <label class="label">Nome do Projeto *</label>
-            <input type="text" id="projeto-nome" required placeholder="Ex: 306, 340, 7200-306" class="input">
-          </div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('projeto')" class="btn-cancel" style="display:none;" id="projeto-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Projeto</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-projetos"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== LOGICTEL: GESTOR ===================== -->
-    <div id="tab-adm-gestor" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor Logictel</h2>
-      <div class="card card-pad">
-        <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="gestor-edit-id" value="">
-          <div>
-            <label class="label">Nome do Gestor *</label>
-            <input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input">
-          </div>
-          <div>
-            <label class="label">Projeto *</label>
-            <select id="gestor-projeto" required class="input">
-              <option value="">Selecione...</option>
-            </select>
-          </div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Gestor</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Gestor Logictel</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-gestores"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== STATUS ===================== -->
-    <div id="tab-adm-status-dc" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status DC</h2>
-      <div class="card card-pad">
-        <form id="form-status-dc" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="statusdc-edit-id" value="">
-          <div><label class="label">Código *</label><input type="text" id="statusdc-codigo" required placeholder="Ex: ZE, AA, CM" class="input" style="text-transform:uppercase;"></div>
-          <div><label class="label">Nome *</label><input type="text" id="statusdc-nome" required placeholder="Nome do status" class="input"></div>
-          <div><label class="label">Motivo</label><textarea id="statusdc-motivo" rows="2" placeholder="Motivo/observação do status" class="input"></textarea></div>
-          <div><label class="label">Responsável</label><select id="statusdc-responsavel" class="input"><option value="Logictel">Logictel</option><option value="V.tal">V.tal</option></select></div>
-          <div><label class="label">Cor</label><input type="color" id="statusdc-cor" value="#3498DB" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('statusdc')" class="btn-cancel" style="display:none;" id="statusdc-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Status DC</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Código</th><th>Nome</th><th>Motivo</th><th>Responsável</th><th>Cor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-statusdc"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-adm-status-med" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status Medição</h2>
-      <div class="card card-pad">
-        <form id="form-status-med" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="statusmed-edit-id" value="">
-          <div><label class="label">Nome do Status *</label><input type="text" id="statusmed-nome" required placeholder="Ex: Pendente, Aprovada, Rejeitada" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('statusmed')" class="btn-cancel" style="display:none;" id="statusmed-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Status Medição</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Status Medição</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-statusmed"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-adm-status-nf" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status NF</h2>
-      <div class="card card-pad">
-        <form id="form-status-nf" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="statusnf-edit-id" value="">
-          <div><label class="label">Nome do Status *</label><input type="text" id="statusnf-nome" required placeholder="Ex: Emitida, Cancelada, Pendente" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('statusnf')" class="btn-cancel" style="display:none;" id="statusnf-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Status NF</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Status NF</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-statusnf"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== DATAS LIMITES ===================== -->
-    <div id="tab-adm-datas-limites" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Datas Limites</h2>
-      <p class="text-sm mt-0.5" style="color:var(--text-muted)">Defina as datas limites para emissão de FR e NF por mês/ano.</p>
-
-      <div class="card card-pad">
-        <form id="form-datas-limites" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="hidden" id="datalimite-edit-id" value="">
-          <div>
-            <label class="label">Mês *</label>
-            <select id="datalimite-mes" required class="input">
-              <option value="">Selecione...</option>
-              <option value="Janeiro">Janeiro</option>
-              <option value="Fevereiro">Fevereiro</option>
-              <option value="Março">Março</option>
-              <option value="Abril">Abril</option>
-              <option value="Maio">Maio</option>
-              <option value="Junho">Junho</option>
-              <option value="Julho">Julho</option>
-              <option value="Agosto">Agosto</option>
-              <option value="Setembro">Setembro</option>
-              <option value="Outubro">Outubro</option>
-              <option value="Novembro">Novembro</option>
-              <option value="Dezembro">Dezembro</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">Ano *</label>
-            <input type="number" id="datalimite-ano" value="2026" required class="input">
-          </div>
-          <div>
-            <label class="label">Data Limite FR *</label>
-            <input type="date" id="datalimite-data-fr" required class="input">
-            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 12h)</span>
-          </div>
-          <div>
-            <label class="label">Data Limite NF *</label>
-            <input type="date" id="datalimite-data-nf" required class="input">
-            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 23h)</span>
-          </div>
-          <div class="md:col-span-4 flex justify-end pt-2 gap-2">
-            <button type="button" onclick="cancelarEdicao('datalimite')" class="btn-cancel" style="display:none;" id="datalimite-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Data Limite</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Filtros -->
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-datas-mes" class="input" onchange="filtrarDatasLimites()">
-            <option value="">Todos os Meses</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-datas-ano" class="input" onchange="filtrarDatasLimites()">
-            <option value="">Todos os Anos</option>
-          </select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarDatasLimites()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosDatasLimites()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="th-row">
-                <th>Mês</th>
-                <th>Ano</th>
-                <th>Data Limite FR</th>
-                <th>Data Limite NF</th>
-                <th class="text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-datas-limites">
-              <tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-        <!-- ===================== MODAL VISUALIZAÇÃO DC ===================== -->
-    <div id="modal-visualizacao-dc" style="display:none; position:fixed; inset:0; background:rgba(8,16,32,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-        <div style="background:var(--surface); border-radius:16px; max-width:900px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); padding:32px 36px; position:relative;">
-            
-            <!-- Botão Fechar -->
-            <button onclick="fecharVisualizacaoDC()" style="position:absolute; top:12px; right:16px; background:transparent; border:none; font-size:24px; color:var(--text-soft); cursor:pointer;">✕</button>
-            
-            <h2 style="font-family:'Space Grotesk', sans-serif; font-size:20px; font-weight:700; color:var(--text); margin-bottom:4px; text-align:center;">Visualização da DC</h2>
-            <p style="text-align:center; font-size:12px; color:var(--text-muted); margin-bottom:20px;">Clique em <strong>Editar</strong> para modificar os dados</p>
-            
-            <div id="modal-visualizacao-conteudo">
-                <!-- Conteúdo preenchido via JavaScript -->
-            </div>
-            
-            <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-                <button onclick="fecharVisualizacaoDC()" class="btn-cancel" style="padding:10px 24px;">Fechar</button>
-                <button id="btn-editar-visualizacao" onclick="habilitarEdicaoVisualizacao()" class="btn-primary" style="padding:10px 24px;">✏️ Editar</button>
-            </div>
-        </div>
-    </div>
-
-  </main>
-</div>
-
-<script type="module" src="js/main.js?v=20260812"></script>
-</body>
-</html>
+// =====================================================
+// FLYOUTS DO MENU
+// =====================================================
+export function initFlyouts() {
+    const wraps = Array.prototype.slice.call(document.querySelectorAll('[data-flyout]'));
+    let closeTimer = null;
+    const DELAY = 220;
+    function closeAll(except) { wraps.forEach(function (w) { if (w !== except) w.classList.remove('is-open'); }); }
+    wraps.forEach(function (wrap) {
+        const trigger = wrap.querySelector('.flyout-trigger');
+        wrap.addEventListener('mouseenter', function () {
+            clearTimeout(closeTimer);
+            closeAll(wrap);
+            wrap.classList.add('is-open');
+        });
+        wrap.addEventListener('mouseleave', function () {
+            closeTimer = setTimeout(function () { wrap.classList.remove('is-open'); }, DELAY);
+        });
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = wrap.classList.contains('is-open');
+            closeAll();
+            if (!isOpen) wrap.classList.add('is-open');
+        });
+        wrap.addEventListener('focusin', function () {
+            clearTimeout(closeTimer);
+            closeAll(wrap);
+            wrap.classList.add('is-open');
+        });
+    });
+    document.addEventListener('click', function (e) {
+        const insideAny = wraps.some(function (w) { return w.contains(e.target); });
+        if (!insideAny) closeAll();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAll();
+    });
+}
