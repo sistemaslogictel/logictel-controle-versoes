@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.19.0 - Controle de Medições e DCs - Logictel</title>
+<title>V.19.1 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -863,12 +863,12 @@
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Datas Limites</h2>
       <p class="text-sm mt-0.5" style="color:var(--text-muted)">Defina as datas limites para emissão de FR e NF por mês/ano.</p>
 
-      <div class="card card-pad">
-        <form id="form-datas-limites" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="card card-pad" style="padding:12px 16px;">
+        <form id="form-datas-limites" class="grid grid-cols-1 md:grid-cols-4 gap-2">
           <input type="hidden" id="datalimite-edit-id" value="">
           <div>
-            <label class="label">Mês *</label>
-            <select id="datalimite-mes" required class="input">
+            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Mês *</label>
+            <select id="datalimite-mes" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
               <option value="">Selecione...</option>
               <option value="Janeiro">Janeiro</option>
               <option value="Fevereiro">Fevereiro</option>
@@ -885,22 +885,22 @@
             </select>
           </div>
           <div>
-            <label class="label">Ano *</label>
-            <input type="number" id="datalimite-ano" value="2026" required class="input">
+            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Ano *</label>
+            <input type="number" id="datalimite-ano" value="2026" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
           </div>
           <div>
-            <label class="label">Data Limite FR *</label>
-            <input type="date" id="datalimite-data-fr" required class="input">
-            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 12h)</span>
+            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Data Limite FR *</label>
+            <input type="date" id="datalimite-data-fr" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
+            <span class="text-xs" style="color:var(--text-soft); font-size:8px;">(Horário limite: 12h)</span>
           </div>
           <div>
-            <label class="label">Data Limite NF *</label>
-            <input type="date" id="datalimite-data-nf" required class="input">
-            <span class="text-xs" style="color:var(--text-soft);">(Horário limite: 23h)</span>
+            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Data Limite NF *</label>
+            <input type="date" id="datalimite-data-nf" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
+            <span class="text-xs" style="color:var(--text-soft); font-size:8px;">(Horário limite: 23h)</span>
           </div>
-          <div class="md:col-span-4 flex justify-end pt-2 gap-2">
-            <button type="button" onclick="cancelarEdicao('datalimite')" class="btn-cancel" style="display:none;" id="datalimite-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Data Limite</button>
+          <div class="md:col-span-4 flex justify-end pt-1 gap-2">
+            <button type="button" onclick="cancelarEdicao('datalimite')" class="btn-cancel" style="display:none; font-size:10.5px; padding:5px 12px; height:32px;" id="datalimite-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary" style="font-size:10.5px; padding:5px 14px; height:32px;">Salvar Data Limite</button>
           </div>
         </form>
       </div>

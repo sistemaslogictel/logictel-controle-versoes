@@ -2273,3 +2273,53 @@ nav.sidenav{
         height: 8px;
     }
 }
+
+/* =====================================================
+   COMPACTAÇÃO DOS CAMPOS DE DATA LIMITES
+   ===================================================== */
+#form-datas-limites {
+    gap: 8px !important;
+}
+
+#form-datas-limites .input {
+    font-size: 10.5px !important;
+    padding: 5px 8px !important;
+    height: 32px !important;
+}
+
+#form-datas-limites .label {
+    font-size: 8.5px !important;
+    margin-bottom: 2px !important;
+}
+
+#form-datas-limites .text-xs {
+    font-size: 8px !important;
+}
+
+#form-datas-limites .btn-primary {
+    font-size: 10.5px !important;
+    padding: 6px 14px !important;
+    height: 32px !important;
+}
+
+#form-datas-limites .md\\:col-span-4 {
+    padding-top: 4px !important;
+}
+
+/* Ajuste específico para o grid dos campos de data */
+#form-datas-limites .md\\:grid-cols-4 {
+    gap: 8px !important;
+}
+
+@media (max-width: 768px) {
+    #form-datas-limites .input {
+        font-size: 10px !important;
+        padding: 4px 6px !important;
+        height: 28px !important;
+    }
+    #form-datas-limites .btn-primary {
+        font-size: 10px !important;
+        padding: 4px 10px !important;
+        height: 28px !important;
+    }
+}
