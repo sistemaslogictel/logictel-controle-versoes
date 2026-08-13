@@ -2218,3 +2218,58 @@ nav.sidenav{
 .tab-content .text-sm {
     text-align: center !important;
 }
+
+/* =====================================================
+   LEGENDA NA TOPBAR - VERSÃO COMPACTA
+   ===================================================== */
+.topbar .status-dot {
+    width: 7px;
+    height: 7px;
+}
+
+.topbar .legenda-limites {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 9px;
+}
+
+.topbar .legenda-limites .legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.topbar .legenda-limites .legenda-cor {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.topbar .legenda-limites .legenda-cor.amarelo {
+    background: #FFD700;
+    border: 1px solid #D4A800;
+}
+
+.topbar .legenda-limites .legenda-cor.vermelho {
+    background: #FF0000;
+}
+
+.topbar .legenda-limites .legenda-cor.piscando {
+    background: #000;
+    border: 1px solid #666;
+    animation: piscar 0.8s ease-in-out infinite;
+}
+
+@media (max-width: 900px) {
+    .topbar .legenda-limites {
+        font-size: 8px;
+        gap: 6px;
+    }
+    .topbar .legenda-limites .legenda-cor {
+        width: 8px;
+        height: 8px;
+    }
+}
