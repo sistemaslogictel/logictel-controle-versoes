@@ -2195,3 +2195,26 @@ nav.sidenav{
         padding: 12px;
     }
 }
+
+/* =====================================================
+   TÍTULOS CENTRALIZADOS
+   ===================================================== */
+.tab-content .text-2xl {
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+.tab-content .text-2xl.font-bold {
+    text-align: center !important;
+}
+
+/* Para os títulos com ícone (DC's) */
+.tab-content h2 {
+    text-align: center !important;
+}
+
+/* Centralizar também os subtítulos que sobraram */
+.tab-content .text-sm {
+    text-align: center !important;
+}
