@@ -234,9 +234,12 @@ export async function carregarDCCards() {
             const statusNome = statusInfo ? `${statusInfo.codigo} - ${statusInfo.nome}` : (c.status_dc || 'Sem status');
             const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
             const statusResponsavel = statusInfo ? statusInfo.responsavel : (c.responsavel || '');
+            // CORRIGIDO: Usar a cor personalizada do status ou fallback
+            const statusCor = statusInfo?.cor || (statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB');
 
             const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
-            const borderColor = statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB';
+            // Usar a cor personalizada para a borda
+            const borderColor = statusCor;
 
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
             const projetoNome = c.projetos?.nome || 'N/A';
