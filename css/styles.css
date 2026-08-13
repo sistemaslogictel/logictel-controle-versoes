@@ -2007,3 +2007,191 @@ nav.sidenav{
         justify-content: center;
     }
 }
+
+/* =====================================================
+   SIDEBAR MAIS COMPACTA
+   ===================================================== */
+.sidebar {
+    width: 220px;
+}
+
+.sidebar .brand-box {
+    padding: 12px 12px;
+}
+
+.sidebar .brand-chip {
+    padding: 10px 14px;
+    border-radius: 10px;
+}
+
+.sidebar .brand-chip img {
+    height: 38px;
+}
+
+.sidebar .brand-fallback {
+    font-size: 17px;
+}
+
+.sidebar nav.sidenav {
+    padding: 10px 8px;
+    gap: 1px;
+}
+
+.sidebar .nav-section-label {
+    font-size: 8px;
+    padding: 10px 8px 4px;
+}
+
+.sidebar .sidebar-link {
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    gap: 8px;
+}
+
+.sidebar .sidebar-link svg {
+    width: 13px;
+    height: 13px;
+}
+
+.sidebar .flyout-trigger {
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    gap: 8px;
+}
+
+.sidebar .flyout-trigger .lbl svg {
+    width: 13px;
+    height: 13px;
+}
+
+.sidebar .flyout-trigger .chev {
+    width: 6px;
+    height: 6px;
+}
+
+.sidebar .flyout {
+    min-width: 200px;
+    max-width: 230px;
+    padding: 8px 6px 8px 12px;
+    margin-left: 4px;
+}
+
+.sidebar .flyout .flyout-section-title {
+    font-size: 8px;
+    padding: 6px 6px 6px;
+}
+
+.sidebar .flyout .flyout-link {
+    font-size: 10.5px;
+    padding: 5px 8px;
+}
+
+.sidebar .sidebar-footer {
+    font-size: 8.5px;
+    padding: 10px 12px;
+}
+
+/* Ajuste para o sidebar mobile também */
+.sidebar-mobile {
+    width: 240px;
+}
+
+.sidebar-mobile .brand-box {
+    padding: 12px 12px;
+}
+
+.sidebar-mobile .brand-chip {
+    padding: 10px 14px;
+    border-radius: 10px;
+}
+
+.sidebar-mobile .brand-chip img {
+    height: 38px;
+}
+
+.sidebar-mobile .brand-fallback {
+    font-size: 17px;
+}
+
+.sidebar-mobile nav.sidenav {
+    padding: 10px 8px;
+    gap: 1px;
+}
+
+.sidebar-mobile .nav-section-label {
+    font-size: 8px;
+    padding: 10px 8px 4px;
+}
+
+.sidebar-mobile .sidebar-link {
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    gap: 8px;
+}
+
+.sidebar-mobile .sidebar-link svg {
+    width: 13px;
+    height: 13px;
+}
+
+.sidebar-mobile .flyout-trigger {
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    gap: 8px;
+}
+
+.sidebar-mobile .flyout-trigger .lbl svg {
+    width: 13px;
+    height: 13px;
+}
+
+.sidebar-mobile .flyout-trigger .chev {
+    width: 6px;
+    height: 6px;
+}
+
+.sidebar-mobile .flyout {
+    min-width: 190px;
+    max-width: 210px;
+    padding: 8px 6px 8px 12px;
+    margin-left: 4px;
+}
+
+.sidebar-mobile .flyout .flyout-section-title {
+    font-size: 8px;
+    padding: 6px 6px 6px;
+}
+
+.sidebar-mobile .flyout .flyout-link {
+    font-size: 10.5px;
+    padding: 5px 8px;
+}
+
+.sidebar-mobile .sidebar-footer {
+    font-size: 8.5px;
+    padding: 10px 12px;
+}
+
+/* Ajuste no conteúdo para a sidebar menor */
+.content-area {
+    padding: 20px 24px;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        display: none;
+    }
+    .sidebar-mobile {
+        width: 240px;
+    }
+}
+
+@media (max-width: 600px) {
+    .content-area {
+        padding: 12px;
+    }
+}
