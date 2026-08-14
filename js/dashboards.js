@@ -11,6 +11,10 @@ let _ultimoRenderStatus = null;
 let _ultimoRenderCRE = null;
 let _ultimoRenderPendencias = null;
 
+// Guarda os dados brutos de consumos para cada dashboard (para expansão)
+let _consumosCRE = [];
+let _consumosPendencias = [];
+
 // Função para formatar valor com separação de milhares
 function formatarValor(valor) {
     if (valor === undefined || valor === null || valor === 0 || valor === '0' || valor === '0,00' || valor === '') {
@@ -67,7 +71,6 @@ async function carregarStatusNfMap() {
 // =====================================================
 
 // Verifica se o consumo deve ser excluído das dashboards DON e Status
-// (status NF "Falta aprovar CRE" ou "Pendências" não entram nas dashboards DON e Status)
 function consumoDeveSerExcluido(consumo) {
     if (!consumo) return false;
     const statusNfId = consumo.status_nf;
@@ -176,7 +179,8 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
                 meses: {},
                 _debitos: {},
                 _caixa: 0,
-                total: 0
+                total: 0,
+                _consumos: []
             };
         }
         return grupos[key];
@@ -194,6 +198,7 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
         const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
         const g = garantirGrupo(key, c);
         g._caixa += Math.abs(Number(c.valor || 0));
+        g._consumos.push(c);
     });
 
     Object.values(grupos).forEach(g => {
@@ -355,7 +360,8 @@ function calcularGruposCRE(consumos) {
                 projeto: c.projetos?.nome || 'N/A',
                 descricao: c.projetos?.nome || '',
                 meses: {},
-                total: 0
+                total: 0,
+                _consumos: []
             };
         }
         const mes = c.mes_medido || c.mes_apropriacao || 'Sem mês';
@@ -365,6 +371,7 @@ function calcularGruposCRE(consumos) {
         }
         grupos[key].meses[mes].saldo += valor;
         grupos[key].total += valor;
+        grupos[key]._consumos.push(c);
     });
 
     const mesesComSaldo = new Set();
@@ -403,7 +410,8 @@ function calcularGruposPendencias(consumos) {
                 projeto: c.projetos?.nome || 'N/A',
                 descricao: c.projetos?.nome || '',
                 meses: {},
-                total: 0
+                total: 0,
+                _consumos: []
             };
         }
         const mes = c.mes_medido || c.mes_apropriacao || 'Sem mês';
@@ -413,6 +421,7 @@ function calcularGruposPendencias(consumos) {
         }
         grupos[key].meses[mes].saldo += valor;
         grupos[key].total += valor;
+        grupos[key]._consumos.push(c);
     });
 
     const mesesComSaldo = new Set();
@@ -718,7 +727,7 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA CRE
+// RENDERIZAÇÃO DA TABELA CRE (COM EXPANSÃO PARA DCs)
 // =====================================================
 function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -747,12 +756,15 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
     tbody.innerHTML = '';
     let totalGeral = 0;
 
-    linhas.forEach(g => {
+    linhas.forEach((g, index) => {
         totalGeral += g.total;
+        const grupoId = `cre-grupo-${index}`;
 
         let html = `
-            <tr>
-                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
+            <tr class="cre-grupo-row" data-grupo="${grupoId}" style="border-top:2px solid var(--gold);background:var(--gold-bg);cursor:pointer;">
+                <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">
+                    <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
+                </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
                 <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
         `;
@@ -768,15 +780,55 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
                 <td style="text-align:center;padding:10px 12px;font-weight:700;color:#00AA00;">${formatarValor(g.total)}</td>
             </tr>
         `;
-
         tbody.innerHTML += html;
+
+        // Linhas de DCs (expandíveis)
+        const consumos = g._consumos || [];
+        if (consumos.length > 0) {
+            consumos.forEach(c => {
+                const statusNome = _statusNfMap[c.status_nf] || c.status_nf || '-';
+                const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+                let dcHtml = `
+                    <tr class="dc-row-cre" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFFDF5;">
+                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳ DC</td>
+                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--primary);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">${c.dc || '-'}</td>
+                        <td style="text-align:left;padding:8px 12px;font-size:11px;color:var(--text-soft);">${statusNome}</td>
+                `;
+                mesesExibir.forEach(mes => {
+                    const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
+                    const displayValor = saldo > 0 ? formatarValor(saldo) : '-';
+                    dcHtml += `<td style="text-align:center;padding:8px 12px;font-size:12px;color:#00AA00;">${displayValor}</td>`;
+                });
+                dcHtml += `
+                        <td style="text-align:center;padding:8px 12px;font-weight:600;color:#00AA00;">${valorFormatado}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += dcHtml;
+            });
+        }
+    });
+
+    // Evento de clique para expandir/colapsar
+    document.querySelectorAll('.cre-grupo-row').forEach(row => {
+        row.onclick = function () {
+            const grupoId = this.dataset.grupo;
+            const linhasDcs = document.querySelectorAll(`tr[data-parent-grupo="${grupoId}"]`);
+            const icon = document.getElementById(`icon-${grupoId}`);
+            if (linhasDcs.length === 0) return;
+
+            const estaOculto = linhasDcs[0].style.display === 'none';
+            linhasDcs.forEach(tr => {
+                tr.style.display = estaOculto ? '' : 'none';
+            });
+            if (icon) icon.textContent = estaOculto ? '▼' : '▶';
+        };
     });
 
     renderizarTotalGeralCardCRE(totalCardId, 'cre', mesesExibir, linhas, totalGeral);
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA PENDÊNCIAS (VERMELHO)
+// RENDERIZAÇÃO DA TABELA PENDÊNCIAS (COM EXPANSÃO PARA DCs)
 // =====================================================
 function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -805,12 +857,15 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
     tbody.innerHTML = '';
     let totalGeral = 0;
 
-    linhas.forEach(g => {
+    linhas.forEach((g, index) => {
         totalGeral += g.total;
+        const grupoId = `pend-grupo-${index}`;
 
         let html = `
-            <tr>
-                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
+            <tr class="pend-grupo-row" data-grupo="${grupoId}" style="border-top:2px solid #8B0000;background:#FDE8E8;cursor:pointer;">
+                <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">
+                    <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
+                </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
                 <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
         `;
@@ -826,8 +881,48 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
                 <td style="text-align:center;padding:10px 12px;font-weight:700;color:#CC0000;">${formatarValor(g.total)}</td>
             </tr>
         `;
-
         tbody.innerHTML += html;
+
+        // Linhas de DCs (expandíveis)
+        const consumos = g._consumos || [];
+        if (consumos.length > 0) {
+            consumos.forEach(c => {
+                const statusNome = _statusNfMap[c.status_nf] || c.status_nf || '-';
+                const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+                let dcHtml = `
+                    <tr class="dc-row-pend" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFF5F5;">
+                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳ DC</td>
+                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--danger);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">${c.dc || '-'}</td>
+                        <td style="text-align:left;padding:8px 12px;font-size:11px;color:var(--text-soft);">${statusNome}</td>
+                `;
+                mesesExibir.forEach(mes => {
+                    const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
+                    const displayValor = saldo > 0 ? formatarValor(saldo) : '-';
+                    dcHtml += `<td style="text-align:center;padding:8px 12px;font-size:12px;color:#CC0000;">${displayValor}</td>`;
+                });
+                dcHtml += `
+                        <td style="text-align:center;padding:8px 12px;font-weight:600;color:#CC0000;">${valorFormatado}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += dcHtml;
+            });
+        }
+    });
+
+    // Evento de clique para expandir/colapsar
+    document.querySelectorAll('.pend-grupo-row').forEach(row => {
+        row.onclick = function () {
+            const grupoId = this.dataset.grupo;
+            const linhasDcs = document.querySelectorAll(`tr[data-parent-grupo="${grupoId}"]`);
+            const icon = document.getElementById(`icon-${grupoId}`);
+            if (linhasDcs.length === 0) return;
+
+            const estaOculto = linhasDcs[0].style.display === 'none';
+            linhasDcs.forEach(tr => {
+                tr.style.display = estaOculto ? '' : 'none';
+            });
+            if (icon) icon.textContent = estaOculto ? '▼' : '▶';
+        };
     });
 
     renderizarTotalGeralCardPendencias(totalCardId, 'pendencias', mesesExibir, linhas, totalGeral);
