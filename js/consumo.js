@@ -58,6 +58,9 @@ export function controlarCamposNF() {
         } else {
             numNf.disabled = true;
             numNf.required = false;
+            // NÃO LIMPAR OS VALORES quando desabilitar
+            // numNf.value = '';
+            // dataNf.value = '';
             extras.classList.remove('visible');
         }
     }
@@ -93,7 +96,7 @@ export async function carregarConsumos() {
     const tbody = document.getElementById('tabela-consumos');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
 
     try {
         const { data, error } = await supabaseClient
@@ -124,8 +127,6 @@ export async function carregarConsumos() {
                 motivo,
                 responsavel,
                 ultima_atualizacao,
-                email_solicitacao_nf,
-                anexo_pedido,
                 empresas(nome),
                 projetos(nome),
                 gestores_logictel(nome),
@@ -134,7 +135,7 @@ export async function carregarConsumos() {
             .order('id', { ascending: false });
 
         if (error) {
-            tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar.</td></tr>`;
             return;
         }
 
@@ -150,7 +151,7 @@ export async function carregarConsumos() {
         renderizarTabelaConsumos();
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -232,7 +233,7 @@ function renderizarTabelaConsumos() {
     const paginacaoEl = document.getElementById('consumo-pagination');
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Nenhum consumo encontrado.</td></tr>';
         if (paginacaoEl) paginacaoEl.innerHTML = '';
         return;
     }
@@ -279,7 +280,7 @@ function renderizarTabelaConsumos() {
         }
     } catch (e) {
         console.error('Erro inesperado:', e);
-        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar dados.</td></tr>`;
     }
 }
 
@@ -321,8 +322,6 @@ export function initFormConsumo() {
             centro_custo: document.getElementById('dc-centro-custo').value || null,
             item: document.getElementById('dc-item').value || null,
             po: document.getElementById('dc-po').value || null,
-            email_solicitacao_nf: document.getElementById('dc-email-solicitacao-nf').value || null,
-            anexo_pedido: document.getElementById('dc-anexo-pedido').value || null,
             ultima_atualizacao: agora
         };
 
@@ -368,6 +367,7 @@ export function initFormConsumo() {
 
 export async function editarConsumo(id) {
     try {
+        // Primeiro, busca os dados do consumo
         const { data, error } = await supabaseClient
             .from('consumo_dc')
             .select(`
@@ -392,9 +392,7 @@ export async function editarConsumo(id) {
                 item,
                 po,
                 fr,
-                tipo_medicao,
-                email_solicitacao_nf,
-                anexo_pedido
+                tipo_medicao
             `)
             .eq('id', id)
             .single();
@@ -408,14 +406,18 @@ export async function editarConsumo(id) {
             return;
         }
 
+        // Mudar para a aba de cadastro de consumo
         mudarAba('cad-consumo');
 
+        // Carregar todos os selects do formulário ANTES de preencher os valores
         await carregarSelectsConsumo();
 
+        // Após carregar os selects, preencher os valores
         document.getElementById('consumo-edit-id').value = id;
         document.getElementById('dc-numero').value = data.dc || '';
         document.getElementById('dc-pedido').value = data.pedido || '';
         
+        // Preencher selects
         document.getElementById('dc-empresa').value = data.empresa_id || '';
         document.getElementById('dc-projeto').value = data.projeto_id || '';
         document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
@@ -433,15 +435,16 @@ export async function editarConsumo(id) {
         document.getElementById('dc-centro-custo').value = data.centro_custo || '';
         document.getElementById('dc-item').value = data.item || '';
         document.getElementById('dc-po').value = data.po || '';
-        document.getElementById('dc-email-solicitacao-nf').value = data.email_solicitacao_nf || '';
-        document.getElementById('dc-anexo-pedido').value = data.anexo_pedido || '';
         document.getElementById('dc-valor').value = Number(data.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
 
+        // Carregar os gestores baseados no projeto selecionado (garantir que a lista esteja correta)
         if (data.projeto_id) {
             await carregarGestoresPorProjeto();
+            // Reaplicar o valor do gestor após carregar a lista
             document.getElementById('dc-gestor').value = data.gestor_logictel_id || '';
         }
 
+        // Controlar os campos de NF com base no status selecionado
         const selectStatusNf = document.getElementById('dc-status-nf');
         const nomeStatus = (selectStatusNf?.selectedOptions?.[0]?.textContent || '').toLowerCase();
         const isEmitida = nomeStatus.includes('emitid');
@@ -458,9 +461,12 @@ export async function editarConsumo(id) {
             document.getElementById('dc-data-nf').disabled = true;
             document.getElementById('dc-data-nf').required = false;
             document.getElementById('campos-extras-consumo').classList.remove('visible');
+            // NÃO LIMPAR OS VALORES DE num_nf e data_nf
         }
 
         document.getElementById('consumo-cancel-btn').style.display = 'inline-block';
+
+        // Scroll para o formulário
         document.getElementById('form-consumo').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         console.error('Erro ao editar consumo:', e);
@@ -539,4 +545,5 @@ export async function exportarExcel(id) {
     }
 }
 
+// Importar funções necessárias para carregar selects
 import { carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarStatusDCCustom } from './selects.js';
