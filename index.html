@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.20.1 - Controle de Medições e DCs - Logictel</title>
+<title>V.21.0 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -310,6 +310,17 @@
               <div><label class="label">Item</label><input type="text" id="dc-item" placeholder="Item" class="input"></div>
               <div><label class="label">PO</label><input type="text" id="dc-po" placeholder="PO" class="input"></div>
             </div>
+          </div>
+          <!-- NOVOS CAMPOS PARA EVIDÊNCIAS -->
+          <div class="md:col-span-2">
+            <label class="label">E-mail solicitação NF</label>
+            <input type="text" id="dc-email-solicitacao-nf" placeholder="Digite o e-mail de solicitação..." class="input">
+            <span class="text-xs" style="color:var(--text-soft);">E-mail enviado para solicitar emissão da NF</span>
+          </div>
+          <div class="md:col-span-2">
+            <label class="label">Anexo Pedido</label>
+            <input type="text" id="dc-anexo-pedido" placeholder="Descrição do anexo do pedido..." class="input">
+            <span class="text-xs" style="color:var(--text-soft);">Referência do anexo do pedido</span>
           </div>
           <div class="md:col-span-4 flex justify-end pt-2 gap-2">
             <button type="button" onclick="cancelarEdicao('consumo')" class="btn-cancel" style="display:none;" id="consumo-cancel-btn">Cancelar</button>
