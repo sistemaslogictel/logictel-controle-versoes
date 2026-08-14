@@ -147,16 +147,52 @@ export function exportarExcelStatus() {
 export function exportarExcelCRE() {
     if (!_ultimoRenderCRE) { alert('Não há dados para exportar.'); return; }
     const { linhas: grupos, mesesExibir } = _ultimoRenderCRE;
-    const headers = ['Gestão', 'Projeto', 'Descrição', ...mesesExibir, 'Total'];
-    const linhas = grupos.map(g => [g.gestor, g.projeto, g.descricao, ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+    const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Total'];
+    const linhas = [];
+    grupos.forEach(g => {
+        // Linha do grupo
+        linhas.push([g.gestor, g.projeto, '-', ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+        // Linhas das DCs
+        (g._consumos || []).forEach(c => {
+            const linha = [
+                '↳',
+                c.projetos?.nome || '-',
+                `DC ${c.dc || '-'}`,
+                ...mesesExibir.map(m => {
+                    const saldo = m === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
+                    return saldo;
+                }),
+                Number(c.valor || 0)
+            ];
+            linhas.push(linha);
+        });
+    });
     exportarTabelaParaExcel('Dashboard_Tramitando_CRE', headers, linhas);
 }
 
 export function exportarExcelPendencias() {
     if (!_ultimoRenderPendencias) { alert('Não há dados para exportar.'); return; }
     const { linhas: grupos, mesesExibir } = _ultimoRenderPendencias;
-    const headers = ['Gestão', 'Projeto', 'Descrição', ...mesesExibir, 'Total'];
-    const linhas = grupos.map(g => [g.gestor, g.projeto, g.descricao, ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+    const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Total'];
+    const linhas = [];
+    grupos.forEach(g => {
+        // Linha do grupo
+        linhas.push([g.gestor, g.projeto, '-', ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+        // Linhas das DCs
+        (g._consumos || []).forEach(c => {
+            const linha = [
+                '↳',
+                c.projetos?.nome || '-',
+                `DC ${c.dc || '-'}`,
+                ...mesesExibir.map(m => {
+                    const saldo = m === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
+                    return saldo;
+                }),
+                Number(c.valor || 0)
+            ];
+            linhas.push(linha);
+        });
+    });
     exportarTabelaParaExcel('Dashboard_Pendencias', headers, linhas);
 }
 
@@ -368,13 +404,6 @@ function calcularGruposCRE(consumos) {
         grupos[key].meses[mes].saldo += valor;
         grupos[key].total += valor;
         grupos[key]._consumos.push(c);
-        
-        // Monta a descrição com as DCs
-        const dcInfo = c.dc ? `DC ${c.dc}` : '';
-        const statusInfo = _statusNfMap[c.status_nf] || c.status_nf || '';
-        if (dcInfo) {
-            grupos[key].descricao = grupos[key].descricao ? `${grupos[key].descricao}, ${dcInfo}` : dcInfo;
-        }
     });
 
     const mesesComSaldo = new Set();
@@ -425,12 +454,6 @@ function calcularGruposPendencias(consumos) {
         grupos[key].meses[mes].saldo += valor;
         grupos[key].total += valor;
         grupos[key]._consumos.push(c);
-        
-        // Monta a descrição com as DCs
-        const dcInfo = c.dc ? `DC ${c.dc}` : '';
-        if (dcInfo) {
-            grupos[key].descricao = grupos[key].descricao ? `${grupos[key].descricao}, ${dcInfo}` : dcInfo;
-        }
     });
 
     const mesesComSaldo = new Set();
@@ -736,7 +759,7 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA CRE (COM EXPANSÃO PARA DCs E DC * NA DESCRIÇÃO)
+// RENDERIZAÇÃO DA TABELA CRE (COM EXPANSÃO PARA DCs)
 // =====================================================
 function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -775,7 +798,7 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
                     <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
                 </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">${g.descricao || '-'}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">-</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -795,7 +818,6 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         const consumos = g._consumos || [];
         if (consumos.length > 0) {
             consumos.forEach(c => {
-                const statusNome = _statusNfMap[c.status_nf] || c.status_nf || '-';
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
                 let dcHtml = `
                     <tr class="dc-row-cre" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFFDF5;">
@@ -833,11 +855,12 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         };
     });
 
+    _ultimoRenderCRE = { linhas: Object.values(grupos), mesesExibir };
     renderizarTotalGeralCardCRE(totalCardId, 'cre', mesesExibir, linhas, totalGeral);
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA PENDÊNCIAS (COM EXPANSÃO PARA DCs E DC * NA DESCRIÇÃO)
+// RENDERIZAÇÃO DA TABELA PENDÊNCIAS (COM EXPANSÃO PARA DCs)
 // =====================================================
 function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -876,7 +899,7 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
                     <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
                 </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">${g.descricao || '-'}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">-</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -896,7 +919,6 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         const consumos = g._consumos || [];
         if (consumos.length > 0) {
             consumos.forEach(c => {
-                const statusNome = _statusNfMap[c.status_nf] || c.status_nf || '-';
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
                 let dcHtml = `
                     <tr class="dc-row-pend" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFF5F5;">
@@ -934,6 +956,7 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         };
     });
 
+    _ultimoRenderPendencias = { linhas: Object.values(grupos), mesesExibir };
     renderizarTotalGeralCardPendencias(totalCardId, 'pendencias', mesesExibir, linhas, totalGeral);
 }
 
@@ -1115,7 +1138,6 @@ export async function carregarDashCRE() {
         
         const { grupos, mesesExibir } = calcularGruposCRE(consumosFiltrados);
         
-        _ultimoRenderCRE = { linhas: Object.values(grupos), mesesExibir };
         renderizarDashboardCRE('cre-header', 'tabela-dash-cre', grupos, mesesExibir, 'cre-total-geral');
         registrarUltimaAtualizacao();
     } catch (e) {
@@ -1150,7 +1172,6 @@ export async function carregarDashPendencias() {
         
         const { grupos, mesesExibir } = calcularGruposPendencias(consumosFiltrados);
         
-        _ultimoRenderPendencias = { linhas: Object.values(grupos), mesesExibir };
         renderizarDashboardPendencias('pend-header', 'tabela-dash-pendencias', grupos, mesesExibir, 'pend-total-geral');
         registrarUltimaAtualizacao();
     } catch (e) {
