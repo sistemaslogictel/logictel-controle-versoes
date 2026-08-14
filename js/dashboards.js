@@ -12,8 +12,9 @@ let _ultimoRenderCRE = null;
 let _ultimoRenderPendencias = null;
 
 // Função para formatar valor com separação de milhares
+// Valores zerados aparecem como "-"
 function formatarValor(valor) {
-    if (valor === undefined || valor === null || valor === 0 || valor === '0' || valor === '0,00' || valor === '') {
+    if (valor === undefined || valor === null || valor === 0 || valor === '0' || valor === '0,00' || valor === '' || valor === 0.00) {
         return '-';
     }
     const num = typeof valor === 'string' ? parseFloat(valor.replace(/\./g, '').replace(',', '.')) : valor;
@@ -27,7 +28,7 @@ function formatarValor(valor) {
 }
 
 function classeValor(v) {
-    if (v === undefined || v === null || v === 0 || v === '0' || v === '0,00' || v === '') return 'valor-zero';
+    if (v === undefined || v === null || v === 0 || v === '0' || v === '0,00' || v === '' || v === 0.00) return 'valor-zero';
     const num = typeof v === 'string' ? parseFloat(v.replace(/\./g, '').replace(',', '.')) : v;
     if (isNaN(num) || num === 0) return 'valor-zero';
     if (num > 0) return 'valor-positivo';
