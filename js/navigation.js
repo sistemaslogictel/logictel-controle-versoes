@@ -77,7 +77,6 @@ export function gerarMenu(permissoes) {
             'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
             'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
             'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
-            'atualizacoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
             'datas': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
         };
         return icons[name] || '';
@@ -206,7 +205,6 @@ export function mudarAba(nomeAba) {
 }
 
 export async function carregarDadosAba(nomeAba) {
-    // Atualizar o header com navegação inteligente
     atualizarHeaderAba(nomeAba);
 
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
@@ -429,7 +427,6 @@ const NAVEGACAO_MAP = {
     }
 };
 
-// Função para gerar o header com navegação inteligente
 export function gerarHeaderNavegacao(abaId) {
     const config = NAVEGACAO_MAP[abaId];
     if (!config) return null;
@@ -460,7 +457,6 @@ export function gerarHeaderNavegacao(abaId) {
     `;
 }
 
-// Função para atualizar o header de uma aba específica
 export function atualizarHeaderAba(abaId) {
     const headerContainer = document.getElementById(`header-${abaId}`);
     if (!headerContainer) return;
