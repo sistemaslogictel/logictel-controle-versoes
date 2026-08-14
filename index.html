@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.20.0 - Controle de Medições e DCs - Logictel</title>
+<title>V.20.1 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -99,7 +99,7 @@
 
     <!-- ===================== DASHBOARD DON ===================== -->
     <div id="tab-dash-don" class="tab-content active space-y-6">
-      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard DON</h2></div>
+      <div id="header-dash-don"></div>
       <div class="filters-bar-don">
         <div class="filter-group">
           <label class="filter-label">Projeto</label>
@@ -138,7 +138,7 @@
 
     <!-- ===================== DASHBOARD STATUS ===================== -->
     <div id="tab-dash-apropriacao" class="tab-content space-y-6">
-      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Status</h2></div>
+      <div id="header-dash-apropriacao"></div>
       <div class="filters-bar-status">
         <div class="filter-group">
           <label class="filter-label">Gestor</label>
@@ -177,7 +177,7 @@
 
     <!-- ===================== DASHBOARD CRE ===================== -->
     <div id="tab-dash-cre" class="tab-content space-y-6">
-      <div><h2 class="text-2xl font-bold" style="color:var(--text)">Dashboard Tratitando CRE</h2></div>
+      <div id="header-dash-cre"></div>
       <div class="filters-bar-status">
         <div class="filter-group">
           <label class="filter-label">Gestor</label>
@@ -216,12 +216,7 @@
     
     <!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
     <div id="tab-cad-medicao" class="tab-content space-y-6">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <h2 class="text-2xl font-bold" style="color:var(--text);">Cadastro de Medição</h2>
-        <button onclick="mudarAba('historico-medicoes')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">
-          📋 Histórico
-        </button>
-      </div>
+      <div id="header-cad-medicao"></div>
       <div class="card card-pad">
         <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input type="hidden" id="med-edit-id" value="">
@@ -245,12 +240,7 @@
 
     <!-- ===================== HISTÓRICO DAS MEDIÇÕES ===================== -->
     <div id="tab-historico-medicoes" class="tab-content space-y-6">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <h2 class="text-2xl font-bold" style="color:var(--text);">Histórico das Medições</h2>
-        <button onclick="mudarAba('cad-medicao')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">
-          ➕ Novo Cadastro
-        </button>
-      </div>
+      <div id="header-historico-medicoes"></div>
       <div class="filters-section-title">🔍 Filtros</div>
       <div class="filters-bar-grid">
         <div class="filter-group"><label class="filter-label">Projeto</label><select id="filt-hist-med-projeto" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select></div>
@@ -274,17 +264,7 @@
 
     <!-- ===================== DC CARDS ===================== -->
     <div id="tab-dcs" class="tab-content space-y-6">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <h2 class="text-2xl font-bold" style="color:var(--text);">📋 DC's</h2>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button onclick="mudarAba('cad-consumo')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">
-            📝 Consumo DC
-          </button>
-          <button onclick="mudarAba('historico-consumo-dcs')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">
-            📋 Histórico
-          </button>
-        </div>
-      </div>
+      <div id="header-dcs"></div>
       <div class="filters-section-title">🔍 Filtros</div>
       <div class="filters-bar" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;">
         <div class="filter-group"><label class="filter-label">DC</label><input type="text" id="filt-dcs-dc" placeholder="Digite para buscar..." oninput="filtrarDCCards()" class="input"></div>
@@ -303,12 +283,7 @@
 
     <!-- ===================== CONSUMO DC ===================== -->
     <div id="tab-cad-consumo" class="tab-content space-y-6">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <h2 class="text-2xl font-bold" style="color:var(--text);">Consumo DC</h2>
-        <button onclick="mudarAba('dcs')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">
-          📋 DC's
-        </button>
-      </div>
+      <div id="header-cad-consumo"></div>
       <div class="card card-pad">
         <form id="form-consumo" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="hidden" id="consumo-edit-id" value="">
@@ -347,17 +322,7 @@
 
     <!-- ===================== HISTÓRICO CONSUMO DAS DCS ===================== -->
     <div id="tab-historico-consumo-dcs" class="tab-content space-y-6">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <h2 class="text-2xl font-bold" style="color:var(--text);">Histórico Consumo das DCs</h2>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button onclick="mudarAba('dcs')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">
-            📋 DC's
-          </button>
-          <button onclick="mudarAba('cad-consumo')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">
-            📝 Consumo DC
-          </button>
-        </div>
-      </div>
+      <div id="header-historico-consumo-dcs"></div>
       <div class="filters-section-title">🔍 Filtros</div>
       <div class="filters-bar-grid">
         <div class="filter-group"><label class="filter-label">DC</label><input type="text" id="filt-consumo-dc" list="dclist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()"><datalist id="dclist-consumo"></datalist></div>

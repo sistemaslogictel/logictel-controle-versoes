@@ -203,6 +203,9 @@ export function mudarAba(nomeAba) {
 }
 
 export async function carregarDadosAba(nomeAba) {
+    // Atualizar o header com navegação inteligente
+    atualizarHeaderAba(nomeAba);
+
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
     else if (nomeAba === 'dash-cre') carregarDashCRE();
@@ -346,4 +349,110 @@ export function cancelarEdicao(tipo) {
     document.getElementById('campos-extras-consumo').classList.remove('visible');
     aplicarMascaras();
     carregarTodasListas();
+}
+
+// =====================================================
+// NAVEGAÇÃO INTELIGENTE ENTRE TELAS RELACIONADAS
+// =====================================================
+
+// Mapeamento de telas e suas navegações relacionadas
+const NAVEGACAO_MAP = {
+    'cad-medicao': {
+        titulo: 'Cadastro de Medição',
+        botoes: [
+            { id: 'historico-medicoes', label: '📋 Histórico', area: 'medicoes' }
+        ]
+    },
+    'historico-medicoes': {
+        titulo: 'Histórico das Medições',
+        botoes: [
+            { id: 'cad-medicao', label: '➕ Novo Cadastro', area: 'medicoes' }
+        ]
+    },
+    'dcs': {
+        titulo: '📋 DC\'s',
+        botoes: [
+            { id: 'cad-consumo', label: '📝 Consumo DC', area: 'consumos' },
+            { id: 'historico-consumo-dcs', label: '📋 Histórico', area: 'consumos' }
+        ]
+    },
+    'cad-consumo': {
+        titulo: 'Consumo DC',
+        botoes: [
+            { id: 'dcs', label: '📋 DC\'s', area: 'dcs' }
+        ]
+    },
+    'historico-consumo-dcs': {
+        titulo: 'Histórico Consumo das DCs',
+        botoes: [
+            { id: 'dcs', label: '📋 DC\'s', area: 'dcs' },
+            { id: 'cad-consumo', label: '📝 Consumo DC', area: 'consumos' }
+        ]
+    },
+    'dash-don': {
+        titulo: 'Dashboard DON',
+        botoes: [
+            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },
+            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' }
+        ]
+    },
+    'dash-apropriacao': {
+        titulo: 'Dashboard Status',
+        botoes: [
+            { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
+            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' }
+        ]
+    },
+    'dash-cre': {
+        titulo: 'Dashboard Tratitando CRE',
+        botoes: [
+            { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
+            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' }
+        ]
+    }
+};
+
+// Função para gerar o header com navegação inteligente
+export function gerarHeaderNavegacao(abaId) {
+    const config = NAVEGACAO_MAP[abaId];
+    if (!config) return null;
+
+    // Verificar quais botões o usuário tem acesso
+    const botoesPermitidos = config.botoes.filter(botao => {
+        return temPermissao(botao.area);
+    });
+
+    // Se não houver botões permitidos, retorna apenas o título
+    if (botoesPermitidos.length === 0) {
+        return `
+            <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:8px;">
+                <h2 class="text-2xl font-bold" style="color:var(--text);">${config.titulo}</h2>
+            </div>
+        `;
+    }
+
+    // Se houver botões, monta o header com título à esquerda e botões à direita
+    const botoesHtml = botoesPermitidos.map(botao => {
+        return `<button onclick="mudarAba('${botao.id}')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">${botao.label}</button>`;
+    }).join('');
+
+    return `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <h2 class="text-2xl font-bold" style="color:var(--text);">${config.titulo}</h2>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                ${botoesHtml}
+            </div>
+        </div>
+    `;
+}
+
+// Função para atualizar o header de uma aba específica
+export function atualizarHeaderAba(abaId) {
+    const headerContainer = document.getElementById(`header-${abaId}`);
+    if (!headerContainer) return;
+    
+    const headerHtml = gerarHeaderNavegacao(abaId);
+    if (headerHtml) {
+        headerContainer.innerHTML = headerHtml;
+    }
 }
