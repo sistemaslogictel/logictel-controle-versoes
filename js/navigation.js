@@ -1,3 +1,4 @@
+// navigation.js
 import { temPermissao } from './session.js';
 import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
@@ -322,6 +323,8 @@ export function carregarTodasListas() {
     carregarFiltroStatusNF();
     carregarSelectProjetos('filt-pend-projeto');
     carregarSelectGestores('filt-pend-gestor', 'gestores_logictel');
+    carregarSelectProjetos('filt-cre-projeto');
+    carregarSelectGestores('filt-cre-gestor', 'gestores_logictel');
     atualizarTopbarDatasLimites();
 }
 
