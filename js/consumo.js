@@ -180,11 +180,20 @@ function lerFiltrosConsumo() {
         statusDc: document.getElementById('filt-consumo-status-dc')?.value || '',
         statusNf: document.getElementById('filt-consumo-status-nf')?.value || '',
         numNf: (document.getElementById('filt-consumo-num-nf')?.value || '').toLowerCase().trim(),
-        dataEmissaoNf: (document.getElementById('filt-consumo-data-emissao-nf')?.value || '').trim()
+        dataEmissaoNf: (document.getElementById('filt-consumo-data-emissao-nf')?.value || '').trim(),
+        // NOVOS FILTROS DE VALOR
+        valorExato: document.getElementById('filt-consumo-valor-exato')?.value || '',
+        valorDe: document.getElementById('filt-consumo-valor-de')?.value || '',
+        valorAte: document.getElementById('filt-consumo-valor-ate')?.value || ''
     };
 }
 
 function aplicarFiltrosConsumo(lista, f) {
+    // Converter valores para número
+    const valorExato = f.valorExato ? valorParaNumero(f.valorExato) : null;
+    const valorDe = f.valorDe ? valorParaNumero(f.valorDe) : null;
+    const valorAte = f.valorAte ? valorParaNumero(f.valorAte) : null;
+
     return lista.filter(c => {
         if (f.dc && !String(c.dc || '').toLowerCase().includes(f.dc)) return false;
         if (f.pedido && !String(c.pedido || '').toLowerCase().includes(f.pedido)) return false;
@@ -199,6 +208,17 @@ function aplicarFiltrosConsumo(lista, f) {
         if (f.statusNf && String(c.status_nf) !== f.statusNf) return false;
         if (f.numNf && !String(c.num_nf || '').toLowerCase().includes(f.numNf)) return false;
         if (f.dataEmissaoNf && !String(c.data_emissao_nf || '').includes(f.dataEmissaoNf)) return false;
+        
+        // FILTROS DE VALOR
+        const valor = Number(c.valor || 0);
+        
+        // Valor exato (se preenchido)
+        if (valorExato !== null && valor !== valorExato) return false;
+        
+        // Range de valores (se preenchidos)
+        if (valorDe !== null && valor < valorDe) return false;
+        if (valorAte !== null && valor > valorAte) return false;
+        
         return true;
     });
 }
@@ -213,7 +233,9 @@ export function limparFiltrosConsumo() {
         'filt-consumo-dc', 'filt-consumo-pedido', 'filt-consumo-projeto', 'filt-consumo-tipo-medicao',
         'filt-consumo-diretor', 'filt-consumo-mes-apropriacao', 'filt-consumo-mes-medido',
         'filt-consumo-data-solicitacao', 'filt-consumo-fr', 'filt-consumo-status-dc',
-        'filt-consumo-status-nf', 'filt-consumo-num-nf', 'filt-consumo-data-emissao-nf'
+        'filt-consumo-status-nf', 'filt-consumo-num-nf', 'filt-consumo-data-emissao-nf',
+        // NOVOS FILTROS DE VALOR
+        'filt-consumo-valor-exato', 'filt-consumo-valor-de', 'filt-consumo-valor-ate'
     ].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
