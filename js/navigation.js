@@ -45,8 +45,8 @@ export function gerarMenu(permissoes) {
             { id: 'dcs', label: 'DC\'s', area: 'dcs' }
         ]},
         { id: 'tutoriais', label: 'Tutoriais', icon: 'tutoriais', area: 'tutoriais', type: 'flyout', children: [
-            { id: 'tutoriais-visualizar', label: '📚 Visualizar Tutoriais', area: 'tutoriais-visualizar' },
-            { id: 'tutoriais-gerenciar', label: '⚙️ Gerenciar Tutoriais', area: 'tutoriais-gerenciar' }
+            { id: 'tutoriais-visualizar', label: 'Visualizar Tutoriais', area: 'tutoriais-visualizar' },
+            { id: 'tutoriais-gerenciar', label: 'Gerenciar Tutoriais', area: 'tutoriais-gerenciar' }
         ]},
         { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
             { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
@@ -416,11 +416,11 @@ const NAVEGACAO_MAP = {
         ]
     },
     'tutoriais-visualizar': {
-        titulo: '📚 Visualizar Tutoriais',
+        titulo: 'Visualizar Tutoriais',
         botoes: []
     },
     'tutoriais-gerenciar': {
-        titulo: '⚙️ Gerenciar Tutoriais',
+        titulo: 'Gerenciar Tutoriais',
         botoes: [
             { id: 'tutoriais-visualizar', label: '📚 Visualizar', area: 'tutoriais-visualizar' }
         ]
