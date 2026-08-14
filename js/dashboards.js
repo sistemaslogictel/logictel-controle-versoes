@@ -10,6 +10,25 @@ let _ultimoRenderDON = null;
 let _ultimoRenderStatus = null;
 let _ultimoRenderCRE = null;
 
+// Função para formatar valor com separação de milhares
+function formatarValor(valor) {
+    if (valor === undefined || valor === null || valor === 0) {
+        return '-';
+    }
+    return valor.toLocaleString('pt-BR', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    });
+}
+
+// Função para obter a classe CSS do valor
+function classeValor(v) {
+    if (v === undefined || v === null || v === 0) return 'valor-zero';
+    if (v > 0) return 'valor-positivo';
+    if (v < 0) return 'valor-negativo';
+    return 'valor-zero';
+}
+
 // =====================================================
 // BUSCAR MAPEAMENTO DE STATUS NF
 // =====================================================
@@ -355,12 +374,6 @@ function calcularGruposCRE(consumos) {
 const ICONE_TOTAL_GERAL = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>`;
 const ICONE_CRE = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>`;
 
-function classeValor(v) {
-    if (v > 0) return 'valor-positivo';
-    if (v < 0) return 'valor-negativo';
-    return 'valor-zero';
-}
-
 // =====================================================
 // CARD "TOTAL GERAL"
 // =====================================================
@@ -381,7 +394,7 @@ function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalG
     mesesExibir.forEach(mes => {
         let totalMes = 0;
         linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
-        const displayValor = totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-';
+        const displayValor = totalMes !== 0 ? formatarValor(totalMes) : '-';
         statsHtml += `
             <div class="total-geral-stat">
                 <div class="total-geral-stat-label">${mes}</div>
@@ -392,7 +405,7 @@ function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalG
     statsHtml += `
         <div class="total-geral-stat">
             <div class="total-geral-stat-label">Total</div>
-            <div class="total-geral-stat-value ${classeValor(totalGeral)}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</div>
+            <div class="total-geral-stat-value ${classeValor(totalGeral)}">${formatarValor(totalGeral)}</div>
         </div>`;
 
     container.innerHTML = `
@@ -421,7 +434,7 @@ function renderizarTotalGeralCardCRE(containerId, tema, mesesExibir, linhas, tot
     mesesExibir.forEach(mes => {
         let totalMes = 0;
         linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
-        const displayValor = totalMes !== 0 ? totalMes.toLocaleString('pt-BR', { minFractionDigits: 2 }) : '-';
+        const displayValor = totalMes !== 0 ? formatarValor(totalMes) : '-';
         statsHtml += `
             <div class="total-geral-stat">
                 <div class="total-geral-stat-label">${mes}</div>
@@ -432,7 +445,7 @@ function renderizarTotalGeralCardCRE(containerId, tema, mesesExibir, linhas, tot
     statsHtml += `
         <div class="total-geral-stat">
             <div class="total-geral-stat-label">Total</div>
-            <div class="total-geral-stat-value ${classeValor(totalGeral)}">${totalGeral.toLocaleString('pt-BR', { minFractionDigits: 2 })}</div>
+            <div class="total-geral-stat-value ${classeValor(totalGeral)}">${formatarValor(totalGeral)}</div>
         </div>`;
 
     container.innerHTML = `
@@ -485,32 +498,14 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
 
         mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
-            const temValor = saldo !== undefined && saldo !== 0;
-            
-            let displayValor = '-';
-            let colorStyle = '';
-            
-            if (temValor) {
-                if (saldo < 0) {
-                    colorStyle = 'color:#FF0000;';
-                } else if (saldo > 0) {
-                    colorStyle = 'color:#00AA00;';
-                }
-                displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
-            }
-            
-            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${colorStyle}">${displayValor}</td>`;
+            const displayValor = formatarValor(saldo);
+            const classe = classeValor(saldo);
+            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${classe === 'valor-negativo' ? 'color:#FF0000;' : classe === 'valor-positivo' ? 'color:#00AA00;' : ''}">${displayValor}</td>`;
         });
 
-        let totalColor = '';
-        if (g.total < 0) {
-            totalColor = 'color:#FF0000;';
-        } else if (g.total > 0) {
-            totalColor = 'color:#00AA00;';
-        }
-        
+        const totalColor = g.total < 0 ? 'color:#FF0000;' : (g.total > 0 ? 'color:#00AA00;' : '');
         html += `
-                <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${formatarValor(g.total)}</td>
             </tr>
         `;
 
@@ -567,17 +562,12 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         `;
         mesesExibir.forEach(mes => {
             const saldo = proj.meses[mes]?.saldo;
-            const temValor = saldo !== undefined && saldo !== 0;
-            let displayValor = '-';
-            let colorStyle = '';
-            if (temValor) {
-                colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
-                displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
-            }
-            html += `<td style="text-align:center;padding:10px 12px;font-weight:700;${colorStyle}">${displayValor}</td>`;
+            const displayValor = formatarValor(saldo);
+            const classe = classeValor(saldo);
+            html += `<td style="text-align:center;padding:10px 12px;font-weight:700;${classe === 'valor-negativo' ? 'color:#FF0000;' : classe === 'valor-positivo' ? 'color:#00AA00;' : ''}">${displayValor}</td>`;
         });
         html += `
-                <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${proj.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;${totalColor}">${formatarValor(proj.total)}</td>
             </tr>
         `;
         tbody.innerHTML += html;
@@ -593,17 +583,12 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
             `;
             mesesExibir.forEach(mes => {
                 const saldo = dir.meses[mes]?.saldo;
-                const temValor = saldo !== undefined && saldo !== 0;
-                let displayValor = '-';
-                let colorStyle = '';
-                if (temValor) {
-                    colorStyle = saldo < 0 ? 'color:#FF0000;' : 'color:#00AA00;';
-                    displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
-                }
-                dirHtml += `<td style="text-align:center;padding:8px 12px;${colorStyle}">${displayValor}</td>`;
+                const displayValor = formatarValor(saldo);
+                const classe = classeValor(saldo);
+                dirHtml += `<td style="text-align:center;padding:8px 12px;${classe === 'valor-negativo' ? 'color:#FF0000;' : classe === 'valor-positivo' ? 'color:#00AA00;' : ''}">${displayValor}</td>`;
             });
             dirHtml += `
-                    <td style="text-align:center;padding:8px 12px;font-weight:600;${dTotalColor}">${dir.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    <td style="text-align:center;padding:8px 12px;font-weight:600;${dTotalColor}">${formatarValor(dir.total)}</td>
                 </tr>
             `;
             tbody.innerHTML += dirHtml;
@@ -671,23 +656,13 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
 
         mesesExibir.forEach(mes => {
             const saldo = g.meses[mes]?.saldo;
-            const temValor = saldo !== undefined && saldo !== 0;
-            
-            let displayValor = '-';
-            let colorStyle = '';
-            
-            if (temValor) {
-                if (saldo > 0) {
-                    colorStyle = 'color:#00AA00;';
-                }
-                displayValor = saldo.toLocaleString('pt-BR', { minFractionDigits: 2 });
-            }
-            
-            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${colorStyle}">${displayValor}</td>`;
+            const displayValor = formatarValor(saldo);
+            const classe = classeValor(saldo);
+            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${classe === 'valor-positivo' ? 'color:#00AA00;' : ''}">${displayValor}</td>`;
         });
 
         html += `
-                <td style="text-align:center;padding:10px 12px;font-weight:700;color:#00AA00;">${g.total.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;color:#00AA00;">${formatarValor(g.total)}</td>
             </tr>
         `;
 
