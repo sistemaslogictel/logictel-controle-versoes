@@ -181,18 +181,13 @@ function lerFiltrosConsumo() {
         statusNf: document.getElementById('filt-consumo-status-nf')?.value || '',
         numNf: (document.getElementById('filt-consumo-num-nf')?.value || '').toLowerCase().trim(),
         dataEmissaoNf: (document.getElementById('filt-consumo-data-emissao-nf')?.value || '').trim(),
-        // NOVOS FILTROS DE VALOR
-        valorExato: document.getElementById('filt-consumo-valor-exato')?.value || '',
-        valorDe: document.getElementById('filt-consumo-valor-de')?.value || '',
-        valorAte: document.getElementById('filt-consumo-valor-ate')?.value || ''
+        valorExato: document.getElementById('filt-consumo-valor-exato')?.value || ''
     };
 }
 
 function aplicarFiltrosConsumo(lista, f) {
-    // Converter valores para número
+    // Converter valor exato para número
     const valorExato = f.valorExato ? valorParaNumero(f.valorExato) : null;
-    const valorDe = f.valorDe ? valorParaNumero(f.valorDe) : null;
-    const valorAte = f.valorAte ? valorParaNumero(f.valorAte) : null;
 
     return lista.filter(c => {
         if (f.dc && !String(c.dc || '').toLowerCase().includes(f.dc)) return false;
@@ -209,15 +204,11 @@ function aplicarFiltrosConsumo(lista, f) {
         if (f.numNf && !String(c.num_nf || '').toLowerCase().includes(f.numNf)) return false;
         if (f.dataEmissaoNf && !String(c.data_emissao_nf || '').includes(f.dataEmissaoNf)) return false;
         
-        // FILTROS DE VALOR
-        const valor = Number(c.valor || 0);
-        
-        // Valor exato (se preenchido)
-        if (valorExato !== null && valor !== valorExato) return false;
-        
-        // Range de valores (se preenchidos)
-        if (valorDe !== null && valor < valorDe) return false;
-        if (valorAte !== null && valor > valorAte) return false;
+        // FILTRO DE VALOR EXATO
+        if (valorExato !== null) {
+            const valor = Number(c.valor || 0);
+            if (valor !== valorExato) return false;
+        }
         
         return true;
     });
@@ -234,8 +225,7 @@ export function limparFiltrosConsumo() {
         'filt-consumo-diretor', 'filt-consumo-mes-apropriacao', 'filt-consumo-mes-medido',
         'filt-consumo-data-solicitacao', 'filt-consumo-fr', 'filt-consumo-status-dc',
         'filt-consumo-status-nf', 'filt-consumo-num-nf', 'filt-consumo-data-emissao-nf',
-        // NOVOS FILTROS DE VALOR
-        'filt-consumo-valor-exato', 'filt-consumo-valor-de', 'filt-consumo-valor-ate'
+        'filt-consumo-valor-exato'
     ].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';

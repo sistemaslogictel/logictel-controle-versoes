@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.22.10 - Controle de Medições e DCs - Logictel</title>
+<title>V.22.11 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -377,10 +377,7 @@
         <div class="filter-group"><label class="filter-label">Mês Medido</label><select id="filt-consumo-mes-medido" class="input" onchange="filtrarConsumos()"><option value="">Todos</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
         <div class="filter-group"><label class="filter-label">FR</label><input type="text" id="filt-consumo-fr" placeholder="Nº da FR" class="input" oninput="filtrarConsumos()"></div>
         <div class="filter-group"><label class="filter-label">Status NF</label><select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select></div>
-        <!-- NOVOS FILTROS DE VALOR -->
         <div class="filter-group"><label class="filter-label">Valor Exato</label><input type="text" id="filt-consumo-valor-exato" placeholder="0,00" class="input money-input" oninput="filtrarConsumos()"></div>
-        <div class="filter-group"><label class="filter-label">Valor De</label><input type="text" id="filt-consumo-valor-de" placeholder="0,00" class="input money-input" oninput="filtrarConsumos()"></div>
-        <div class="filter-group"><label class="filter-label">Valor Até</label><input type="text" id="filt-consumo-valor-ate" placeholder="0,00" class="input money-input" oninput="filtrarConsumos()"></div>
         <div class="filter-group filter-actions">
           <button onclick="filtrarConsumos()" class="btn-primary">Filtrar</button>
           <button onclick="limparFiltrosConsumo()" class="btn-clear-filters">Limpar</button>
@@ -396,7 +393,7 @@
       </div>
       <div id="consumo-pagination"></div>
     </div>
-    
+        
     <!-- ===================== CADASTRO USUÁRIO ===================== -->
     <div id="tab-adm-user" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Usuário</h2>
