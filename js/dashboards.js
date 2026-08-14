@@ -11,10 +11,6 @@ let _ultimoRenderStatus = null;
 let _ultimoRenderCRE = null;
 let _ultimoRenderPendencias = null;
 
-// Guarda os dados brutos de consumos para cada dashboard (para expansão)
-let _consumosCRE = [];
-let _consumosPendencias = [];
-
 // Função para formatar valor com separação de milhares
 function formatarValor(valor) {
     if (valor === undefined || valor === null || valor === 0 || valor === '0' || valor === '0,00' || valor === '') {
@@ -358,7 +354,7 @@ function calcularGruposCRE(consumos) {
             grupos[key] = {
                 gestor: c.gestores_logictel?.nome || 'N/A',
                 projeto: c.projetos?.nome || 'N/A',
-                descricao: c.projetos?.nome || '',
+                descricao: '',
                 meses: {},
                 total: 0,
                 _consumos: []
@@ -372,6 +368,13 @@ function calcularGruposCRE(consumos) {
         grupos[key].meses[mes].saldo += valor;
         grupos[key].total += valor;
         grupos[key]._consumos.push(c);
+        
+        // Monta a descrição com as DCs
+        const dcInfo = c.dc ? `DC ${c.dc}` : '';
+        const statusInfo = _statusNfMap[c.status_nf] || c.status_nf || '';
+        if (dcInfo) {
+            grupos[key].descricao = grupos[key].descricao ? `${grupos[key].descricao}, ${dcInfo}` : dcInfo;
+        }
     });
 
     const mesesComSaldo = new Set();
@@ -408,7 +411,7 @@ function calcularGruposPendencias(consumos) {
             grupos[key] = {
                 gestor: c.gestores_logictel?.nome || 'N/A',
                 projeto: c.projetos?.nome || 'N/A',
-                descricao: c.projetos?.nome || '',
+                descricao: '',
                 meses: {},
                 total: 0,
                 _consumos: []
@@ -422,6 +425,12 @@ function calcularGruposPendencias(consumos) {
         grupos[key].meses[mes].saldo += valor;
         grupos[key].total += valor;
         grupos[key]._consumos.push(c);
+        
+        // Monta a descrição com as DCs
+        const dcInfo = c.dc ? `DC ${c.dc}` : '';
+        if (dcInfo) {
+            grupos[key].descricao = grupos[key].descricao ? `${grupos[key].descricao}, ${dcInfo}` : dcInfo;
+        }
     });
 
     const mesesComSaldo = new Set();
@@ -727,7 +736,7 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA CRE (COM EXPANSÃO PARA DCs)
+// RENDERIZAÇÃO DA TABELA CRE (COM EXPANSÃO PARA DCs E DC * NA DESCRIÇÃO)
 // =====================================================
 function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -735,7 +744,7 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         let html = `<tr class="cre-header">
             <th style="text-align:left;padding:10px 12px;">Gestão</th>
             <th style="text-align:left;padding:10px 12px;">Projeto</th>
-            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+            <th style="text-align:left;padding:10px 12px;">DC *</th>`;
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -766,7 +775,7 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
                     <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
                 </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">${g.descricao || '-'}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -790,9 +799,9 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
                 let dcHtml = `
                     <tr class="dc-row-cre" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFFDF5;">
-                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳ DC</td>
-                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--primary);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">${c.dc || '-'}</td>
-                        <td style="text-align:left;padding:8px 12px;font-size:11px;color:var(--text-soft);">${statusNome}</td>
+                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳</td>
+                        <td style="text-align:left;padding:8px 12px;font-weight:500;color:var(--text-soft);font-size:12px;">${c.projetos?.nome || '-'}</td>
+                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--primary);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">DC ${c.dc || '-'}</td>
                 `;
                 mesesExibir.forEach(mes => {
                     const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
@@ -828,7 +837,7 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA PENDÊNCIAS (COM EXPANSÃO PARA DCs)
+// RENDERIZAÇÃO DA TABELA PENDÊNCIAS (COM EXPANSÃO PARA DCs E DC * NA DESCRIÇÃO)
 // =====================================================
 function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -836,7 +845,7 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         let html = `<tr class="pendencias-header">
             <th style="text-align:left;padding:10px 12px;">Gestão</th>
             <th style="text-align:left;padding:10px 12px;">Projeto</th>
-            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+            <th style="text-align:left;padding:10px 12px;">DC *</th>`;
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -867,7 +876,7 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
                     <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
                 </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">${g.descricao || '-'}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -891,9 +900,9 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
                 let dcHtml = `
                     <tr class="dc-row-pend" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFF5F5;">
-                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳ DC</td>
-                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--danger);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">${c.dc || '-'}</td>
-                        <td style="text-align:left;padding:8px 12px;font-size:11px;color:var(--text-soft);">${statusNome}</td>
+                        <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳</td>
+                        <td style="text-align:left;padding:8px 12px;font-weight:500;color:var(--text-soft);font-size:12px;">${c.projetos?.nome || '-'}</td>
+                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--danger);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">DC ${c.dc || '-'}</td>
                 `;
                 mesesExibir.forEach(mes => {
                     const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
@@ -1011,7 +1020,7 @@ export async function carregarDashApropriacao() {
             .from('consumo_dc')
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor, status_nf,
+                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
@@ -1059,7 +1068,7 @@ export async function carregarDashDON() {
             .from('consumo_dc')
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor, status_nf,
+                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
@@ -1097,7 +1106,7 @@ export async function carregarDashCRE() {
             .from('consumo_dc')
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor, status_nf,
+                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
@@ -1132,7 +1141,7 @@ export async function carregarDashPendencias() {
             .from('consumo_dc')
             .select(`
                 id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor, status_nf,
+                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorCons) throw errorCons;
