@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.22.15 - Controle de Medições e DCs - Logictel</title>
+<title>V.23.0 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -392,6 +392,56 @@
         </div>
       </div>
       <div id="consumo-pagination"></div>
+    </div>
+
+        <!-- ===================== CADASTRO DE TUTORIAIS ===================== -->
+    <div id="tab-adm-tutoriais" class="tab-content space-y-4">
+      <div id="header-adm-tutoriais"></div>
+      <div class="filters-section-title">🔍 Filtros</div>
+      <div class="filters-bar-grid">
+        <div class="filter-group">
+          <label class="filter-label">Buscar por Título</label>
+          <input type="text" id="filt-tutorial-titulo" placeholder="Digite para buscar..." class="input" oninput="filtrarTutoriais()">
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="filtrarTutoriais()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltrosTutoriais()" class="btn-clear-filters">Limpar</button>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <form id="form-tutorial" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="tutorial-edit-id" value="">
+          <div>
+            <label class="label">Título *</label>
+            <input type="text" id="tutorial-titulo" required placeholder="Ex: Como criar uma DC" class="input">
+          </div>
+          <div>
+            <label class="label">Link *</label>
+            <input type="url" id="tutorial-link" required placeholder="https://www.youtube.com/watch?v=xxx" class="input">
+          </div>
+          <div>
+            <label class="label">Categoria</label>
+            <input type="text" id="tutorial-categoria" placeholder="Ex: DC, Medição, Dashboard" class="input">
+          </div>
+          <div>
+            <label class="label">Tags (separadas por vírgula)</label>
+            <input type="text" id="tutorial-tags" placeholder="Ex: CRE, DC, NF" class="input">
+          </div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicao('tutorial')" class="btn-cancel" style="display:none;" id="tutorial-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary w-full">Salvar Tutorial</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead><tr class="th-row"><th>Título</th><th>Link</th><th>Categoria</th><th>Tags</th><th class="text-right">Ações</th></tr></thead>
+            <tbody id="tabela-tutoriais"><tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="tutoriais-pagination"></div>
     </div>
         
     <!-- ===================== CADASTRO USUÁRIO ===================== -->
