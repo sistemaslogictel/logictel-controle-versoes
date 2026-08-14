@@ -25,7 +25,7 @@ export function gerarMenu(permissoes) {
         { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', area: 'dash-don', type: 'flyout', children: [
             { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' },
             { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' },
-            { id: 'dash-cre', label: 'Tratitando CRE', area: 'dash-cre' },
+            { id: 'dash-cre', label: 'Tramitando CRE', area: 'dash-cre' },
             { id: 'dash-pendencias', label: 'Dashboard Pendências', area: 'dash-pendencias' }
         ]},
         { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
@@ -409,7 +409,7 @@ const NAVEGACAO_MAP = {
         ]
     },
     'dash-cre': {
-        titulo: 'Dashboard Tratitando CRE',
+        titulo: 'Dashboard Tramitando CRE',
         botoes: [
             { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
             { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },

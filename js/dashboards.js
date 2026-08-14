@@ -150,7 +150,7 @@ export function exportarExcelCRE() {
     const { linhas: grupos, mesesExibir } = _ultimoRenderCRE;
     const headers = ['Gestão', 'Projeto', 'Descrição', ...mesesExibir, 'Total'];
     const linhas = grupos.map(g => [g.gestor, g.projeto, g.descricao, ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
-    exportarTabelaParaExcel('Dashboard_Tratitando_CRE', headers, linhas);
+    exportarTabelaParaExcel('Dashboard_Tramitando_CRE', headers, linhas);
 }
 
 export function exportarExcelPendencias() {
