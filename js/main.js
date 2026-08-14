@@ -13,7 +13,9 @@ import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limpar
 import { carregarDatasLimites, initFormDataLimite, editarDataLimite, excluirDataLimite, atualizarTopbarDatasLimites, filtrarDatasLimites, limparFiltrosDatasLimites } from './datasLimites.js';
 import { 
     carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial, 
-    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial 
+    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
+    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais, 
+    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais
 } from './tutoriais.js';
 
 import {
@@ -58,6 +60,8 @@ Object.assign(window, {
     // tutoriais
     carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial,
     filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
+    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais,
+    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,

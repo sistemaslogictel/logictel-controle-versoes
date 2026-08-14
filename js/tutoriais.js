@@ -2,11 +2,12 @@ import { supabaseClient } from './config.js';
 import { aplicarMascaras, paginar, renderizarPaginacao } from './utils.js';
 
 let _todosTutoriais = [];
-const ITENS_POR_PAGINA_TUTORIAL = 15;
+const ITENS_POR_PAGINA_TUTORIAL = 12;
 let _paginaAtualTutorial = 1;
+let _paginaAtualVisualizar = 1;
 
 // =====================================================
-// CRUD TUTORIAIS
+// CRUD TUTORIAIS (GERENCIAR)
 // =====================================================
 
 export function irParaPaginaTutorial(pagina) {
@@ -175,6 +176,7 @@ export function initFormTutorial() {
             document.getElementById('tutorial-edit-id').value = '';
             document.getElementById('tutorial-cancel-btn').style.display = 'none';
             carregarTutoriais();
+            carregarTutoriaisVisualizar();
         } catch (err) {
             console.error('Erro ao salvar tutorial:', err);
             alert('Erro ao salvar tutorial.');
@@ -199,8 +201,7 @@ export async function editarTutorial(id) {
             return;
         }
 
-        // Mudar para a aba de cadastro de tutoriais
-        window.mudarAba('adm-tutoriais');
+        window.mudarAba('tutoriais-gerenciar');
 
         document.getElementById('tutorial-edit-id').value = id;
         document.getElementById('tutorial-titulo').value = data.titulo || '';
@@ -231,8 +232,99 @@ export async function excluirTutorial(id) {
 
         alert('Tutorial excluído com sucesso!');
         carregarTutoriais();
+        carregarTutoriaisVisualizar();
     } catch (e) {
         console.error('Erro ao excluir tutorial:', e);
         alert('Erro ao excluir tutorial.');
     }
+}
+
+// =====================================================
+// VISUALIZAR TUTORIAIS (CARDS)
+// =====================================================
+
+export function irParaPaginaVisualizarTutoriais(pagina) {
+    _paginaAtualVisualizar = pagina;
+    carregarTutoriaisVisualizar();
+}
+
+export async function carregarTutoriaisVisualizar() {
+    const container = document.getElementById('tutoriais-cards-container');
+    if (!container) return;
+
+    container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Carregando tutoriais...</div>';
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('tutoriais')
+            .select('*')
+            .order('titulo', { ascending: true });
+
+        if (error) {
+            console.error('Erro ao carregar tutoriais:', error);
+            container.innerHTML = `<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar: ${error.message}</div>`;
+            return;
+        }
+
+        const filtroTitulo = (document.getElementById('filt-tutorial-visualizar-titulo')?.value || '').toLowerCase().trim();
+        let dados = data || [];
+
+        if (filtroTitulo) {
+            dados = dados.filter(item => String(item.titulo || '').toLowerCase().includes(filtroTitulo));
+        }
+
+        const paginacaoEl = document.getElementById('tutoriais-visualizar-pagination');
+
+        if (dados.length === 0) {
+            container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhum tutorial encontrado.</div>';
+            if (paginacaoEl) paginacaoEl.innerHTML = '';
+            return;
+        }
+
+        const totalPaginas = Math.max(1, Math.ceil(dados.length / ITENS_POR_PAGINA_TUTORIAL));
+        if (_paginaAtualVisualizar > totalPaginas) _paginaAtualVisualizar = totalPaginas;
+        const pagina = paginar(dados, _paginaAtualVisualizar, ITENS_POR_PAGINA_TUTORIAL);
+
+        container.innerHTML = '';
+
+        pagina.forEach(t => {
+            const tagsHtml = t.tags ? t.tags.split(',').map(tag => 
+                `<span class="permissions-badge" style="background:var(--primary-100);color:var(--primary);">${tag.trim()}</span>`
+            ).join(' ') : '';
+
+            container.innerHTML += `
+                <div class="dc-card" style="border-left-color: var(--primary); cursor:pointer;" onclick="window.open('${t.link}', '_blank')">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div class="dc-number" style="font-size:16px;">📚 ${t.titulo}</div>
+                        <div style="font-size:12px; color:var(--text-soft);">${t.categoria || 'Sem categoria'}</div>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-soft); margin-bottom:8px; word-break:break-all;">
+                        🔗 ${t.link}
+                    </div>
+                    ${tagsHtml ? `<div style="margin-top:6px;">${tagsHtml}</div>` : ''}
+                    <div style="margin-top:8px; padding-top:6px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
+                        <button onclick="event.stopPropagation(); window.open('${t.link}', '_blank')" class="btn-primary" style="font-size:10.5px; padding:4px 14px;">▶ Assistir</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        if (paginacaoEl) {
+            paginacaoEl.innerHTML = renderizarPaginacao(_paginaAtualVisualizar, dados.length, ITENS_POR_PAGINA_TUTORIAL, 'irParaPaginaVisualizarTutoriais');
+        }
+    } catch (e) {
+        console.error('Erro inesperado:', e);
+        container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar tutoriais.</div>';
+    }
+}
+
+export function filtrarVisualizarTutoriais() {
+    _paginaAtualVisualizar = 1;
+    carregarTutoriaisVisualizar();
+}
+
+export function limparFiltrosVisualizarTutoriais() {
+    document.getElementById('filt-tutorial-visualizar-titulo').value = '';
+    _paginaAtualVisualizar = 1;
+    carregarTutoriaisVisualizar();
 }

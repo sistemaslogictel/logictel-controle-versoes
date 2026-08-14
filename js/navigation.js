@@ -2,7 +2,12 @@
 import { temPermissao } from './session.js';
 import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
-import { carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial, filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial } from './tutoriais.js';
+import { 
+    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial, 
+    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
+    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais, 
+    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais
+} from './tutoriais.js';
 
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias } from './dashboards.js';
 import { carregarDCCards, inicializarFiltrosDCCards } from './dccards.js';
@@ -40,7 +45,8 @@ export function gerarMenu(permissoes) {
             { id: 'dcs', label: 'DC\'s', area: 'dcs' }
         ]},
         { id: 'tutoriais', label: 'Tutoriais', icon: 'tutoriais', area: 'tutoriais', type: 'flyout', children: [
-            { id: 'adm-tutoriais', label: 'Cadastro de Tutoriais', area: 'tutoriais' }
+            { id: 'tutoriais-visualizar', label: '📚 Visualizar Tutoriais', area: 'tutoriais-visualizar' },
+            { id: 'tutoriais-gerenciar', label: '⚙️ Gerenciar Tutoriais', area: 'tutoriais-gerenciar' }
         ]},
         { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
             { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
@@ -174,7 +180,8 @@ const AREA_MAP = {
     'cad-consumo': 'consumos',
     'historico-consumo-dcs': 'consumos',
     'dcs': 'dcs',
-    'adm-tutoriais': 'tutoriais',
+    'tutoriais-visualizar': 'tutoriais-visualizar',
+    'tutoriais-gerenciar': 'tutoriais-gerenciar',
     'adm-user': 'adm-user',
     'adm-empresa': 'adm-cliente',
     'adm-diretor': 'adm-cliente',
@@ -254,7 +261,10 @@ export async function carregarDadosAba(nomeAba) {
         carregarFiltroStatusNF();
         carregarSelectProjetos('filt-dcs-projeto');
     }
-    else if (nomeAba === 'adm-tutoriais') {
+    else if (nomeAba === 'tutoriais-visualizar') {
+        carregarTutoriaisVisualizar();
+    }
+    else if (nomeAba === 'tutoriais-gerenciar') {
         carregarTutoriais();
     }
     else if (nomeAba === 'adm-user') carregarUsuarios();
@@ -294,6 +304,7 @@ export function carregarTodasListas() {
     carregarStatusNF();
     carregarDatasLimites();
     carregarTutoriais();
+    carregarTutoriaisVisualizar();
     carregarSelectEmpresas('contrato-empresa');
     carregarSelectEmpresas('projeto-empresa');
     carregarSelectEmpresas('diretor-empresa');
@@ -404,9 +415,15 @@ const NAVEGACAO_MAP = {
             { id: 'cad-consumo', label: '📝 Consumo DC', area: 'consumos' }
         ]
     },
-    'adm-tutoriais': {
-        titulo: 'Cadastro de Tutoriais',
+    'tutoriais-visualizar': {
+        titulo: '📚 Visualizar Tutoriais',
         botoes: []
+    },
+    'tutoriais-gerenciar': {
+        titulo: '⚙️ Gerenciar Tutoriais',
+        botoes: [
+            { id: 'tutoriais-visualizar', label: '📚 Visualizar', area: 'tutoriais-visualizar' }
+        ]
     },
     'dash-don': {
         titulo: 'Dashboard DON',
