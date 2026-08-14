@@ -49,7 +49,6 @@ export function aplicarMascaras() {
 
 export function valorParaNumero(valorFormatado) {
     if (!valorFormatado || valorFormatado === '' || valorFormatado === '0,00') return 0;
-    // Remove pontos de milhar e substitui vírgula por ponto
     let valorLimpo = String(valorFormatado).replace(/\./g, '');
     valorLimpo = valorLimpo.replace(',', '.');
     const numero = parseFloat(valorLimpo);
@@ -57,17 +56,13 @@ export function valorParaNumero(valorFormatado) {
 }
 
 // =====================================================
-// PAGINAÇÃO (genérica, usada por DC's, Medições e Consumo DC)
+// PAGINAÇÃO
 // =====================================================
-// Recorta a página atual de uma lista já filtrada/ordenada em memória.
 export function paginar(lista, paginaAtual, itensPorPagina) {
     const inicio = (paginaAtual - 1) * itensPorPagina;
     return lista.slice(inicio, inicio + itensPorPagina);
 }
 
-// Gera o HTML dos controles (Anterior / Página X de Y / Próxima).
-// `funcaoGlobal` é o nome (string) da função exposta em window que deve
-// ser chamada ao trocar de página, ex: "irParaPaginaDC".
 export function renderizarPaginacao(paginaAtual, totalItens, itensPorPagina, funcaoGlobal) {
     const totalPaginas = Math.max(1, Math.ceil(totalItens / itensPorPagina));
     if (totalPaginas <= 1) return '';
@@ -140,6 +135,13 @@ export function limparFiltros(tipo, callbacks) {
             if (el) el.value = '';
         });
         if (callbacks && callbacks.cre) callbacks.cre();
+    } else if (tipo === 'pend') {
+        const ids = ['filt-pend-gestor', 'filt-pend-projeto', 'filt-pend-ano', 'filt-pend-mes'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (callbacks && callbacks.pend) callbacks.pend();
     }
 }
 

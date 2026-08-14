@@ -2,7 +2,7 @@ import { temPermissao } from './session.js';
 import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
 
-import { carregarDashApropriacao, carregarDashDON, carregarDashCRE } from './dashboards.js';
+import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias } from './dashboards.js';
 import { carregarDCCards, inicializarFiltrosDCCards } from './dccards.js';
 import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom, carregarFiltroStatusNF } from './selects.js';
 import { carregarMedicoes, carregarHistoricoMedicoes } from './medicoes.js';
@@ -25,7 +25,8 @@ export function gerarMenu(permissoes) {
         { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', area: 'dash-don', type: 'flyout', children: [
             { id: 'dash-don', label: 'Dashboard DON', area: 'dash-don' },
             { id: 'dash-apropriacao', label: 'Dashboard Status', area: 'dash-apropriacao' },
-            { id: 'dash-cre', label: 'Tratitando CRE', area: 'dash-cre' }
+            { id: 'dash-cre', label: 'Tratitando CRE', area: 'dash-cre' },
+            { id: 'dash-pendencias', label: 'Dashboard Pendências', area: 'dash-pendencias' }
         ]},
         { id: 'medicoes', label: 'Medições', icon: 'medicoes', area: 'medicoes', type: 'flyout', children: [
             { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
@@ -162,6 +163,7 @@ const AREA_MAP = {
     'dash-don': 'dash-don',
     'dash-apropriacao': 'dash-apropriacao',
     'dash-cre': 'dash-cre',
+    'dash-pendencias': 'dash-pendencias',
     'cad-medicao': 'medicoes',
     'historico-medicoes': 'medicoes',
     'cad-consumo': 'consumos',
@@ -209,6 +211,7 @@ export async function carregarDadosAba(nomeAba) {
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
     else if (nomeAba === 'dash-don') carregarDashDON();
     else if (nomeAba === 'dash-cre') carregarDashCRE();
+    else if (nomeAba === 'dash-pendencias') carregarDashPendencias();
     else if (nomeAba === 'cad-medicao') {
         carregarMedicoes();
         carregarSelectProjetos('filt-med-projeto');
@@ -241,7 +244,6 @@ export async function carregarDadosAba(nomeAba) {
         carregarSelectStatus('filt-consumo-status-nf', 'status_nf');
     }
     else if (nomeAba === 'dcs') { 
-        // Inicializar os filtros com "Falta Aprovar CRE" e carregar os cards
         await inicializarFiltrosDCCards();
         carregarFiltroStatus();
         carregarFiltroStatusNF();
@@ -318,6 +320,8 @@ export function carregarTodasListas() {
     carregarSelectProjetos('filt-dcs-projeto');
     carregarFiltroStatus();
     carregarFiltroStatusNF();
+    carregarSelectProjetos('filt-pend-projeto');
+    carregarSelectGestores('filt-pend-gestor', 'gestores_logictel');
     atualizarTopbarDatasLimites();
 }
 
@@ -355,7 +359,6 @@ export function cancelarEdicao(tipo) {
 // NAVEGAÇÃO INTELIGENTE ENTRE TELAS RELACIONADAS
 // =====================================================
 
-// Mapeamento de telas e suas navegações relacionadas
 const NAVEGACAO_MAP = {
     'cad-medicao': {
         titulo: 'Cadastro de Medição',
@@ -393,21 +396,32 @@ const NAVEGACAO_MAP = {
         titulo: 'Dashboard DON',
         botoes: [
             { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },
-            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' }
+            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' },
+            { id: 'dash-pendencias', label: '📊 Pendências', area: 'dash-pendencias' }
         ]
     },
     'dash-apropriacao': {
         titulo: 'Dashboard Status',
         botoes: [
             { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
-            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' }
+            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' },
+            { id: 'dash-pendencias', label: '📊 Pendências', area: 'dash-pendencias' }
         ]
     },
     'dash-cre': {
         titulo: 'Dashboard Tratitando CRE',
         botoes: [
             { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
-            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' }
+            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },
+            { id: 'dash-pendencias', label: '📊 Pendências', area: 'dash-pendencias' }
+        ]
+    },
+    'dash-pendencias': {
+        titulo: 'Dashboard Pendências',
+        botoes: [
+            { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
+            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },
+            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' }
         ]
     }
 };
@@ -417,12 +431,10 @@ export function gerarHeaderNavegacao(abaId) {
     const config = NAVEGACAO_MAP[abaId];
     if (!config) return null;
 
-    // Verificar quais botões o usuário tem acesso
     const botoesPermitidos = config.botoes.filter(botao => {
         return temPermissao(botao.area);
     });
 
-    // Se não houver botões permitidos, retorna apenas o título
     if (botoesPermitidos.length === 0) {
         return `
             <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -431,7 +443,6 @@ export function gerarHeaderNavegacao(abaId) {
         `;
     }
 
-    // Se houver botões, monta o header com título à esquerda e botões à direita
     const botoesHtml = botoesPermitidos.map(botao => {
         return `<button onclick="mudarAba('${botao.id}')" class="btn-secondary" style="font-size:10.5px; padding:6px 14px;">${botao.label}</button>`;
     }).join('');

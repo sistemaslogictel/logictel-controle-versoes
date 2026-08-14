@@ -1223,3 +1223,51 @@ nav.sidenav{
 .tab-content.space-y-6 > * + * {
   margin-top:1rem !important;
 }
+
+/* =====================================================
+   CABEÇALHO DA DASHBOARD PENDÊNCIAS (VERMELHO)
+   ===================================================== */
+.pendencias-header th {
+  background: #8B0000 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 9.9px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 12px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+.pendencias-header th:last-child {
+  border-right: none;
+}
+
+.total-geral-card.theme-pendencias {
+  background: #FDE8E8;
+  border: 1px solid #FFCDCD;
+}
+
+.theme-pendencias .total-geral-icon {
+  background: #8B0000;
+}
+
+.theme-pendencias .total-geral-label {
+  color: #8B0000;
+}
+
+.theme-pendencias .total-geral-stat-label {
+  color: #8B0000;
+}
+
+.theme-pendencias .total-geral-stat-value {
+  color: #8B0000;
+}
+
+.theme-pendencias .total-geral-stat {
+  border-right: 1px solid rgba(139, 0, 0, 0.15);
+}

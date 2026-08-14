@@ -9,14 +9,13 @@ const MESES_ORDEM = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 let _ultimoRenderDON = null;
 let _ultimoRenderStatus = null;
 let _ultimoRenderCRE = null;
+let _ultimoRenderPendencias = null;
 
 // Função para formatar valor com separação de milhares
 function formatarValor(valor) {
-    // Se for null, undefined, 0 ou string vazia, retorna '-'
     if (valor === undefined || valor === null || valor === 0 || valor === '0' || valor === '0,00' || valor === '') {
         return '-';
     }
-    // Converter para número se for string
     const num = typeof valor === 'string' ? parseFloat(valor.replace(/\./g, '').replace(',', '.')) : valor;
     if (isNaN(num) || num === 0) {
         return '-';
@@ -27,7 +26,6 @@ function formatarValor(valor) {
     });
 }
 
-// Função para obter a classe CSS do valor
 function classeValor(v) {
     if (v === undefined || v === null || v === 0 || v === '0' || v === '0,00' || v === '') return 'valor-zero';
     const num = typeof v === 'string' ? parseFloat(v.replace(/\./g, '').replace(',', '.')) : v;
@@ -65,21 +63,24 @@ async function carregarStatusNfMap() {
 }
 
 // =====================================================
-// FUNÇÃO PARA VERIFICAR SE UM CONSUMO DEVE SER EXCLUÍDO
-// (status NF "Falta aprovar CRE" não entra nas dashboards DON e Status)
+// FUNÇÕES PARA VERIFICAR STATUS
 // =====================================================
+
+// Verifica se o consumo deve ser excluído das dashboards DON e Status
+// (status NF "Falta aprovar CRE" ou "Pendências" não entram nas dashboards DON e Status)
 function consumoDeveSerExcluido(consumo) {
     if (!consumo) return false;
     const statusNfId = consumo.status_nf;
     if (!statusNfId) return false;
     const nomeStatusNf = _statusNfMap[statusNfId] || '';
     const nomeLower = nomeStatusNf.toLowerCase();
-    return nomeLower.includes('falta aprovar cre') || nomeLower.includes('falta_aprovar_cre');
+    return nomeLower.includes('falta aprovar cre') || 
+           nomeLower.includes('falta_aprovar_cre') ||
+           nomeLower.includes('pendências') ||
+           nomeLower.includes('pendencias');
 }
 
-// =====================================================
-// FUNÇÃO PARA VERIFICAR SE UM CONSUMO É "CRE" (Falta aprovar CRE)
-// =====================================================
+// Verifica se o consumo é "CRE" (Falta aprovar CRE)
 function consumoEHCRE(consumo) {
     if (!consumo) return false;
     const statusNfId = consumo.status_nf;
@@ -89,8 +90,18 @@ function consumoEHCRE(consumo) {
     return nomeLower.includes('falta aprovar cre') || nomeLower.includes('falta_aprovar_cre');
 }
 
+// Verifica se o consumo é "Pendência" (Pendências - ...)
+function consumoEHPendencia(consumo) {
+    if (!consumo) return false;
+    const statusNfId = consumo.status_nf;
+    if (!statusNfId) return false;
+    const nomeStatusNf = _statusNfMap[statusNfId] || '';
+    const nomeLower = nomeStatusNf.toLowerCase();
+    return nomeLower.includes('pendências') || nomeLower.includes('pendencias');
+}
+
 // =====================================================
-// EXPORTAÇÃO PARA EXCEL (XLSX) — reflete exatamente o que está na tela
+// EXPORTAÇÃO PARA EXCEL (XLSX)
 // =====================================================
 function exportarTabelaParaExcel(nomeArquivo, headers, linhas) {
     if (!linhas || linhas.length === 0) {
@@ -142,8 +153,16 @@ export function exportarExcelCRE() {
     exportarTabelaParaExcel('Dashboard_Tratitando_CRE', headers, linhas);
 }
 
+export function exportarExcelPendencias() {
+    if (!_ultimoRenderPendencias) { alert('Não há dados para exportar.'); return; }
+    const { linhas: grupos, mesesExibir } = _ultimoRenderPendencias;
+    const headers = ['Gestão', 'Projeto', 'Descrição', ...mesesExibir, 'Total'];
+    const linhas = grupos.map(g => [g.gestor, g.projeto, g.descricao, ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+    exportarTabelaParaExcel('Dashboard_Pendencias', headers, linhas);
+}
+
 // =====================================================
-// CÁLCULO DE SALDO PARA STATUS (com exclusão de CRE)
+// CÁLCULO DE SALDO PARA STATUS (com exclusão de CRE e Pendências)
 // =====================================================
 function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
     const grupos = {};
@@ -163,7 +182,6 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
         return grupos[key];
     }
 
-    // 1) Cada medição gera uma dívida no mês em que foi medida.
     medicoes.forEach(med => {
         const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.ano}`;
         const g = garantirGrupo(key, med);
@@ -171,17 +189,13 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
         g._debitos[med.mes] = (g._debitos[med.mes] || 0) + valor;
     });
 
-    // 2) Todo consumo lançado (exceto CRE) entra no caixa
     consumos.forEach(c => {
-        // EXCLUIR consumos com status NF "Falta aprovar CRE"
         if (consumoDeveSerExcluido(c)) return;
-        
         const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
         const g = garantirGrupo(key, c);
         g._caixa += Math.abs(Number(c.valor || 0));
     });
 
-    // 3) Quitação em cascata
     Object.values(grupos).forEach(g => {
         const mesesOrdenados = Object.keys(g._debitos)
             .sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
@@ -228,7 +242,7 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
 }
 
 // =====================================================
-// CÁLCULO DE SALDO PARA DON (com exclusão de CRE)
+// CÁLCULO DE SALDO PARA DON (com exclusão de CRE e Pendências)
 // =====================================================
 function calcularGruposSaldoDON(medicoes, consumos) {
     const grupos = {};
@@ -259,7 +273,6 @@ function calcularGruposSaldoDON(medicoes, consumos) {
         return parent.diretores[key];
     }
 
-    // Processar medições
     medicoes.forEach(med => {
         const key = `${med.projeto_id}`;
         const parent = garantirGrupoProjeto(key, med);
@@ -273,10 +286,8 @@ function calcularGruposSaldoDON(medicoes, consumos) {
         dir.meses[med.mes].medicao += valor;
     });
 
-    // Processar consumos - EXCLUIR os com status NF "Falta aprovar CRE"
     consumos.forEach(c => {
         if (consumoDeveSerExcluido(c)) return;
-        
         const mes = c.mes_medido;
         if (!mes) return;
         const key = `${c.projeto_id}`;
@@ -291,7 +302,6 @@ function calcularGruposSaldoDON(medicoes, consumos) {
         dir.meses[mes].consumo += valor;
     });
 
-    // Calcular saldos
     function calcularSaldos(mesesObj) {
         let total = 0;
         Object.keys(mesesObj).forEach(mes => {
@@ -331,14 +341,12 @@ function calcularGruposSaldoDON(medicoes, consumos) {
 function calcularGruposCRE(consumos) {
     const grupos = {};
 
-    // Filtrar apenas consumos com status NF "Falta aprovar CRE"
     const consumosCRE = consumos.filter(c => consumoEHCRE(c));
 
     if (consumosCRE.length === 0) {
         return { grupos: {}, mesesExibir: [] };
     }
 
-    // Agrupar por gestor + projeto + ano
     consumosCRE.forEach(c => {
         const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
         if (!grupos[key]) {
@@ -359,7 +367,6 @@ function calcularGruposCRE(consumos) {
         grupos[key].total += valor;
     });
 
-    // Determinar meses a exibir
     const mesesComSaldo = new Set();
     Object.values(grupos).forEach(g => {
         Object.keys(g.meses).forEach(mes => {
@@ -377,10 +384,59 @@ function calcularGruposCRE(consumos) {
 }
 
 // =====================================================
-// ÍCONE DO CARD "TOTAL GERAL"
+// CÁLCULO PARA PENDÊNCIAS - SÓ MOSTRA OS CONSUMOS COM STATUS "Pendências - ..."
+// =====================================================
+function calcularGruposPendencias(consumos) {
+    const grupos = {};
+
+    const consumosPendencias = consumos.filter(c => consumoEHPendencia(c));
+
+    if (consumosPendencias.length === 0) {
+        return { grupos: {}, mesesExibir: [] };
+    }
+
+    consumosPendencias.forEach(c => {
+        const key = `${c.gestor_logictel_id}|${c.projeto_id}|${c.ano}`;
+        if (!grupos[key]) {
+            grupos[key] = {
+                gestor: c.gestores_logictel?.nome || 'N/A',
+                projeto: c.projetos?.nome || 'N/A',
+                descricao: c.projetos?.nome || '',
+                meses: {},
+                total: 0
+            };
+        }
+        const mes = c.mes_medido || c.mes_apropriacao || 'Sem mês';
+        const valor = Math.abs(Number(c.valor || 0));
+        if (!grupos[key].meses[mes]) {
+            grupos[key].meses[mes] = { saldo: 0 };
+        }
+        grupos[key].meses[mes].saldo += valor;
+        grupos[key].total += valor;
+    });
+
+    const mesesComSaldo = new Set();
+    Object.values(grupos).forEach(g => {
+        Object.keys(g.meses).forEach(mes => {
+            if (g.meses[mes].saldo !== 0) mesesComSaldo.add(mes);
+        });
+    });
+
+    const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => {
+        if (a === 'Sem mês') return 1;
+        if (b === 'Sem mês') return -1;
+        return MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b);
+    });
+
+    return { grupos, mesesExibir };
+}
+
+// =====================================================
+// ÍCONES DOS CARDS "TOTAL GERAL"
 // =====================================================
 const ICONE_TOTAL_GERAL = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>`;
 const ICONE_CRE = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>`;
+const ICONE_PENDENCIAS = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/><path d="M12 8v4"/></svg>`;
 
 // =====================================================
 // CARD "TOTAL GERAL"
@@ -465,6 +521,46 @@ function renderizarTotalGeralCardCRE(containerId, tema, mesesExibir, linhas, tot
     `;
 }
 
+function renderizarTotalGeralCardPendencias(containerId, tema, mesesExibir, linhas, totalGeral) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.className = `total-geral-card theme-${tema}`;
+
+    if (!linhas || linhas.length === 0) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = '';
+
+    let statsHtml = '';
+    mesesExibir.forEach(mes => {
+        let totalMes = 0;
+        linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
+        const displayValor = formatarValor(totalMes);
+        statsHtml += `
+            <div class="total-geral-stat">
+                <div class="total-geral-stat-label">${mes}</div>
+                <div class="total-geral-stat-value ${classeValor(totalMes)}">${displayValor}</div>
+            </div>`;
+    });
+
+    statsHtml += `
+        <div class="total-geral-stat">
+            <div class="total-geral-stat-label">Total</div>
+            <div class="total-geral-stat-value ${classeValor(totalGeral)}">${formatarValor(totalGeral)}</div>
+        </div>`;
+
+    container.innerHTML = `
+        <div class="total-geral-icon-wrap">
+            <div class="total-geral-icon">${ICONE_PENDENCIAS}</div>
+            <div class="total-geral-label">TOTAL PENDÊNCIAS</div>
+        </div>
+        <div class="total-geral-stats">${statsHtml}</div>
+    `;
+}
+
 // =====================================================
 // RENDERIZAÇÃO DA TABELA STATUS
 // =====================================================
@@ -520,13 +616,12 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
         tbody.innerHTML += html;
     });
 
-    // Usar a função de renderização apropriada
     const renderFn = tema === 'cre' ? renderizarTotalGeralCardCRE : renderizarTotalGeralCard;
     renderFn(totalCardId, tema, mesesExibir, linhas, totalGeral);
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA DON - COM EXPANSÃO POR CLIQUE
+// RENDERIZAÇÃO DA TABELA DON
 // =====================================================
 function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -623,7 +718,7 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
 }
 
 // =====================================================
-// RENDERIZAÇÃO DA TABELA CRE - SÓ MOSTRA CONSUMOS CRE
+// RENDERIZAÇÃO DA TABELA CRE
 // =====================================================
 function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
     const headerRow = document.querySelector(`#${headerId}`);
@@ -681,6 +776,64 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
 }
 
 // =====================================================
+// RENDERIZAÇÃO DA TABELA PENDÊNCIAS (VERMELHO)
+// =====================================================
+function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, totalCardId) {
+    const headerRow = document.querySelector(`#${headerId}`);
+    if (headerRow) {
+        let html = `<tr class="pendencias-header">
+            <th style="text-align:left;padding:10px 12px;">Gestão</th>
+            <th style="text-align:left;padding:10px 12px;">Projeto</th>
+            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+        mesesExibir.forEach(mes => {
+            html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
+        });
+        html += '<th style="text-align:center;padding:10px 12px;">Total</th></tr>';
+        headerRow.innerHTML = html;
+    }
+
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+
+    const linhas = Object.values(grupos);
+    if (linhas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${3 + mesesExibir.length + 1}" style="padding:20px;text-align:center;color:var(--text-soft);">Nenhum registro encontrado.</td></tr>`;
+        renderizarTotalGeralCardPendencias(totalCardId, 'pendencias', mesesExibir, [], 0);
+        return;
+    }
+
+    tbody.innerHTML = '';
+    let totalGeral = 0;
+
+    linhas.forEach(g => {
+        totalGeral += g.total;
+
+        let html = `
+            <tr>
+                <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
+                <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
+                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
+        `;
+
+        mesesExibir.forEach(mes => {
+            const saldo = g.meses[mes]?.saldo;
+            const displayValor = formatarValor(saldo);
+            const classe = classeValor(saldo);
+            html += `<td style="text-align:center;padding:10px 12px;font-weight:600;${classe === 'valor-positivo' ? 'color:#CC0000;' : ''}">${displayValor}</td>`;
+        });
+
+        html += `
+                <td style="text-align:center;padding:10px 12px;font-weight:700;color:#CC0000;">${formatarValor(g.total)}</td>
+            </tr>
+        `;
+
+        tbody.innerHTML += html;
+    });
+
+    renderizarTotalGeralCardPendencias(totalCardId, 'pendencias', mesesExibir, linhas, totalGeral);
+}
+
+// =====================================================
 // FILTROS
 // =====================================================
 function lerFiltrosDashboard(prefixo) {
@@ -697,6 +850,13 @@ function lerFiltrosDashboard(prefixo) {
             projeto: document.getElementById('filt-cre-projeto')?.value || '',
             ano: document.getElementById('filt-cre-ano')?.value || '',
             mes: document.getElementById('filt-cre-mes')?.value || ''
+        };
+    } else if (prefixo === 'pendencias') {
+        return {
+            gestor: document.getElementById('filt-pend-gestor')?.value || '',
+            projeto: document.getElementById('filt-pend-projeto')?.value || '',
+            ano: document.getElementById('filt-pend-ano')?.value || '',
+            mes: document.getElementById('filt-pend-mes')?.value || ''
         };
     } else {
         return {
@@ -780,7 +940,7 @@ export async function carregarDashApropriacao() {
 }
 
 // =====================================================
-// DASHBOARD DON (AZUL) - COM EXPANSÃO POR CLIQUE
+// DASHBOARD DON (AZUL)
 // =====================================================
 export async function carregarDashDON() {
     const tbody = document.getElementById('tabela-dash-don');
@@ -826,7 +986,7 @@ export async function carregarDashDON() {
 }
 
 // =====================================================
-// DASHBOARD CRE (Tratitando CRE) - SÓ CONSUMOS COM STATUS "Falta aprovar CRE"
+// DASHBOARD CRE
 // =====================================================
 export async function carregarDashCRE() {
     const tbody = document.getElementById('tabela-dash-cre');
@@ -849,7 +1009,6 @@ export async function carregarDashCRE() {
 
         const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'cre');
         
-        // Calcular apenas os consumos CRE
         const { grupos, mesesExibir } = calcularGruposCRE(consumosFiltrados);
         
         _ultimoRenderCRE = { linhas: Object.values(grupos), mesesExibir };
@@ -857,6 +1016,41 @@ export async function carregarDashCRE() {
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard CRE:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+    }
+}
+
+// =====================================================
+// DASHBOARD PENDÊNCIAS (VERMELHO)
+// =====================================================
+export async function carregarDashPendencias() {
+    const tbody = document.getElementById('tabela-dash-pendencias');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
+
+    try {
+        await carregarStatusNfMap();
+        const filtros = lerFiltrosDashboard('pendencias');
+        
+        const { data: consumos, error: errorCons } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id, projeto_id, gestor_logictel_id, diretor_id,
+                mes_apropriacao, mes_medido, ano, valor, status_nf,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'pendencias');
+        
+        const { grupos, mesesExibir } = calcularGruposPendencias(consumosFiltrados);
+        
+        _ultimoRenderPendencias = { linhas: Object.values(grupos), mesesExibir };
+        renderizarDashboardPendencias('pend-header', 'tabela-dash-pendencias', grupos, mesesExibir, 'pend-total-geral');
+        registrarUltimaAtualizacao();
+    } catch (e) {
+        console.error('Erro ao carregar dashboard Pendências:', e);
         tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
     }
 }

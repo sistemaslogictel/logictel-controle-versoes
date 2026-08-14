@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.22.1 - Controle de Medições e DCs - Logictel</title>
+<title>V.22.2 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -214,6 +214,45 @@
       <div id="cre-total-geral" class="total-geral-card theme-cre"></div>
     </div>
     
+    <!-- ===================== DASHBOARD PENDÊNCIAS ===================== -->
+    <div id="tab-dash-pendencias" class="tab-content space-y-6">
+      <div id="header-dash-pendencias"></div>
+      <div class="filters-bar-status">
+        <div class="filter-group">
+          <label class="filter-label">Gestor</label>
+          <select id="filt-pend-gestor" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Gestores</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Projeto</label>
+          <select id="filt-pend-projeto" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Projetos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Ano</label>
+          <select id="filt-pend-ano" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Anos</option></select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Mês</label>
+          <select id="filt-pend-mes" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Meses</option></select>
+        </div>
+        <div class="filter-group filter-actions">
+          <button onclick="carregarDashPendencias()" class="btn-primary">Filtrar</button>
+          <button onclick="limparFiltros('pend')" class="btn-clear-filters">Limpar</button>
+          <button onclick="exportarExcelPendencias()" class="btn-excel">📊 Exportar Excel</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="dash-table-container">
+          <table>
+            <thead id="pend-header" class="pendencias-header">
+              <tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th class="mes-header">Mês 1</th><th class="mes-header">Mês 2</th><th>Total</th></tr>
+            </thead>
+            <tbody id="tabela-dash-pendencias"><tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="pend-total-geral" class="total-geral-card theme-pendencias"></div>
+    </div>
+
     <!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
     <div id="tab-cad-medicao" class="tab-content space-y-6">
       <div id="header-cad-medicao"></div>
