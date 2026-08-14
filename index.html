@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.20.1 - Controle de Medições e DCs - Logictel</title>
+<title>V.22.0 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -311,6 +311,11 @@
               <div><label class="label">PO</label><input type="text" id="dc-po" placeholder="PO" class="input"></div>
             </div>
           </div>
+          <!-- CAMPO DE OBSERVAÇÕES -->
+          <div class="md:col-span-4">
+            <label class="label">Observações</label>
+            <textarea id="dc-observacoes" rows="3" placeholder="Observações sobre este consumo..." class="input"></textarea>
+          </div>
           <div class="md:col-span-4 flex justify-end pt-2 gap-2">
             <button type="button" onclick="cancelarEdicao('consumo')" class="btn-cancel" style="display:none;" id="consumo-cancel-btn">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar Consumo</button>
@@ -319,7 +324,6 @@
       </div>
       <p class="text-sm" style="color:var(--text-muted)">A listagem completa e o histórico de consumos ficam na aba <strong>Histórico Consumo das DCs</strong>, no menu DC's.</p>
     </div>
-
     <!-- ===================== HISTÓRICO CONSUMO DAS DCS ===================== -->
     <div id="tab-historico-consumo-dcs" class="tab-content space-y-6">
       <div id="header-historico-consumo-dcs"></div>
