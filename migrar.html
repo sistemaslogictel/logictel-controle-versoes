@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head><title>Migrar Senhas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+</head>
+<body>
+<h1>Migrar Senhas</h1>
+<button onclick="migrar()">Iniciar</button>
+<pre id="log"></pre>
+<script>
+const supabase = supabase.createClient(
+    'https://gqrktjlwiownfezkvtgh.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxcmt0amx3aW93bmZlemt2dGdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTUxNDgsImV4cCI6MjEwMTA3MTE0OH0.ntyHDf5fgBKzlslvcK5n1JleuRnjGu8xG2ZzSm2CKH8'
+);
+
+async function migrar() {
+    const log = document.getElementById('log');
+    log.textContent = 'Buscando usuários...';
+    
+    const { data: usuarios, error } = await supabase.from('usuarios').select('id, nome, senha');
+    if (error) { log.textContent = 'Erro: ' + error.message; return; }
+    
+    log.textContent = `Encontrados ${usuarios.length} usuários. Migrando...\n`;
+    
+    let ok = 0, err = 0;
+    for (const u of usuarios) {
+        try {
+            const hash = await new Promise((r, e) => bcrypt.hash(u.senha || '123456', 10, (err, h) => err ? e(err) : r(h)));
+            await supabase.from('usuarios').update({ senha: hash }).eq('id', u.id);
+            ok++;
+            log.textContent += `✅ ${u.nome} (ID: ${u.id}) migrado\n`;
+        } catch(e) {
+            err++;
+            log.textContent += `❌ ${u.nome} (ID: ${u.id}) erro: ${e.message}\n`;
+        }
+    }
+    log.textContent += `\n✅ Concluído! ${ok} migrados, ${err} erros.`;
+}
+</script>
+</body>
+</html>
