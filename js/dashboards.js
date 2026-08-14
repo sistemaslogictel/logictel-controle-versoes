@@ -12,15 +12,27 @@ let _ultimoRenderCRE = null;
 let _ultimoRenderPendencias = null;
 
 // Função para formatar valor com separação de milhares
-// Valores zerados aparecem como "-"
+// Valores zerados ou que arredondam para 0 aparecem como "-"
 function formatarValor(valor) {
-    if (valor === undefined || valor === null || valor === 0 || valor === '0' || valor === '0,00' || valor === '' || valor === 0.00) {
+    if (valor === undefined || valor === null || valor === '' || valor === '0,00') {
         return '-';
     }
-    const num = typeof valor === 'string' ? parseFloat(valor.replace(/\./g, '').replace(',', '.')) : valor;
-    if (isNaN(num) || num === 0) {
+    
+    let num;
+    if (typeof valor === 'string') {
+        num = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
+    } else {
+        num = valor;
+    }
+    
+    if (isNaN(num)) return '-';
+    
+    // Arredonda para 2 casas decimais e verifica se é 0
+    const arredondado = Math.round(num * 100) / 100;
+    if (arredondado === 0) {
         return '-';
     }
+    
     return num.toLocaleString('pt-BR', { 
         minimumFractionDigits: 2, 
         maximumFractionDigits: 2 
@@ -28,9 +40,21 @@ function formatarValor(valor) {
 }
 
 function classeValor(v) {
-    if (v === undefined || v === null || v === 0 || v === '0' || v === '0,00' || v === '' || v === 0.00) return 'valor-zero';
-    const num = typeof v === 'string' ? parseFloat(v.replace(/\./g, '').replace(',', '.')) : v;
-    if (isNaN(num) || num === 0) return 'valor-zero';
+    if (v === undefined || v === null || v === '' || v === '0,00') return 'valor-zero';
+    
+    let num;
+    if (typeof v === 'string') {
+        num = parseFloat(v.replace(/\./g, '').replace(',', '.'));
+    } else {
+        num = v;
+    }
+    
+    if (isNaN(num)) return 'valor-zero';
+    
+    // Arredonda para 2 casas decimais e verifica se é 0
+    const arredondado = Math.round(num * 100) / 100;
+    if (arredondado === 0) return 'valor-zero';
+    
     if (num > 0) return 'valor-positivo';
     if (num < 0) return 'valor-negativo';
     return 'valor-zero';
