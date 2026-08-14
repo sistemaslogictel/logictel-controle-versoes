@@ -348,15 +348,23 @@ export function initFormConsumo() {
             }
 
             alert(editId ? 'Consumo atualizado!' : 'Consumo salvo!');
+            
+            // Limpar o formulário
             e.target.reset();
             document.getElementById('consumo-edit-id').value = '';
             document.getElementById('consumo-cancel-btn').style.display = 'none';
             document.getElementById('campos-extras-consumo').classList.remove('visible');
             controlarCamposNF();
+            
+            // Recarregar os dados
             carregarConsumos();
             carregarFiltros();
             carregarDCCards();
             aplicarMascaras();
+            
+            // Redirecionar para a tela de Histórico Consumo das DCs
+            mudarAba('historico-consumo-dcs');
+            
         } catch (err) {
             console.error('Erro ao salvar consumo:', err);
             alert('Erro ao salvar consumo.');
