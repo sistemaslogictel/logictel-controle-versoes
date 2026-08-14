@@ -12,10 +12,16 @@ let _ultimoRenderCRE = null;
 
 // Função para formatar valor com separação de milhares
 function formatarValor(valor) {
-    if (valor === undefined || valor === null || valor === 0) {
+    // Se for null, undefined, 0 ou string vazia, retorna '-'
+    if (valor === undefined || valor === null || valor === 0 || valor === '0' || valor === '0,00' || valor === '') {
         return '-';
     }
-    return valor.toLocaleString('pt-BR', { 
+    // Converter para número se for string
+    const num = typeof valor === 'string' ? parseFloat(valor.replace(/\./g, '').replace(',', '.')) : valor;
+    if (isNaN(num) || num === 0) {
+        return '-';
+    }
+    return num.toLocaleString('pt-BR', { 
         minimumFractionDigits: 2, 
         maximumFractionDigits: 2 
     });
@@ -23,9 +29,11 @@ function formatarValor(valor) {
 
 // Função para obter a classe CSS do valor
 function classeValor(v) {
-    if (v === undefined || v === null || v === 0) return 'valor-zero';
-    if (v > 0) return 'valor-positivo';
-    if (v < 0) return 'valor-negativo';
+    if (v === undefined || v === null || v === 0 || v === '0' || v === '0,00' || v === '') return 'valor-zero';
+    const num = typeof v === 'string' ? parseFloat(v.replace(/\./g, '').replace(',', '.')) : v;
+    if (isNaN(num) || num === 0) return 'valor-zero';
+    if (num > 0) return 'valor-positivo';
+    if (num < 0) return 'valor-negativo';
     return 'valor-zero';
 }
 
@@ -394,7 +402,7 @@ function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalG
     mesesExibir.forEach(mes => {
         let totalMes = 0;
         linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
-        const displayValor = totalMes !== 0 ? formatarValor(totalMes) : '-';
+        const displayValor = formatarValor(totalMes);
         statsHtml += `
             <div class="total-geral-stat">
                 <div class="total-geral-stat-label">${mes}</div>
@@ -434,7 +442,7 @@ function renderizarTotalGeralCardCRE(containerId, tema, mesesExibir, linhas, tot
     mesesExibir.forEach(mes => {
         let totalMes = 0;
         linhas.forEach(g => { totalMes += g.meses[mes]?.saldo || 0; });
-        const displayValor = totalMes !== 0 ? formatarValor(totalMes) : '-';
+        const displayValor = formatarValor(totalMes);
         statsHtml += `
             <div class="total-geral-stat">
                 <div class="total-geral-stat-label">${mes}</div>
