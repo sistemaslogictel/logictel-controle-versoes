@@ -828,7 +828,7 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
                 `;
                 mesesExibir.forEach(mes => {
                     const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
-                    const displayValor = saldo > 0 ? formatarValor(saldo) : '-';
+                    const displayValor = formatarValor(saldo);
                     dcHtml += `<td style="text-align:center;padding:8px 12px;font-size:12px;color:#00AA00;">${displayValor}</td>`;
                 });
                 dcHtml += `
@@ -929,7 +929,7 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
                 `;
                 mesesExibir.forEach(mes => {
                     const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
-                    const displayValor = saldo > 0 ? formatarValor(saldo) : '-';
+                    const displayValor = formatarValor(saldo);
                     dcHtml += `<td style="text-align:center;padding:8px 12px;font-size:12px;color:#CC0000;">${displayValor}</td>`;
                 });
                 dcHtml += `
