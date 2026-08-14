@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Migração de Senhas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+</head>
+<body>
+    <h1>Migração de Senhas - Execute uma vez</h1>
+    <button onclick="migrarSenhas()">Iniciar Migração</button>
+    <div id="status"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://gqrktjlwiownfezkvtgh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxcmt0amx3aW93bmZlemt2dGdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTUxNDgsImV4cCI6MjEwMTA3MTE0OH0.ntyHDf5fgBKzlslvcK5n1JleuRnjGu8xG2ZzSm2CKH8';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function hashPassword(password) {
+            return new Promise((resolve, reject) => {
+                bcrypt.hash(password, 10, (err, hash) => {
+                    if (err) reject(err);
+                    resolve(hash);
+                });
+            });
+        }
+
+        async function migrarSenhas() {
+            const status = document.getElementById('status');
+            status.innerHTML = 'Buscando usuários...';
+            
+            try {
+                const { data: usuarios, error } = await supabase
+                    .from('usuarios')
+                    .select('id, senha');
+                
+                if (error) {
+                    status.innerHTML = 'Erro: ' + error.message;
+                    return;
+                }
+                
+                if (!usuarios || usuarios.length === 0) {
+                    status.innerHTML = 'Nenhum usuário encontrado.';
+                    return;
+                }
+                
+                status.innerHTML = `Encontrados ${usuarios.length} usuários. Migrando...`;
+                
+                let migrados = 0;
+                let erros = 0;
+                
+                for (const user of usuarios) {
+                    try {
+                        // Verificar se a senha já está em hash (começa com $2a$)
+                        if (user.senha && user.senha.startsWith('$2a$')) {
+                            status.innerHTML = `Usuário ${user.id}: já está em hash, ignorando.`;
+                            continue;
+                        }
+                        
+                        const hash = await hashPassword(user.senha || 'senha_padrao_123');
+                        const { error: updateError } = await supabase
+                            .from('usuarios')
+                            .update({ senha: hash })
+                            .eq('id', user.id);
+                        
+                        if (updateError) {
+                            erros++;
+                            status.innerHTML = `Erro no usuário ${user.id}: ${updateError.message}`;
+                        } else {
+                            migrados++;
+                            status.innerHTML = `Usuário ${user.id} migrado (${migrados}/${usuarios.length})`;
+                        }
+                    } catch (e) {
+                        erros++;
+                        status.innerHTML = `Erro no usuário ${user.id}: ${e.message}`;
+                    }
+                }
+                
+                status.innerHTML = `
+                    <h2>Migração concluída!</h2>
+                    <p>Total de usuários: ${usuarios.length}</p>
+                    <p>Migrados com sucesso: ${migrados}</p>
+                    <p>Erros: ${erros}</p>
+                    ${erros === 0 ? '<p style="color:green;">✅ Todas as senhas foram migradas com sucesso!</p>' : '<p style="color:red;">⚠️ Alguns usuários não foram migrados. Verifique os erros acima.</p>'}
+                `;
+                
+            } catch (e) {
+                status.innerHTML = 'Erro: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

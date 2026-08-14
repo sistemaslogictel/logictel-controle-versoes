@@ -1,4 +1,4 @@
-import { supabaseClient } from './config.js';
+import { supabaseClient, recordLoginAttempt, resetLoginAttempts, isLoginBlocked, getBlockTimeRemaining } from './config.js';
 import {
     salvarUsuarioLogado, limparUsuarioLogado, getUsuarioLogado,
     iniciarMonitorInatividade, pararMonitorInatividade, sessaoExpiradaPorInatividade
@@ -7,7 +7,28 @@ import { aplicarMascaras } from './utils.js';
 import { gerarMenu, irParaPrimeiraAbaAcessivel, carregarTodasListas } from './navigation.js';
 
 // =====================================================
-// VALIDAÇÃO DE SENHA (força da senha no cadastro de usuário)
+// FUNÇÕES DE HASH (bcrypt)
+// =====================================================
+async function hashPassword(password) {
+    return new Promise((resolve, reject) => {
+        bcrypt.hash(password, 10, (err, hash) => {
+            if (err) reject(err);
+            resolve(hash);
+        });
+    });
+}
+
+async function verifyPassword(password, hash) {
+    return new Promise((resolve, reject) => {
+        bcrypt.compare(password, hash, (err, result) => {
+            if (err) reject(err);
+            resolve(result);
+        });
+    });
+}
+
+// =====================================================
+// VALIDAÇÃO DE SENHA
 // =====================================================
 export function validarSenha() {
     const senha = document.getElementById('user-senha').value;
@@ -84,9 +105,19 @@ export async function fazerLogin(event) {
     const pass = document.getElementById('loginPassword').value.trim();
     const errorEl = document.getElementById('loginError');
 
+    // Rate limiting
+    if (isLoginBlocked()) {
+        const remaining = getBlockTimeRemaining();
+        const minutes = Math.ceil(remaining / 60);
+        errorEl.textContent = `Muitas tentativas. Aguarde ${minutes} minuto(s) para tentar novamente.`;
+        errorEl.classList.add('show');
+        return false;
+    }
+
     if (!user || !pass) {
         errorEl.textContent = 'Preencha usuário e senha.';
         errorEl.classList.add('show');
+        recordLoginAttempt();
         return false;
     }
 
@@ -95,17 +126,32 @@ export async function fazerLogin(event) {
             .from('usuarios')
             .select('*')
             .eq('nome', user)
-            .eq('senha', pass)
             .single();
 
         if (error || !data) {
             errorEl.textContent = 'Usuário ou senha incorretos. Tente novamente.';
             errorEl.classList.add('show');
+            recordLoginAttempt();
             return false;
         }
 
-        salvarUsuarioLogado(data);
+        // Verificar senha com bcrypt
+        const senhaValida = await verifyPassword(pass, data.senha);
+        if (!senhaValida) {
+            errorEl.textContent = 'Usuário ou senha incorretos. Tente novamente.';
+            errorEl.classList.add('show');
+            recordLoginAttempt();
+            return false;
+        }
+
+        // Login bem-sucedido
+        resetLoginAttempts();
         errorEl.classList.remove('show');
+
+        const usuarioSeguro = { ...data };
+        delete usuarioSeguro.senha;
+
+        salvarUsuarioLogado(usuarioSeguro);
         document.getElementById('loginOverlay').classList.add('hidden');
         document.getElementById('appShell').style.display = 'flex';
 
@@ -115,23 +161,21 @@ export async function fazerLogin(event) {
         nomeDisplay.textContent = data.nome;
 
         gerarMenu(data.permissoes || []);
-
         irParaPrimeiraAbaAcessivel();
-
         carregarTodasListas();
         aplicarMascaras();
         iniciarMonitorInatividade(fazerLogoutPorInatividade);
 
         return false;
     } catch (e) {
+        console.error('Erro ao fazer login:', e);
         errorEl.textContent = 'Erro ao conectar ao servidor.';
         errorEl.classList.add('show');
+        recordLoginAttempt();
         return false;
     }
 }
 
-// Esconde o app e volta para a tela de login (usado tanto no logout manual
-// quanto no automático por inatividade).
 function voltarParaTelaLogin() {
     pararMonitorInatividade();
     limparUsuarioLogado();
@@ -148,7 +192,6 @@ export function fazerLogout() {
     }
 }
 
-// Chamado automaticamente pelo monitor de inatividade (20 min sem uso).
 function fazerLogoutPorInatividade() {
     voltarParaTelaLogin();
     const errorEl = document.getElementById('loginError');
@@ -159,8 +202,6 @@ function fazerLogoutPorInatividade() {
 export function verificarSessao() {
     const usuario = getUsuarioLogado();
     if (usuario) {
-        // Se a inatividade já estourou desde a última vez que a página foi
-        // usada (ex: aba fechada e reaberta depois de 20+ min), força novo login.
         if (sessaoExpiradaPorInatividade()) {
             limparUsuarioLogado();
             pararMonitorInatividade();
