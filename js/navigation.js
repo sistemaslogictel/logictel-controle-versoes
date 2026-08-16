@@ -2,12 +2,6 @@
 import { temPermissao } from './session.js';
 import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
-import { 
-    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial, 
-    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
-    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais, 
-    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais
-} from './tutoriais.js';
 
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias } from './dashboards.js';
 import { carregarDCCards, inicializarFiltrosDCCards } from './dccards.js';
@@ -43,10 +37,6 @@ export function gerarMenu(permissoes) {
             { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' },
             { id: 'historico-consumo-dcs', label: 'Histórico Consumo das DCs', area: 'consumos' },
             { id: 'dcs', label: 'DC\'s', area: 'dcs' }
-        ]},
-        { id: 'tutoriais', label: 'Tutoriais', icon: 'tutoriais', area: 'tutoriais', type: 'flyout', children: [
-            { id: 'tutoriais-visualizar', label: 'Visualizar Tutoriais', area: 'tutoriais-visualizar' },
-            { id: 'tutoriais-gerenciar', label: 'Gerenciar Tutoriais', area: 'tutoriais-gerenciar' }
         ]},
         { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
             { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
@@ -87,8 +77,8 @@ export function gerarMenu(permissoes) {
             'cliente': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
             'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
             'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
-            'datas': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
-            'tutoriais': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/><path d="M8 4v12l4-3 4 3V4"/></svg>'
+            'atualizacoes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
+            'datas': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
         };
         return icons[name] || '';
     }
@@ -180,8 +170,6 @@ const AREA_MAP = {
     'cad-consumo': 'consumos',
     'historico-consumo-dcs': 'consumos',
     'dcs': 'dcs',
-    'tutoriais-visualizar': 'tutoriais-visualizar',
-    'tutoriais-gerenciar': 'tutoriais-gerenciar',
     'adm-user': 'adm-user',
     'adm-empresa': 'adm-cliente',
     'adm-diretor': 'adm-cliente',
@@ -218,6 +206,7 @@ export function mudarAba(nomeAba) {
 }
 
 export async function carregarDadosAba(nomeAba) {
+    // Atualizar o header com navegação inteligente
     atualizarHeaderAba(nomeAba);
 
     if (nomeAba === 'dash-apropriacao') carregarDashApropriacao();
@@ -261,12 +250,6 @@ export async function carregarDadosAba(nomeAba) {
         carregarFiltroStatusNF();
         carregarSelectProjetos('filt-dcs-projeto');
     }
-    else if (nomeAba === 'tutoriais-visualizar') {
-        carregarTutoriaisVisualizar();
-    }
-    else if (nomeAba === 'tutoriais-gerenciar') {
-        carregarTutoriais();
-    }
     else if (nomeAba === 'adm-user') carregarUsuarios();
     else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
     else if (nomeAba === 'adm-diretor') { carregarDiretores(); carregarSelectEmpresas('diretor-empresa'); }
@@ -303,8 +286,6 @@ export function carregarTodasListas() {
     carregarStatusMed();
     carregarStatusNF();
     carregarDatasLimites();
-    carregarTutoriais();
-    carregarTutoriaisVisualizar();
     carregarSelectEmpresas('contrato-empresa');
     carregarSelectEmpresas('projeto-empresa');
     carregarSelectEmpresas('diretor-empresa');
@@ -360,8 +341,7 @@ export function cancelarEdicao(tipo) {
         'statusdc': 'statusdc',
         'statusmed': 'statusmed',
         'statusnf': 'statusnf',
-        'datalimite': 'datalimite',
-        'tutorial': 'tutorial'
+        'datalimite': 'datalimite'
     };
     const prefixo = prefixos[tipo] || tipo;
     document.getElementById(prefixo + '-edit-id').value = '';
@@ -415,16 +395,6 @@ const NAVEGACAO_MAP = {
             { id: 'cad-consumo', label: '📝 Consumo DC', area: 'consumos' }
         ]
     },
-    'tutoriais-visualizar': {
-        titulo: 'Visualizar Tutoriais',
-        botoes: []
-    },
-    'tutoriais-gerenciar': {
-        titulo: 'Gerenciar Tutoriais',
-        botoes: [
-            { id: 'tutoriais-visualizar', label: '📚 Visualizar', area: 'tutoriais-visualizar' }
-        ]
-    },
     'dash-don': {
         titulo: 'Dashboard DON',
         botoes: [
@@ -459,6 +429,7 @@ const NAVEGACAO_MAP = {
     }
 };
 
+// Função para gerar o header com navegação inteligente
 export function gerarHeaderNavegacao(abaId) {
     const config = NAVEGACAO_MAP[abaId];
     if (!config) return null;
@@ -489,6 +460,7 @@ export function gerarHeaderNavegacao(abaId) {
     `;
 }
 
+// Função para atualizar o header de uma aba específica
 export function atualizarHeaderAba(abaId) {
     const headerContainer = document.getElementById(`header-${abaId}`);
     if (!headerContainer) return;
