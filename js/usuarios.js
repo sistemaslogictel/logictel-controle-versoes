@@ -1,18 +1,6 @@
 import { supabaseClient } from './config.js';
 import { validarSenha } from './auth.js';
 
-// =====================================================
-// HASH DE SENHA (bcrypt)
-// =====================================================
-async function hashPassword(password) {
-    return new Promise((resolve, reject) => {
-        bcrypt.hash(password, 10, (err, hash) => {
-            if (err) reject(err);
-            resolve(hash);
-        });
-    });
-}
-
 export function getPermissoes() {
     const checks = document.querySelectorAll('.permission-check:checked');
     return Array.from(checks).map(c => c.value);
@@ -31,10 +19,9 @@ export async function carregarUsuarios() {
     tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
 
     try {
-        // NÃO SELECIONAR A SENHA
         const { data, error } = await supabaseClient
             .from('usuarios')
-            .select('id, nome, permissoes, criado_em')
+            .select('*')
             .order('id', { ascending: true });
 
         if (error) {
@@ -53,7 +40,7 @@ export async function carregarUsuarios() {
                 <tr class="td-row">
                     <td>${u.id}</td>
                     <td>${u.nome}</td>
-                    <td style="color:var(--text-soft);font-size:10px;">••••••••</td>
+                    <td>${u.senha}</td>
                     <td>${permissoesHtml || '<span style="color:var(--text-soft)">Nenhuma</span>'}</td>
                     <td class="text-right">
                         <div class="table-actions" style="justify-content:flex-end;">
@@ -74,46 +61,20 @@ export function initFormUsuario() {
         e.preventDefault();
         const editId = document.getElementById('user-edit-id').value;
         const senha = document.getElementById('user-senha').value;
-        const nome = document.getElementById('user-nome').value.trim();
 
-        if (!nome) { alert('Nome do usuário é obrigatório!'); return; }
-
-        // Se for edição e a senha estiver vazia, manter a atual
-        if (editId && !senha) {
-            // Atualizar apenas nome e permissões
-            const permissoes = getPermissoes();
-            const dados = { nome, permissoes };
-            
-            try {
-                const { error } = await supabaseClient
-                    .from('usuarios')
-                    .update(dados)
-                    .eq('id', parseInt(editId));
-                    
-                if (error) { alert('Erro: ' + error.message); return; }
-                alert('Usuário atualizado!');
-                e.target.reset();
-                document.getElementById('user-edit-id').value = '';
-                document.getElementById('user-cancel-btn').style.display = 'none';
-                setPermissoes([]);
-                carregarUsuarios();
-                return;
-            } catch (err) {
-                console.error('Erro ao atualizar usuário:', err);
-                alert('Erro ao atualizar usuário.');
-                return;
-            }
-        }
-
-        // Validar senha
         if (!validarSenha()) {
             alert('A senha não atende aos critérios de segurança.');
             return;
         }
 
         const permissoes = getPermissoes();
-        const senhaHash = await hashPassword(senha);
-        const dados = { nome, senha: senhaHash, permissoes };
+        const dados = {
+            nome: document.getElementById('user-nome').value.trim(),
+            senha: senha,
+            permissoes: permissoes
+        };
+
+        if (!dados.nome) { alert('Nome do usuário é obrigatório!'); return; }
 
         try {
             let result;
@@ -141,19 +102,13 @@ export function initFormUsuario() {
 
 export async function editarUsuario(id) {
     try {
-        const { data, error } = await supabaseClient
-            .from('usuarios')
-            .select('id, nome, permissoes')
-            .eq('id', id)
-            .single();
-
+        const { data, error } = await supabaseClient.from('usuarios').select('*').eq('id', id).single();
         if (error) { alert('Erro ao carregar: ' + error.message); return; }
         if (!data) return;
 
         document.getElementById('user-edit-id').value = id;
         document.getElementById('user-nome').value = data.nome;
-        document.getElementById('user-senha').value = '';
-        document.getElementById('user-senha').placeholder = 'Deixe em branco para manter a atual';
+        document.getElementById('user-senha').value = data.senha;
         setPermissoes(data.permissoes || []);
         document.getElementById('user-cancel-btn').style.display = 'inline-block';
         validarSenha();
