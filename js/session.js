@@ -4,10 +4,11 @@
 export let usuarioLogado = null;
 export let usuarioPermissoes = [];
 
-const TEMPO_LIMITE_INATIVIDADE_MS = 20 * 60 * 1000;
+// Tempo máximo de inatividade antes do logout automático
+const TEMPO_LIMITE_INATIVIDADE_MS = 20 * 60 * 1000; // 20 minutos
 const CHAVE_ULTIMA_ATIVIDADE = 'ultimaAtividade';
 const EVENTOS_ATIVIDADE = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
-const INTERVALO_VERIFICACAO_MS = 15000;
+const INTERVALO_VERIFICACAO_MS = 15000; // verifica a cada 15s
 
 let intervaloInatividade = null;
 let callbackExpiracaoInatividade = null;
@@ -26,12 +27,9 @@ export function getUsuarioLogado() {
 }
 
 export function salvarUsuarioLogado(usuario) {
-    const usuarioSeguro = { ...usuario };
-    delete usuarioSeguro.senha;
-
-    localStorage.setItem('usuarioLogado', JSON.stringify(usuarioSeguro));
-    usuarioLogado = usuarioSeguro;
-    usuarioPermissoes = usuarioSeguro.permissoes || [];
+    localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+    usuarioLogado = usuario;
+    usuarioPermissoes = usuario.permissoes || [];
 }
 
 export function limparUsuarioLogado() {
@@ -40,23 +38,19 @@ export function limparUsuarioLogado() {
     usuarioPermissoes = [];
 }
 
-// =====================================================
-// CORRIGIDO: FAIL-CLOSED (negar por padrão)
-// =====================================================
+// VERSÃO ORIGINAL: fail-open (se vazio, libera acesso)
 export function temPermissao(area) {
-    // Se não houver usuário logado, negar
-    if (!usuarioLogado) return false;
-    
-    // Se não houver permissões, negar
-    if (!usuarioPermissoes || usuarioPermissoes.length === 0) return false;
-    
-    // Permitir apenas se a área estiver explicitamente nas permissões
+    if (!usuarioPermissoes || usuarioPermissoes.length === 0) return true;
     return usuarioPermissoes.includes(area) || usuarioPermissoes.includes('*');
 }
 
 // =====================================================
-// CONTROLE DE INATIVIDADE
+// CONTROLE DE INATIVIDADE (logout automático de segurança)
 // =====================================================
+// A última atividade é gravada no localStorage (não só em memória),
+// então o tempo de inatividade é respeitado mesmo se a página for
+// recarregada, fechada e reaberta, ou se houver várias abas abertas.
+
 function registrarAtividade() {
     localStorage.setItem(CHAVE_ULTIMA_ATIVIDADE, String(Date.now()));
 }
@@ -76,6 +70,8 @@ function verificarInatividade() {
     }
 }
 
+// Chame após login/sessão validada. onExpirar é a função a ser
+// executada quando o tempo de inatividade estourar (ex: logout automático).
 export function iniciarMonitorInatividade(onExpirar) {
     callbackExpiracaoInatividade = onExpirar;
     registrarAtividade();
@@ -88,6 +84,7 @@ export function iniciarMonitorInatividade(onExpirar) {
     intervaloInatividade = setInterval(verificarInatividade, INTERVALO_VERIFICACAO_MS);
 }
 
+// Chame no logout (manual ou automático) para parar de monitorar.
 export function pararMonitorInatividade() {
     EVENTOS_ATIVIDADE.forEach(evento => {
         document.removeEventListener(evento, registrarAtividade);
