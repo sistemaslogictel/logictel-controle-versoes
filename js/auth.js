@@ -1,4 +1,4 @@
-import { supabaseClient, recordLoginAttempt, resetLoginAttempts, isLoginBlocked, getBlockTimeRemaining } from './config.js';
+import { supabaseClient } from './config.js';
 import {
     salvarUsuarioLogado, limparUsuarioLogado, getUsuarioLogado,
     iniciarMonitorInatividade, pararMonitorInatividade, sessaoExpiradaPorInatividade
@@ -7,51 +7,7 @@ import { aplicarMascaras } from './utils.js';
 import { gerarMenu, irParaPrimeiraAbaAcessivel, carregarTodasListas } from './navigation.js';
 
 // =====================================================
-// FUNÇÕES DE HASH (com fallback se bcrypt não carregar)
-// =====================================================
-
-// Verificar se bcrypt existe, senão usar fallback
-const hasBcrypt = typeof bcrypt !== 'undefined' && typeof bcrypt.hash === 'function';
-
-console.log('🔐 bcrypt carregado:', hasBcrypt ? '✅ Sim' : '❌ Não (usando fallback)');
-
-async function hashPassword(password) {
-    if (hasBcrypt) {
-        return new Promise((resolve, reject) => {
-            bcrypt.hash(password, 10, (err, hash) => {
-                if (err) reject(err);
-                resolve(hash);
-            });
-        });
-    }
-    // Fallback: apenas para desenvolvimento (NÃO USAR EM PRODUÇÃO)
-    console.warn('⚠️ Usando fallback de hash - senhas NÃO estão seguras!');
-    return 'fallback_' + btoa(password + '_salt_fixo');
-}
-
-async function verifyPassword(password, hash) {
-    // Se for hash do fallback, comparar diretamente
-    if (hash && hash.startsWith('fallback_')) {
-        const expected = 'fallback_' + btoa(password + '_salt_fixo');
-        return hash === expected;
-    }
-    
-    if (hasBcrypt) {
-        return new Promise((resolve, reject) => {
-            bcrypt.compare(password, hash, (err, result) => {
-                if (err) reject(err);
-                resolve(result);
-            });
-        });
-    }
-    
-    // Fallback final: comparar diretamente (NÃO SEGURO - apenas para emergência)
-    console.warn('⚠️ Usando fallback de comparação - senhas NÃO estão seguras!');
-    return true; // EMERGÊNCIA: permite login com qualquer senha
-}
-
-// =====================================================
-// VALIDAÇÃO DE SENHA
+// VALIDAÇÃO DE SENHA (força da senha no cadastro de usuário)
 // =====================================================
 export function validarSenha() {
     const senha = document.getElementById('user-senha').value;
@@ -120,7 +76,7 @@ export function gerarSenhaForte() {
 }
 
 // =====================================================
-// LOGIN
+// LOGIN (versão original - compara senha em texto plano)
 // =====================================================
 export async function fazerLogin(event) {
     event.preventDefault();
@@ -128,28 +84,9 @@ export async function fazerLogin(event) {
     const pass = document.getElementById('loginPassword').value.trim();
     const errorEl = document.getElementById('loginError');
 
-    // Rate limiting
-    if (isLoginBlocked()) {
-        const remaining = getBlockTimeRemaining();
-        const minutes = Math.ceil(remaining / 60);
-        const seconds = remaining % 60;
-        let mensagem = 'Muitas tentativas. Aguarde ';
-        if (minutes > 0) {
-            mensagem += `${minutes} minuto(s)`;
-            if (seconds > 0) mensagem += ` e ${seconds} segundo(s)`;
-        } else {
-            mensagem += `${seconds} segundo(s)`;
-        }
-        mensagem += ' para tentar novamente.';
-        errorEl.textContent = mensagem;
-        errorEl.classList.add('show');
-        return false;
-    }
-
     if (!user || !pass) {
         errorEl.textContent = 'Preencha usuário e senha.';
         errorEl.classList.add('show');
-        recordLoginAttempt();
         return false;
     }
 
@@ -158,32 +95,17 @@ export async function fazerLogin(event) {
             .from('usuarios')
             .select('*')
             .eq('nome', user)
+            .eq('senha', pass)
             .single();
 
         if (error || !data) {
             errorEl.textContent = 'Usuário ou senha incorretos. Tente novamente.';
             errorEl.classList.add('show');
-            recordLoginAttempt();
             return false;
         }
 
-        // Verificar senha
-        const senhaValida = await verifyPassword(pass, data.senha);
-        if (!senhaValida) {
-            errorEl.textContent = 'Usuário ou senha incorretos. Tente novamente.';
-            errorEl.classList.add('show');
-            recordLoginAttempt();
-            return false;
-        }
-
-        // Login bem-sucedido
-        resetLoginAttempts();
+        salvarUsuarioLogado(data);
         errorEl.classList.remove('show');
-
-        const usuarioSeguro = { ...data };
-        delete usuarioSeguro.senha;
-
-        salvarUsuarioLogado(usuarioSeguro);
         document.getElementById('loginOverlay').classList.add('hidden');
         document.getElementById('appShell').style.display = 'flex';
 
@@ -193,17 +115,17 @@ export async function fazerLogin(event) {
         nomeDisplay.textContent = data.nome;
 
         gerarMenu(data.permissoes || []);
+
         irParaPrimeiraAbaAcessivel();
+
         carregarTodasListas();
         aplicarMascaras();
         iniciarMonitorInatividade(fazerLogoutPorInatividade);
 
         return false;
     } catch (e) {
-        console.error('Erro ao fazer login:', e);
         errorEl.textContent = 'Erro ao conectar ao servidor.';
         errorEl.classList.add('show');
-        recordLoginAttempt();
         return false;
     }
 }
