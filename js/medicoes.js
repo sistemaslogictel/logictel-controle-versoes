@@ -353,6 +353,8 @@ export function initFormMedicao() {
 }
 
 export async function editarMedicao(id) {
+    console.log('🔧 editarMedicao chamado para ID:', id);
+    
     try {
         const { data, error } = await supabaseClient
             .from('medicoes')
@@ -373,6 +375,7 @@ export async function editarMedicao(id) {
             .single();
 
         if (error) {
+            console.error('Erro ao carregar medição:', error);
             alert('Erro ao carregar: ' + error.message);
             return;
         }
@@ -380,6 +383,11 @@ export async function editarMedicao(id) {
             alert('Medição não encontrada!');
             return;
         }
+
+        console.log('📋 Dados carregados:', data);
+
+        // Mudar para a aba de cadastro de medição
+        window.mudarAba('cad-medicao');
 
         // Preencher os campos do formulário
         document.getElementById('med-edit-id').value = id;
@@ -399,6 +407,8 @@ export async function editarMedicao(id) {
 
         // Scroll para o formulário
         document.getElementById('form-medicao').scrollIntoView({ behavior: 'smooth' });
+        
+        console.log('✅ Formulário preenchido com sucesso!');
     } catch (e) {
         console.error('Erro ao editar medição:', e);
         alert('Erro ao carregar dados da medição.');
@@ -426,4 +436,16 @@ export async function excluirMedicao(id) {
         console.error('Erro ao excluir medição:', e);
         alert('Erro ao excluir medição.');
     }
+}
+
+// Expor funções no window para uso em onclick
+if (typeof window !== 'undefined') {
+    window.editarMedicao = editarMedicao;
+    window.excluirMedicao = excluirMedicao;
+    window.irParaPaginaMed = irParaPaginaMed;
+    window.irParaPaginaHistMed = irParaPaginaHistMed;
+    window.filtrarMedicoes = filtrarMedicoes;
+    window.limparFiltrosMedicoes = limparFiltrosMedicoes;
+    window.filtrarHistoricoMedicoes = filtrarHistoricoMedicoes;
+    window.limparFiltrosHistoricoMedicoes = limparFiltrosHistoricoMedicoes;
 }
