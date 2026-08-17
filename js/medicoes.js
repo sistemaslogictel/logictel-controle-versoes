@@ -1,6 +1,6 @@
 import { supabaseClient } from './config.js';
 import { valorParaNumero, aplicarMascaras, paginar, renderizarPaginacao } from './utils.js';
-import { carregarFiltros } from './selects.js';
+import { carregarFiltros, carregarSelectProjetos, carregarSelectGestores, carregarSelectDiretores, carregarSelectStatus } from './selects.js';
 
 // Guarda a última lista buscada no banco, para os filtros da tela
 // (Projeto / Diretor Cliente / Mês) filtrarem sem precisar refazer a consulta.
@@ -75,7 +75,6 @@ export async function carregarHistoricoMedicoes() {
     tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr>';
 
     try {
-        // Buscar medições ordenadas por ID decrescente (mais recentes primeiro)
         const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
@@ -206,8 +205,6 @@ function lerFiltrosMedicoes() {
     };
 }
 
-// Chamado pelos onchange/oninput dos campos de filtro — só refiltra
-// o que já está em memória, sem ir ao banco de novo.
 export function filtrarMedicoes() {
     _paginaAtualMed = 1;
     renderizarTabelaMedicoes();
@@ -292,13 +289,11 @@ export function initFormMedicao() {
         const gestorId = document.getElementById('med-gestor').value;
         const diretorId = document.getElementById('med-diretor').value || null;
         
-        // Validar campos obrigatórios
         if (!projetoId || !gestorId) {
             alert('Projeto e Gestor são obrigatórios!');
             return;
         }
         
-        // Pegar valores dos campos
         const valorDonStr = document.getElementById('med-valor-don').value;
         const valorStatusStr = document.getElementById('med-valor-status').value;
         
@@ -352,10 +347,24 @@ export function initFormMedicao() {
     });
 }
 
+// =====================================================
+// FUNÇÃO AUXILIAR PARA CARREGAR SELECTS DA MEDIÇÃO
+// =====================================================
+async function carregarSelectsMedicao() {
+    await carregarSelectProjetos('med-projeto');
+    await carregarSelectGestores('med-gestor', 'gestores_logictel');
+    await carregarSelectDiretores('med-diretor');
+    await carregarSelectStatus('med-status', 'status_medicao');
+}
+
+// =====================================================
+// EDIÇÃO DE MEDIÇÃO (CORRIGIDA)
+// =====================================================
 export async function editarMedicao(id) {
     console.log('🔧 editarMedicao chamado para ID:', id);
     
     try {
+        // 1. Buscar os dados da medição
         const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
@@ -386,29 +395,37 @@ export async function editarMedicao(id) {
 
         console.log('📋 Dados carregados:', data);
 
-        // Mudar para a aba de cadastro de medição
+        // 2. Mudar para a aba de cadastro de medição
         window.mudarAba('cad-medicao');
 
-        // Preencher os campos do formulário
-        document.getElementById('med-edit-id').value = id;
-        
-        // Preencher selects - preservando todos os valores
-        document.getElementById('med-projeto').value = data.projeto_id || '';
-        document.getElementById('med-gestor').value = data.gestor_logictel_id || '';
-        document.getElementById('med-diretor').value = data.diretor_id || '';
-        document.getElementById('med-mes').value = data.mes || '';
-        document.getElementById('med-ano').value = data.ano || '';
-        document.getElementById('med-valor-don').value = Number(data.valor_don || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
-        document.getElementById('med-valor-status').value = Number(data.valor_status || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
-        document.getElementById('med-observacao').value = data.observacao || '';
-        document.getElementById('med-data-email').value = data.data_email_medicao || '';
-        document.getElementById('med-status').value = data.status_medicao || '';
-        document.getElementById('med-cancel-btn').style.display = 'inline-block';
+        // 3. Aguardar os selects serem carregados e preencher os campos
+        setTimeout(async () => {
+            // Recarregar os selects para garantir que estejam populados
+            await carregarSelectsMedicao();
+            
+            // Aguardar mais um pouco para o DOM atualizar
+            setTimeout(() => {
+                // Preencher os campos do formulário
+                document.getElementById('med-edit-id').value = id;
+                document.getElementById('med-projeto').value = data.projeto_id || '';
+                document.getElementById('med-gestor').value = data.gestor_logictel_id || '';
+                document.getElementById('med-diretor').value = data.diretor_id || '';
+                document.getElementById('med-mes').value = data.mes || '';
+                document.getElementById('med-ano').value = data.ano || '';
+                document.getElementById('med-valor-don').value = Number(data.valor_don || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+                document.getElementById('med-valor-status').value = Number(data.valor_status || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+                document.getElementById('med-observacao').value = data.observacao || '';
+                document.getElementById('med-data-email').value = data.data_email_medicao || '';
+                document.getElementById('med-status').value = data.status_medicao || '';
+                document.getElementById('med-cancel-btn').style.display = 'inline-block';
 
-        // Scroll para o formulário
-        document.getElementById('form-medicao').scrollIntoView({ behavior: 'smooth' });
+                // Scroll para o formulário
+                document.getElementById('form-medicao').scrollIntoView({ behavior: 'smooth' });
+                
+                console.log('✅ Formulário preenchido com sucesso!');
+            }, 200);
+        }, 100);
         
-        console.log('✅ Formulário preenchido com sucesso!');
     } catch (e) {
         console.error('Erro ao editar medição:', e);
         alert('Erro ao carregar dados da medição.');
