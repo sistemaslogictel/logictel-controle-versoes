@@ -303,3 +303,19 @@ export async function carregarFiltros() {
         }
     });
 }
+
+// =====================================================
+// EXPORTAÇÃO DE TODAS AS FUNÇÕES
+// =====================================================
+export {
+    carregarSelectStatus,
+    carregarSelectGestores,
+    carregarSelectDiretores,
+    carregarSelectEmpresas,
+    carregarSelectContratos,
+    carregarSelectProjetos,
+    carregarStatusDCCustom,
+    carregarFiltroStatus,
+    carregarFiltroStatusNF,
+    carregarFiltros
+};
