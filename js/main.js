@@ -11,6 +11,12 @@ import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparF
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
 import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed, carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed } from './medicoes.js';
 import { carregarDatasLimites, initFormDataLimite, editarDataLimite, excluirDataLimite, atualizarTopbarDatasLimites, filtrarDatasLimites, limparFiltrosDatasLimites } from './datasLimites.js';
+import { 
+    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial, 
+    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
+    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais, 
+    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais
+} from './tutoriais.js';
 
 import {
     initFormEmpresa, editarEmpresa, excluirEmpresa,
@@ -51,6 +57,11 @@ Object.assign(window, {
     carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed,
     // datas limites
     editarDataLimite, excluirDataLimite, filtrarDatasLimites, limparFiltrosDatasLimites,
+    // tutoriais
+    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial,
+    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
+    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais,
+    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,
@@ -77,6 +88,7 @@ function initFormListeners() {
     initFormStatusNF();
     initFormUsuario();
     initFormDataLimite();
+    initFormTutorial();
 }
 
 function iniciarApp() {

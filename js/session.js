@@ -27,9 +27,14 @@ export function getUsuarioLogado() {
 }
 
 export function salvarUsuarioLogado(usuario) {
-    localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
-    usuarioLogado = usuario;
-    usuarioPermissoes = usuario.permissoes || [];
+    // Nunca gravar a senha no localStorage (fica visível a qualquer um com
+    // acesso ao navegador/dispositivo, ex: DevTools > Application > Local Storage).
+    const usuarioSeguro = { ...usuario };
+    delete usuarioSeguro.senha;
+
+    localStorage.setItem('usuarioLogado', JSON.stringify(usuarioSeguro));
+    usuarioLogado = usuarioSeguro;
+    usuarioPermissoes = usuarioSeguro.permissoes || [];
 }
 
 export function limparUsuarioLogado() {
@@ -38,7 +43,6 @@ export function limparUsuarioLogado() {
     usuarioPermissoes = [];
 }
 
-// VERSÃO ORIGINAL: fail-open (se vazio, libera acesso)
 export function temPermissao(area) {
     if (!usuarioPermissoes || usuarioPermissoes.length === 0) return true;
     return usuarioPermissoes.includes(area) || usuarioPermissoes.includes('*');

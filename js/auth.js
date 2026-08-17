@@ -76,7 +76,7 @@ export function gerarSenhaForte() {
 }
 
 // =====================================================
-// LOGIN (versão original - compara senha em texto plano)
+// LOGIN
 // =====================================================
 export async function fazerLogin(event) {
     event.preventDefault();
@@ -130,6 +130,8 @@ export async function fazerLogin(event) {
     }
 }
 
+// Esconde o app e volta para a tela de login (usado tanto no logout manual
+// quanto no automático por inatividade).
 function voltarParaTelaLogin() {
     pararMonitorInatividade();
     limparUsuarioLogado();
@@ -146,6 +148,7 @@ export function fazerLogout() {
     }
 }
 
+// Chamado automaticamente pelo monitor de inatividade (20 min sem uso).
 function fazerLogoutPorInatividade() {
     voltarParaTelaLogin();
     const errorEl = document.getElementById('loginError');
@@ -156,6 +159,8 @@ function fazerLogoutPorInatividade() {
 export function verificarSessao() {
     const usuario = getUsuarioLogado();
     if (usuario) {
+        // Se a inatividade já estourou desde a última vez que a página foi
+        // usada (ex: aba fechada e reaberta depois de 20+ min), força novo login.
         if (sessaoExpiradaPorInatividade()) {
             limparUsuarioLogado();
             pararMonitorInatividade();
