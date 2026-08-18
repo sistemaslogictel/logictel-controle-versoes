@@ -76,7 +76,7 @@ export function gerarSenhaForte() {
 }
 
 // =====================================================
-// LOGIN
+// LOGIN (versão original - compara senha em texto plano)
 // =====================================================
 export async function fazerLogin(event) {
     event.preventDefault();
