@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.23.5 - Controle de Medições e DCs - Logictel</title>
+<title>V.24.0 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260814">
+<link rel="stylesheet" href="css/styles.css?v=20260818">
 </head>
 <body>
 
@@ -75,9 +75,9 @@
       <div class="flex items-center gap-2.5">
         <button class="mobile-menu-toggle md:hidden" onclick="toggleSidebar()">☰ Menu</button>
         <span class="status-dot"></span>
-        <!-- Legenda limites dentro da topbar -->
+        <!-- Legenda dentro da topbar -->
         <div class="legenda-limites">
-          <span style="font-weight:600;color:var(--text);">Legenda:</span>
+          <span style="font-weight:600;color:var(--text);">Legenda</span>
           <span class="legenda-item"><span class="legenda-cor amarelo"></span> 7 dias antes</span>
           <span class="legenda-item"><span class="legenda-cor vermelho"></span> 3 dias antes</span>
           <span class="legenda-item"><span class="legenda-cor piscando"></span> Dia (piscando)</span>
@@ -120,7 +120,8 @@
         <div class="filter-group filter-actions">
           <button onclick="carregarDashDON()" class="btn-primary">Filtrar</button>
           <button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelDON()" class="btn-excel">📊 Exportar Excel</button>
+          <button onclick="exportarExcelDON()" class="btn-excel">📊 Excel</button>
+          <button onclick="exportarRelatorioCompleto()" class="btn-relatorio btn-relatorio-don">📋 Relatório</button>
         </div>
       </div>
       <div class="card">
@@ -159,7 +160,8 @@
         <div class="filter-group filter-actions">
           <button onclick="carregarDashApropriacao()" class="btn-primary">Filtrar</button>
           <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelStatus()" class="btn-excel">📊 Exportar Excel</button>
+          <button onclick="exportarExcelStatus()" class="btn-excel">📊 Excel</button>
+          <button onclick="exportarRelatorioCompleto()" class="btn-relatorio btn-relatorio-status">📋 Relatório</button>
         </div>
       </div>
       <div class="card">
@@ -198,7 +200,8 @@
         <div class="filter-group filter-actions">
           <button onclick="carregarDashCRE()" class="btn-primary">Filtrar</button>
           <button onclick="limparFiltros('cre')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelCRE()" class="btn-excel">📊 Exportar Excel</button>
+          <button onclick="exportarExcelCRE()" class="btn-excel">📊 Excel</button>
+          <button onclick="exportarRelatorioCompleto()" class="btn-relatorio btn-relatorio-cre">📋 Relatório</button>
         </div>
       </div>
       <div class="card">
@@ -237,7 +240,8 @@
         <div class="filter-group filter-actions">
           <button onclick="carregarDashPendencias()" class="btn-primary">Filtrar</button>
           <button onclick="limparFiltros('pend')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelPendencias()" class="btn-excel">📊 Exportar Excel</button>
+          <button onclick="exportarExcelPendencias()" class="btn-excel">📊 Excel</button>
+          <button onclick="exportarRelatorioCompleto()" class="btn-relatorio btn-relatorio-pend">📋 Relatório</button>
         </div>
       </div>
       <div class="card">
@@ -783,6 +787,6 @@
   </main>
 </div>
 
-<script type="module" src="js/main.js?v=20260814"></script>
+<script type="module" src="js/main.js?v=20260818"></script>
 </body>
 </html>

@@ -175,9 +175,7 @@ export function exportarExcelCRE() {
     const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Total'];
     const linhas = [];
     grupos.forEach(g => {
-        // Linha do grupo
         linhas.push([g.gestor, g.projeto, '-', ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
-        // Linhas das DCs
         (g._consumos || []).forEach(c => {
             const linha = [
                 '↳',
@@ -201,9 +199,7 @@ export function exportarExcelPendencias() {
     const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Total'];
     const linhas = [];
     grupos.forEach(g => {
-        // Linha do grupo
         linhas.push([g.gestor, g.projeto, '-', ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
-        // Linhas das DCs
         (g._consumos || []).forEach(c => {
             const linha = [
                 '↳',
@@ -220,6 +216,243 @@ export function exportarExcelPendencias() {
     });
     exportarTabelaParaExcel('Dashboard_Pendencias', headers, linhas);
 }
+
+// =====================================================
+// EXPORTAÇÃO DE RELATÓRIO COMPLETO COM FORMATAÇÃO
+// =====================================================
+
+function exportarRelatorioCompleto() {
+    try {
+        const dadosDON = _ultimoRenderDON;
+        const dadosStatus = _ultimoRenderStatus;
+        const dadosCRE = _ultimoRenderCRE;
+        const dadosPendencias = _ultimoRenderPendencias;
+
+        if (!dadosDON && !dadosStatus && !dadosCRE && !dadosPendencias) {
+            alert('Nenhum dado disponível para exportar.');
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+        const dadosPlanilha = [];
+        let linhaAtual = 0;
+
+        // =============================================
+        // 1. DASHBOARD DON
+        // =============================================
+        if (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) {
+            const { projetos, mesesExibir } = dadosDON;
+            
+            dadosPlanilha.push(['', '', 'DASHBOARD DON', '', '', '', '', '']);
+            linhaAtual++;
+            
+            const header = ['Projeto', 'Diretor', 'Descrição', ...mesesExibir, 'Total'];
+            dadosPlanilha.push(header);
+            linhaAtual++;
+            
+            projetos.forEach(proj => {
+                const linhaProjeto = [
+                    proj.projeto,
+                    '—',
+                    proj.descricao,
+                    ...mesesExibir.map(m => proj.meses[m]?.saldo ?? 0),
+                    proj.total
+                ];
+                dadosPlanilha.push(linhaProjeto);
+                linhaAtual++;
+                
+                Object.values(proj.diretores)
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                    .forEach(dir => {
+                        const linhaDir = [
+                            `↳ ${proj.projeto}`,
+                            dir.nome,
+                            '—',
+                            ...mesesExibir.map(m => dir.meses[m]?.saldo ?? 0),
+                            dir.total
+                        ];
+                        dadosPlanilha.push(linhaDir);
+                        linhaAtual++;
+                    });
+            });
+            
+            const totalGeral = projetos.reduce((acc, p) => acc + p.total, 0);
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push(['', '', '', 'TOTAL GERAL DON:', '', '', '', totalGeral]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+        }
+
+        // =============================================
+        // 2. DASHBOARD STATUS
+        // =============================================
+        if (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosStatus;
+            
+            dadosPlanilha.push(['', '', 'DASHBOARD STATUS', '', '', '', '', '']);
+            linhaAtual++;
+            
+            const header = ['Gestão', 'Projeto', 'Descrição', ...mesesExibir, 'Total'];
+            dadosPlanilha.push(header);
+            linhaAtual++;
+            
+            grupos.forEach(g => {
+                const linha = [
+                    g.gestor,
+                    g.projeto,
+                    g.descricao,
+                    ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0),
+                    g.total
+                ];
+                dadosPlanilha.push(linha);
+                linhaAtual++;
+            });
+            
+            const totalGeral = grupos.reduce((acc, g) => acc + g.total, 0);
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push(['', '', '', 'TOTAL GERAL STATUS:', '', '', '', totalGeral]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+        }
+
+        // =============================================
+        // 3. DASHBOARD CRE
+        // =============================================
+        if (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosCRE;
+            
+            dadosPlanilha.push(['', '', 'DASHBOARD TRAMITANDO CRE', '', '', '', '', '']);
+            linhaAtual++;
+            
+            const header = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Total'];
+            dadosPlanilha.push(header);
+            linhaAtual++;
+            
+            grupos.forEach(g => {
+                const linhaGrupo = [
+                    g.gestor,
+                    g.projeto,
+                    '-',
+                    ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0),
+                    g.total
+                ];
+                dadosPlanilha.push(linhaGrupo);
+                linhaAtual++;
+                
+                (g._consumos || []).forEach(c => {
+                    const linhaDC = [
+                        '↳',
+                        c.projetos?.nome || '-',
+                        `DC ${c.dc || '-'}`,
+                        ...mesesExibir.map(m => {
+                            const saldo = m === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
+                            return saldo;
+                        }),
+                        Number(c.valor || 0)
+                    ];
+                    dadosPlanilha.push(linhaDC);
+                    linhaAtual++;
+                });
+            });
+            
+            const totalGeral = grupos.reduce((acc, g) => acc + g.total, 0);
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push(['', '', '', 'TOTAL GERAL CRE:', '', '', '', totalGeral]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+        }
+
+        // =============================================
+        // 4. DASHBOARD PENDÊNCIAS
+        // =============================================
+        if (dadosPendencias && dadosPendencias.linhas && dadosPendencias.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosPendencias;
+            
+            const totalGeral = grupos.reduce((acc, g) => acc + g.total, 0);
+            
+            dadosPlanilha.push(['', '', 'DASHBOARD PENDÊNCIAS', '', '', '', '', '']);
+            linhaAtual++;
+            dadosPlanilha.push(['', '', 'Total de pendências:', '', '', '', '', totalGeral]);
+            linhaAtual++;
+            dadosPlanilha.push([]);
+            linhaAtual++;
+            
+            grupos.forEach(g => {
+                dadosPlanilha.push(['', '', `${g.gestor}:`, '', '', '', '', g.total]);
+                linhaAtual++;
+                dadosPlanilha.push([]);
+                linhaAtual++;
+                
+                const header = ['Projeto', 'Empresa', 'Gestor Logictel', 'Gestor Cliente', 'Acumulado', ...mesesExibir];
+                dadosPlanilha.push(header);
+                linhaAtual++;
+                
+                (g._consumos || []).forEach(c => {
+                    const valor = Number(c.valor || 0);
+                    const linhaDC = [
+                        c.projetos?.nome || '-',
+                        'V.tal',
+                        g.gestor,
+                        c.gestor || '-',
+                        valor,
+                        ...mesesExibir.map(m => {
+                            const saldo = m === (c.mes_medido || c.mes_apropriacao) ? valor : 0;
+                            return saldo;
+                        })
+                    ];
+                    dadosPlanilha.push(linhaDC);
+                    linhaAtual++;
+                });
+                
+                dadosPlanilha.push([]);
+                linhaAtual++;
+            });
+        }
+
+        const ws = XLSX.utils.aoa_to_sheet(dadosPlanilha);
+        
+        ws['!cols'] = [
+            { wch: 18 },
+            { wch: 15 },
+            { wch: 22 },
+            { wch: 18 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 15 }
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Relatório Completo');
+
+        const dataHoje = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(wb, `Relatorio_Completo_${dataHoje}.xlsx`);
+        
+    } catch (e) {
+        console.error('Erro ao exportar relatório:', e);
+        alert('Erro ao exportar relatório: ' + e.message);
+    }
+}
+
+// Exportar função para uso global
+window.exportarRelatorioCompleto = exportarRelatorioCompleto;
 
 // =====================================================
 // CÁLCULO DE SALDO PARA STATUS (com exclusão de CRE e Pendências)
@@ -839,7 +1072,6 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         `;
         tbody.innerHTML += html;
 
-        // Linhas de DCs (expandíveis)
         const consumos = g._consumos || [];
         if (consumos.length > 0) {
             consumos.forEach(c => {
@@ -864,7 +1096,6 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         }
     });
 
-    // Evento de clique para expandir/colapsar
     document.querySelectorAll('.cre-grupo-row').forEach(row => {
         row.onclick = function () {
             const grupoId = this.dataset.grupo;
@@ -940,7 +1171,6 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         `;
         tbody.innerHTML += html;
 
-        // Linhas de DCs (expandíveis)
         const consumos = g._consumos || [];
         if (consumos.length > 0) {
             consumos.forEach(c => {
@@ -965,7 +1195,6 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         }
     });
 
-    // Evento de clique para expandir/colapsar
     document.querySelectorAll('.pend-grupo-row').forEach(row => {
         row.onclick = function () {
             const grupoId = this.dataset.grupo;

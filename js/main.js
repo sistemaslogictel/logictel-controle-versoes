@@ -6,7 +6,7 @@ import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
 import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessivel } from './navigation.js';
 
-import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias } from './dashboards.js';
+import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias, exportarRelatorioCompleto } from './dashboards.js';
 import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
 import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed, carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed } from './medicoes.js';
@@ -46,7 +46,7 @@ Object.assign(window, {
         pend: carregarDashPendencias
     }),
     // dashboards
-    carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias,
+    carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias, exportarRelatorioCompleto,
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards,
     // consumo
