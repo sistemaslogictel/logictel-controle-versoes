@@ -555,4 +555,4 @@ export async function exportarExcel(id) {
     }
 }
 
-import { carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarStatusDCCustom } from './selects.js';a
+import { carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarStatusDCCustom } from './selects.js';
