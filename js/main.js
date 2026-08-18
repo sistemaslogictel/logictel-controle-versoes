@@ -44,48 +44,103 @@ import { initFormUsuario, editarUsuario, excluirUsuario } from './usuarios.js';
 // =====================================================
 // EXPOSIÇÃO DAS FUNÇÕES USADAS EM ATRIBUTOS onclick/onchange/oninput DO HTML
 // =====================================================
-Object.assign(window, {
-    // auth
-    fazerLogin, fazerLogout, validarSenha, gerarSenhaForte,
-    // navegação
-    mudarAba, cancelarEdicao, toggleSidebar,
-    limparFiltros: (tipo) => limparFiltros(tipo, {
-        aprop: carregarDashApropriacao,
-        don: carregarDashDON,
-        cre: carregarDashCRE,
-        pend: carregarDashPendencias
-    }),
-    // dashboards
-    carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, 
-    exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias,
-    exportarRelatorioCompleto,
-    // DC cards
-    carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards,
-    // consumo
-    carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel,
-    filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo,
-    // medições
-    editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed,
-    carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed,
-    // datas limites
-    editarDataLimite, excluirDataLimite, filtrarDatasLimites, limparFiltrosDatasLimites,
-    // tutoriais
-    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial,
-    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
-    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais,
-    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais,
-    // cadastros
-    editarEmpresa, excluirEmpresa,
-    editarDiretor, excluirDiretor,
-    editarContrato, excluirContrato,
-    editarProjeto, excluirProjeto,
-    editarGestorLogictel, excluirGestorLogictel,
-    editarStatusDC, excluirStatusDC,
-    editarStatusMed, excluirStatusMed,
-    editarStatusNF, excluirStatusNF,
-    // usuários
-    editarUsuario, excluirUsuario
+// Todas as funções que são chamadas diretamente do HTML (onclick, onchange, etc)
+// precisam estar no objeto window para serem acessíveis globalmente.
+window.fazerLogin = fazerLogin;
+window.fazerLogout = fazerLogout;
+window.validarSenha = validarSenha;
+window.gerarSenhaForte = gerarSenhaForte;
+window.mudarAba = mudarAba;
+window.cancelarEdicao = cancelarEdicao;
+window.toggleSidebar = toggleSidebar;
+window.limparFiltros = (tipo) => limparFiltros(tipo, {
+    aprop: carregarDashApropriacao,
+    don: carregarDashDON,
+    cre: carregarDashCRE,
+    pend: carregarDashPendencias
 });
+
+// Dashboards
+window.carregarDashApropriacao = carregarDashApropriacao;
+window.carregarDashDON = carregarDashDON;
+window.carregarDashCRE = carregarDashCRE;
+window.carregarDashPendencias = carregarDashPendencias;
+window.exportarExcelDON = exportarExcelDON;
+window.exportarExcelStatus = exportarExcelStatus;
+window.exportarExcelCRE = exportarExcelCRE;
+window.exportarExcelPendencias = exportarExcelPendencias;
+window.exportarRelatorioCompleto = exportarRelatorioCompleto; // <-- CORREÇÃO AQUI
+
+// DC cards
+window.carregarDCCards = carregarDCCards;
+window.irParaConsumo = irParaConsumo;
+window.irParaPaginaDC = irParaPaginaDC;
+window.filtrarDCCards = filtrarDCCards;
+window.limparFiltrosDCCards = limparFiltrosDCCards;
+window.inicializarFiltrosDCCards = inicializarFiltrosDCCards;
+
+// Consumo
+window.carregarGestoresPorProjeto = carregarGestoresPorProjeto;
+window.controlarCamposNF = controlarCamposNF;
+window.initFormConsumo = initFormConsumo;
+window.editarConsumo = editarConsumo;
+window.excluirConsumo = excluirConsumo;
+window.exportarExcel = exportarExcel;
+window.filtrarConsumos = filtrarConsumos;
+window.limparFiltrosConsumo = limparFiltrosConsumo;
+window.irParaPaginaConsumo = irParaPaginaConsumo;
+
+// Medições
+window.editarMedicao = editarMedicao;
+window.excluirMedicao = excluirMedicao;
+window.filtrarMedicoes = filtrarMedicoes;
+window.limparFiltrosMedicoes = limparFiltrosMedicoes;
+window.irParaPaginaMed = irParaPaginaMed;
+window.carregarHistoricoMedicoes = carregarHistoricoMedicoes;
+window.filtrarHistoricoMedicoes = filtrarHistoricoMedicoes;
+window.limparFiltrosHistoricoMedicoes = limparFiltrosHistoricoMedicoes;
+window.irParaPaginaHistMed = irParaPaginaHistMed;
+
+// Datas Limites
+window.editarDataLimite = editarDataLimite;
+window.excluirDataLimite = excluirDataLimite;
+window.filtrarDatasLimites = filtrarDatasLimites;
+window.limparFiltrosDatasLimites = limparFiltrosDatasLimites;
+
+// Tutoriais
+window.carregarTutoriais = carregarTutoriais;
+window.initFormTutorial = initFormTutorial;
+window.editarTutorial = editarTutorial;
+window.excluirTutorial = excluirTutorial;
+window.filtrarTutoriais = filtrarTutoriais;
+window.limparFiltrosTutoriais = limparFiltrosTutoriais;
+window.irParaPaginaTutorial = irParaPaginaTutorial;
+window.carregarTutoriaisVisualizar = carregarTutoriaisVisualizar;
+window.filtrarVisualizarTutoriais = filtrarVisualizarTutoriais;
+window.limparFiltrosVisualizarTutoriais = limparFiltrosVisualizarTutoriais;
+window.irParaPaginaVisualizarTutoriais = irParaPaginaVisualizarTutoriais;
+
+// Cadastros
+window.editarEmpresa = editarEmpresa;
+window.excluirEmpresa = excluirEmpresa;
+window.editarDiretor = editarDiretor;
+window.excluirDiretor = excluirDiretor;
+window.editarContrato = editarContrato;
+window.excluirContrato = excluirContrato;
+window.editarProjeto = editarProjeto;
+window.excluirProjeto = excluirProjeto;
+window.editarGestorLogictel = editarGestorLogictel;
+window.excluirGestorLogictel = excluirGestorLogictel;
+window.editarStatusDC = editarStatusDC;
+window.excluirStatusDC = excluirStatusDC;
+window.editarStatusMed = editarStatusMed;
+window.excluirStatusMed = excluirStatusMed;
+window.editarStatusNF = editarStatusNF;
+window.excluirStatusNF = excluirStatusNF;
+
+// Usuários
+window.editarUsuario = editarUsuario;
+window.excluirUsuario = excluirUsuario;
 
 function initFormListeners() {
     initFormMedicao();
