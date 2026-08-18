@@ -236,36 +236,295 @@ export function exportarRelatorioCompleto() {
             return;
         }
 
-        const wb = XLSX.utils.book_new();
+        // Usar XLSXStyle para suporte a cores
+        const XLSXStyle = window.XLSXStyle || window.XLSX;
+        const wb = XLSXStyle.utils.book_new();
 
         // =====================================================
-        // ABA 1: Pendências (formato da imagem)
+        // ABA 1: DON (Cor #D9D9D9)
+        // =====================================================
+        if (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) {
+            const { projetos, mesesExibir } = dadosDON;
+            
+            // Calcular total geral
+            let totalGeral = 0;
+            projetos.forEach(proj => { totalGeral += proj.total; });
+            
+            // Montar dados da planilha
+            const wsData = [];
+            
+            // Linha 1: Total DON
+            wsData.push(['Total DON:', totalGeral]);
+            wsData.push([]); // Linha em branco
+            
+            // Para cada projeto
+            projetos.forEach(proj => {
+                // Linha do projeto (com fundo #D9D9D9)
+                const projLinha = [proj.projeto, '', '', ''];
+                mesesExibir.forEach(mes => {
+                    const saldo = proj.meses[mes]?.saldo ?? 0;
+                    projLinha.push(saldo);
+                });
+                projLinha.push(proj.total);
+                wsData.push(projLinha);
+                
+                // Linhas dos diretores
+                Object.values(proj.diretores)
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                    .forEach(dir => {
+                        const dirLinha = ['', dir.nome, '', ''];
+                        mesesExibir.forEach(mes => {
+                            const saldo = dir.meses[mes]?.saldo ?? 0;
+                            dirLinha.push(saldo);
+                        });
+                        dirLinha.push(dir.total);
+                        wsData.push(dirLinha);
+                    });
+                
+                wsData.push([]); // Linha em branco após cada projeto
+            });
+            
+            // Criar a planilha
+            const ws = XLSXStyle.utils.aoa_to_sheet(wsData);
+            
+            // Definir larguras das colunas
+            const numCols = 4 + mesesExibir.length + 1; // 4 colunas fixas + meses + total
+            const colWidths = [18, 22, 18, 8];
+            mesesExibir.forEach(() => colWidths.push(14));
+            colWidths.push(16);
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            // Aplicar estilos usando xlsx-style
+            try {
+                // Estilo para cabeçalho (cinza #D9D9D9)
+                const headerStyle = {
+                    fill: { fgColor: { rgb: "D9D9D9" } },
+                    font: { bold: true, color: { rgb: "000000" } },
+                    alignment: { horizontal: 'center', vertical: 'center' }
+                };
+                
+                // Aplicar estilo ao cabeçalho (linha 2)
+                let rowIdx = 2; // Após "Total DON:" + linha em branco
+                
+                projetos.forEach(proj => {
+                    // Aplicar estilo cinza a todas as células do cabeçalho
+                    for (let c = 0; c < numCols; c++) {
+                        const cellRef = XLSXStyle.utils.encode_cell({ r: rowIdx, c: c });
+                        if (ws[cellRef]) {
+                            ws[cellRef].s = headerStyle;
+                        }
+                    }
+                    
+                    // Avançar para a linha do projeto + diretores + linha em branco
+                    const numDiretores = Object.values(proj.diretores).length;
+                    rowIdx += 1 + numDiretores + 1; // projeto + diretores + linha em branco
+                });
+                
+                // Aplicar cores aos valores negativos em todas as linhas
+                for (let r = 0; r < wsData.length; r++) {
+                    for (let c = 4; c < numCols; c++) { // A partir da coluna dos meses (índice 4)
+                        const cellRef = XLSXStyle.utils.encode_cell({ r: r, c: c });
+                        if (ws[cellRef]) {
+                            const valor = ws[cellRef].v;
+                            if (typeof valor === 'number') {
+                                if (valor < 0) {
+                                    ws[cellRef].s = { font: { color: { rgb: "FF0000" } } };
+                                } else if (valor > 0) {
+                                    ws[cellRef].s = { font: { color: { rgb: "000000" } } };
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Mesclar células para o Projeto
+                let mergeRow = 2; // Começa após "Total DON:" + linha em branco
+                projetos.forEach(proj => {
+                    const numDiretores = Object.values(proj.diretores).length;
+                    const totalRows = 1 + numDiretores; // 1 linha do projeto + diretores
+                    
+                    if (totalRows > 1) {
+                        // Mesclar coluna A (Projeto)
+                        ws['!merges'] = ws['!merges'] || [];
+                        ws['!merges'].push({
+                            s: { r: mergeRow, c: 0 },
+                            e: { r: mergeRow + totalRows - 1, c: 0 }
+                        });
+                    }
+                    
+                    mergeRow += totalRows + 1; // +1 para linha em branco
+                });
+                
+            } catch (e) {
+                console.warn('Erro ao aplicar estilos (xlsx-style pode não estar disponível):', e);
+            }
+            
+            XLSXStyle.utils.book_append_sheet(wb, ws, 'DON');
+        }
+
+        // =====================================================
+        // ABA 2: Status
+        // =====================================================
+        if (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosStatus;
+            
+            let totalGeral = 0;
+            grupos.forEach(g => { totalGeral += g.total; });
+            
+            const wsData = [];
+            wsData.push(['Total Status:', totalGeral]);
+            wsData.push([]);
+            
+            const headers = ['Gestão', 'Projeto', '', ...mesesExibir, 'Acumulado'];
+            wsData.push(headers);
+            
+            grupos.forEach(g => {
+                const linha = [g.gestor, g.projeto, ''];
+                mesesExibir.forEach(mes => {
+                    const saldo = g.meses[mes]?.saldo ?? 0;
+                    linha.push(saldo);
+                });
+                linha.push(g.total);
+                wsData.push(linha);
+            });
+            
+            const ws = XLSXStyle.utils.aoa_to_sheet(wsData);
+            const numCols = 3 + mesesExibir.length + 1;
+            const colWidths = [18, 18, 8];
+            mesesExibir.forEach(() => colWidths.push(14));
+            colWidths.push(16);
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            try {
+                const headerStyle = {
+                    fill: { fgColor: { rgb: "D9D9D9" } },
+                    font: { bold: true, color: { rgb: "000000" } },
+                    alignment: { horizontal: 'center', vertical: 'center' }
+                };
+                
+                // Cabeçalho na linha 2
+                for (let c = 0; c < numCols; c++) {
+                    const cellRef = XLSXStyle.utils.encode_cell({ r: 2, c: c });
+                    if (ws[cellRef]) {
+                        ws[cellRef].s = headerStyle;
+                    }
+                }
+                
+                // Valores negativos
+                for (let r = 0; r < wsData.length; r++) {
+                    for (let c = 3; c < numCols; c++) {
+                        const cellRef = XLSXStyle.utils.encode_cell({ r: r, c: c });
+                        if (ws[cellRef]) {
+                            const valor = ws[cellRef].v;
+                            if (typeof valor === 'number' && valor < 0) {
+                                ws[cellRef].s = { font: { color: { rgb: "FF0000" } } };
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+            
+            XLSXStyle.utils.book_append_sheet(wb, ws, 'Status');
+        }
+
+        // =====================================================
+        // ABA 3: CRE
+        // =====================================================
+        if (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosCRE;
+            
+            let totalGeral = 0;
+            grupos.forEach(g => { totalGeral += g.total; });
+            
+            const wsData = [];
+            wsData.push(['Total Tramitando CRE:', totalGeral]);
+            wsData.push([]);
+            
+            const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Acumulado'];
+            wsData.push(headers);
+            
+            grupos.forEach(g => {
+                const linha = [g.gestor, g.projeto, ''];
+                mesesExibir.forEach(mes => {
+                    const saldo = g.meses[mes]?.saldo ?? 0;
+                    linha.push(saldo);
+                });
+                linha.push(g.total);
+                wsData.push(linha);
+                
+                (g._consumos || []).forEach(c => {
+                    const dcLinha = ['', c.projetos?.nome || '-', `DC ${c.dc || '-'}`];
+                    mesesExibir.forEach(mes => {
+                        const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
+                        dcLinha.push(saldo);
+                    });
+                    dcLinha.push(Number(c.valor || 0));
+                    wsData.push(dcLinha);
+                });
+            });
+            
+            const ws = XLSXStyle.utils.aoa_to_sheet(wsData);
+            const numCols = 3 + mesesExibir.length + 1;
+            const colWidths = [18, 18, 12];
+            mesesExibir.forEach(() => colWidths.push(14));
+            colWidths.push(16);
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            try {
+                const headerStyle = {
+                    fill: { fgColor: { rgb: "D9D9D9" } },
+                    font: { bold: true, color: { rgb: "000000" } },
+                    alignment: { horizontal: 'center', vertical: 'center' }
+                };
+                
+                for (let c = 0; c < numCols; c++) {
+                    const cellRef = XLSXStyle.utils.encode_cell({ r: 2, c: c });
+                    if (ws[cellRef]) {
+                        ws[cellRef].s = headerStyle;
+                    }
+                }
+                
+                for (let r = 0; r < wsData.length; r++) {
+                    for (let c = 3; c < numCols; c++) {
+                        const cellRef = XLSXStyle.utils.encode_cell({ r: r, c: c });
+                        if (ws[cellRef]) {
+                            const valor = ws[cellRef].v;
+                            if (typeof valor === 'number' && valor < 0) {
+                                ws[cellRef].s = { font: { color: { rgb: "FF0000" } } };
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+            
+            XLSXStyle.utils.book_append_sheet(wb, ws, 'CRE');
+        }
+
+        // =====================================================
+        // ABA 4: Pendências (formato da imagem)
         // =====================================================
         if (dadosPendencias && dadosPendencias.linhas && dadosPendencias.linhas.length > 0) {
             const { linhas: grupos, mesesExibir } = dadosPendencias;
             
-            // Calcular total geral
             let totalGeral = 0;
             grupos.forEach(g => { totalGeral += g.total; });
             
-            // Montar dados da planilha
-            const linhas = [];
+            const wsData = [];
             
-            // Linha 1: Total de pendências
-            linhas.push(['Total de pendências:', totalGeral]);
-            linhas.push([]); // Linha em branco
+            // Total de pendências
+            wsData.push(['Total de pendências:', totalGeral]);
+            wsData.push([]);
             
-            // Para cada grupo (gestor)
             grupos.forEach(g => {
-                // Linha do gestor
-                linhas.push([`${g.gestor}:`, g.total]);
-                linhas.push([]); // Linha em branco antes da tabela
+                // Nome do gestor
+                wsData.push([`${g.gestor}:`, g.total]);
+                wsData.push([]);
                 
-                // Cabeçalho da tabela
+                // Cabeçalho
                 const headers = ['Projeto', 'Empresa', 'Gestor_Logictel', 'Gestor_Cliente', 'Acumulado', ...mesesExibir];
-                linhas.push(headers);
+                wsData.push(headers);
                 
-                // Dados do gestor - agrupar por projeto
+                // Dados - agrupar por projeto
                 const consumosPorProjeto = {};
                 (g._consumos || []).forEach(c => {
                     const projetoNome = c.projetos?.nome || 'N/A';
@@ -279,28 +538,27 @@ export function exportarRelatorioCompleto() {
                     consumosPorProjeto[projetoNome].consumos.push(c);
                 });
                 
-                // Para cada projeto, gerar linhas
-                Object.keys(consumosPorProjeto).forEach((projetoNome, idx) => {
+                Object.keys(consumosPorProjeto).forEach((projetoNome) => {
                     const grupo = consumosPorProjeto[projetoNome];
                     
                     grupo.consumos.forEach((c, cIdx) => {
                         const linha = [];
                         
-                        // Projeto (só na primeira linha do grupo)
+                        // Projeto (só na primeira linha)
                         if (cIdx === 0) {
                             linha.push(projetoNome);
                         } else {
                             linha.push('');
                         }
                         
-                        // Empresa (só na primeira linha do grupo)
+                        // Empresa (só na primeira linha)
                         if (cIdx === 0) {
                             linha.push(grupo.empresa);
                         } else {
                             linha.push('');
                         }
                         
-                        // Gestor_Logictel (só na primeira linha do grupo)
+                        // Gestor_Logictel (só na primeira linha)
                         if (cIdx === 0) {
                             linha.push(grupo.gestor_logictel);
                         } else {
@@ -310,7 +568,7 @@ export function exportarRelatorioCompleto() {
                         // Gestor_Cliente
                         linha.push(c.diretores?.nome || '');
                         
-                        // Acumulado (total do consumo)
+                        // Acumulado
                         const valor = Number(c.valor || 0);
                         linha.push(valor);
                         
@@ -320,350 +578,92 @@ export function exportarRelatorioCompleto() {
                             linha.push(saldo);
                         });
                         
-                        linhas.push(linha);
+                        wsData.push(linha);
                     });
                 });
                 
-                // Linha em branco após a tabela
-                linhas.push([]);
+                wsData.push([]);
             });
             
-            // Criar a planilha
-            const ws = XLSX.utils.aoa_to_sheet(linhas);
-            
-            // Definir larguras das colunas
-            const colWidths = [18, 18, 18, 25, 14];
+            const ws = XLSXStyle.utils.aoa_to_sheet(wsData);
+            const numCols = 4 + mesesExibir.length + 1;
+            const colWidths = [18, 22, 18, 25, 14];
             mesesExibir.forEach(() => colWidths.push(14));
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
             
-            // Mesclar células para projeto, empresa e gestor
-            const merges = [];
-            let rowIdx = 0;
-            
-            // Pular linha de total e linha em branco
-            rowIdx = 2; // Começa após "Total de pendências:" + 1 linha em branco
-            
-            grupos.forEach(g => {
-                // Pular linha do gestor + linha em branco
-                rowIdx += 2; // Nome do gestor + linha em branco
-                
-                // Pular cabeçalho
-                rowIdx += 1;
-                
-                // Contar quantas linhas tem este gestor
-                let countLinhas = (g._consumos || []).length;
-                
-                // Se tiver consumos, mesclar as células
-                if (countLinhas > 0) {
-                    // Mesclar Projeto (coluna A)
-                    merges.push({ s: { r: rowIdx, c: 0 }, e: { r: rowIdx + countLinhas - 1, c: 0 } });
-                    // Mesclar Empresa (coluna B)
-                    merges.push({ s: { r: rowIdx, c: 1 }, e: { r: rowIdx + countLinhas - 1, c: 1 } });
-                    // Mesclar Gestor_Logictel (coluna C)
-                    merges.push({ s: { r: rowIdx, c: 2 }, e: { r: rowIdx + countLinhas - 1, c: 2 } });
-                }
-                
-                rowIdx += countLinhas;
-                rowIdx += 1; // Linha em branco após a tabela
-            });
-            
-            ws['!merges'] = merges;
-            
-            // Aplicar cores e estilos
             try {
-                // Cabeçalho - fundo cinza #D9D9D9
-                let headerRow = 0;
-                let currentRow = 0;
+                const headerStyle = {
+                    fill: { fgColor: { rgb: "D9D9D9" } },
+                    font: { bold: true, color: { rgb: "000000" } },
+                    alignment: { horizontal: 'center', vertical: 'center' }
+                };
                 
-                // Pular linha de total e linha em branco
-                currentRow = 2; // "Total de pendências:" + linha em branco
+                // Aplicar cabeçalho a cada tabela
+                let rowIdx = 2; // Total + linha em branco
                 
                 grupos.forEach(g => {
                     // Pular linha do gestor + linha em branco
-                    currentRow += 2; // Nome do gestor + linha em branco
+                    rowIdx += 2;
                     
                     // Esta é a linha do cabeçalho
-                    headerRow = currentRow;
-                    
-                    // Aplicar estilo ao cabeçalho
-                    const numCols = 4 + mesesExibir.length;
                     for (let c = 0; c < numCols; c++) {
-                        const cellRef = XLSX.utils.encode_cell({ r: headerRow, c: c });
-                        if (!ws[cellRef]) continue;
-                        if (!ws[cellRef].s) ws[cellRef].s = {};
-                        ws[cellRef].s.fill = { fgColor: { rgb: "D9D9D9" } };
-                        ws[cellRef].s.font = { bold: true, color: { rgb: "000000" } };
-                        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+                        const cellRef = XLSXStyle.utils.encode_cell({ r: rowIdx, c: c });
+                        if (ws[cellRef]) {
+                            ws[cellRef].s = headerStyle;
+                        }
                     }
                     
                     // Pular cabeçalho + dados + linha em branco
-                    currentRow += 1 + (g._consumos || []).length + 1;
+                    const numLinhas = (g._consumos || []).length;
+                    rowIdx += 1 + numLinhas + 1;
                 });
                 
-                // Aplicar cores aos valores negativos (vermelho)
-                const totalLinhas = linhas.length;
-                for (let r = 0; r < totalLinhas; r++) {
-                    for (let c = 4; c < 4 + mesesExibir.length + 1; c++) { // A partir da coluna Acumulado
-                        const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
-                        if (!ws[cellRef]) continue;
-                        const valor = ws[cellRef].v;
-                        if (typeof valor === 'number' && valor < 0) {
-                            if (!ws[cellRef].s) ws[cellRef].s = {};
-                            ws[cellRef].s.font = { color: { rgb: "FF0000" } };
-                        }
-                    }
-                }
-            } catch (e) {
-                // Se não tiver xlsx-style, ignora estilos
-                console.warn('Estilos não aplicados (xlsx-style não disponível)');
-            }
-            
-            XLSX.utils.book_append_sheet(wb, ws, 'Pendencias');
-        }
-
-        // =====================================================
-        // ABA 2: DON
-        // =====================================================
-        if (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) {
-            const { projetos, mesesExibir } = dadosDON;
-            
-            let totalGeral = 0;
-            projetos.forEach(proj => { totalGeral += proj.total; });
-            
-            const linhas = [];
-            linhas.push(['Total DON:', totalGeral]);
-            linhas.push([]);
-            
-            projetos.forEach(proj => {
-                linhas.push([`${proj.projeto}:`, proj.total]);
-                linhas.push([]);
+                // Mesclar células para Projeto, Empresa e Gestor_Logictel
+                const merges = [];
+                let mergeRow = 2; // Total + linha em branco
                 
-                const headers = ['Projeto', 'Diretor', '', ...mesesExibir, 'Acumulado'];
-                linhas.push(headers);
-                
-                // Linha do projeto
-                const projLinha = [proj.projeto, '', ''];
-                mesesExibir.forEach(mes => {
-                    const saldo = proj.meses[mes]?.saldo ?? 0;
-                    projLinha.push(saldo);
-                });
-                projLinha.push(proj.total);
-                linhas.push(projLinha);
-                
-                // Linhas dos diretores
-                Object.values(proj.diretores)
-                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
-                    .forEach(dir => {
-                        const dirLinha = ['', dir.nome, ''];
-                        mesesExibir.forEach(mes => {
-                            const saldo = dir.meses[mes]?.saldo ?? 0;
-                            dirLinha.push(saldo);
-                        });
-                        dirLinha.push(dir.total);
-                        linhas.push(dirLinha);
-                    });
-                
-                linhas.push([]);
-            });
-            
-            const ws = XLSX.utils.aoa_to_sheet(linhas);
-            const colWidths = [18, 18, 8];
-            mesesExibir.forEach(() => colWidths.push(14));
-            colWidths.push(16);
-            ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
-            // Mesclar células do projeto
-            const merges = [];
-            let rowIdx = 3; // Após total + linha em branco
-            
-            projetos.forEach(proj => {
-                const numDiretores = Object.values(proj.diretores).length;
-                const totalRows = 1 + numDiretores; // 1 linha do projeto + diretores
-                
-                // Mesclar Projeto (coluna A) - linha do projeto + diretores
-                merges.push({ s: { r: rowIdx, c: 0 }, e: { r: rowIdx + totalRows - 1, c: 0 } });
-                
-                rowIdx += totalRows + 2; // +2 para cabeçalho e linha em branco
-            });
-            
-            ws['!merges'] = merges;
-            
-            // Estilos
-            try {
-                // Cabeçalho - fundo cinza #D9D9D9
-                let headerRow = 3;
-                projetos.forEach(proj => {
-                    // Aplicar estilo ao cabeçalho
-                    const numCols = 3 + mesesExibir.length + 1;
-                    for (let c = 0; c < numCols; c++) {
-                        const cellRef = XLSX.utils.encode_cell({ r: headerRow, c: c });
-                        if (!ws[cellRef]) continue;
-                        if (!ws[cellRef].s) ws[cellRef].s = {};
-                        ws[cellRef].s.fill = { fgColor: { rgb: "D9D9D9" } };
-                        ws[cellRef].s.font = { bold: true, color: { rgb: "000000" } };
-                        ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
+                grupos.forEach(g => {
+                    mergeRow += 2; // Nome do gestor + linha em branco
+                    mergeRow += 1; // Cabeçalho
+                    
+                    const numLinhas = (g._consumos || []).length;
+                    if (numLinhas > 0) {
+                        // Mesclar Projeto (coluna A)
+                        merges.push({ s: { r: mergeRow, c: 0 }, e: { r: mergeRow + numLinhas - 1, c: 0 } });
+                        // Mesclar Empresa (coluna B)
+                        merges.push({ s: { r: mergeRow, c: 1 }, e: { r: mergeRow + numLinhas - 1, c: 1 } });
+                        // Mesclar Gestor_Logictel (coluna C)
+                        merges.push({ s: { r: mergeRow, c: 2 }, e: { r: mergeRow + numLinhas - 1, c: 2 } });
                     }
                     
-                    const numDiretores = Object.values(proj.diretores).length;
-                    headerRow += 1 + numDiretores + 2; // +1 cabeçalho + diretores + 2 linhas em branco
+                    mergeRow += numLinhas + 1;
                 });
                 
-                // Valores negativos
-                for (let r = 0; r < linhas.length; r++) {
-                    for (let c = 3; c < 3 + mesesExibir.length + 1; c++) {
-                        const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
-                        if (!ws[cellRef]) continue;
-                        const valor = ws[cellRef].v;
-                        if (typeof valor === 'number' && valor < 0) {
-                            if (!ws[cellRef].s) ws[cellRef].s = {};
-                            ws[cellRef].s.font = { color: { rgb: "FF0000" } };
+                ws['!merges'] = merges;
+                
+                // Valores negativos em vermelho
+                for (let r = 0; r < wsData.length; r++) {
+                    for (let c = 4; c < numCols; c++) {
+                        const cellRef = XLSXStyle.utils.encode_cell({ r: r, c: c });
+                        if (ws[cellRef]) {
+                            const valor = ws[cellRef].v;
+                            if (typeof valor === 'number' && valor < 0) {
+                                ws[cellRef].s = { font: { color: { rgb: "FF0000" } } };
+                            }
                         }
                     }
                 }
-            } catch (e) {}
-            
-            XLSX.utils.book_append_sheet(wb, ws, 'DON');
-        }
-
-        // =====================================================
-        // ABA 3: Status
-        // =====================================================
-        if (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) {
-            const { linhas: grupos, mesesExibir } = dadosStatus;
-            
-            let totalGeral = 0;
-            grupos.forEach(g => { totalGeral += g.total; });
-            
-            const linhas = [];
-            linhas.push(['Total Status:', totalGeral]);
-            linhas.push([]);
-            
-            const headers = ['Gestão', 'Projeto', '', ...mesesExibir, 'Acumulado'];
-            linhas.push(headers);
-            
-            grupos.forEach(g => {
-                const linha = [g.gestor, g.projeto, ''];
-                mesesExibir.forEach(mes => {
-                    const saldo = g.meses[mes]?.saldo ?? 0;
-                    linha.push(saldo);
-                });
-                linha.push(g.total);
-                linhas.push(linha);
-            });
-            
-            const ws = XLSX.utils.aoa_to_sheet(linhas);
-            const colWidths = [18, 18, 8];
-            mesesExibir.forEach(() => colWidths.push(14));
-            colWidths.push(16);
-            ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
-            // Estilos
-            try {
-                // Cabeçalho
-                const headerRow = 2;
-                const numCols = 3 + mesesExibir.length + 1;
-                for (let c = 0; c < numCols; c++) {
-                    const cellRef = XLSX.utils.encode_cell({ r: headerRow, c: c });
-                    if (!ws[cellRef]) continue;
-                    if (!ws[cellRef].s) ws[cellRef].s = {};
-                    ws[cellRef].s.fill = { fgColor: { rgb: "D9D9D9" } };
-                    ws[cellRef].s.font = { bold: true, color: { rgb: "000000" } };
-                    ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
-                }
                 
-                // Valores negativos
-                for (let r = 0; r < linhas.length; r++) {
-                    for (let c = 3; c < numCols; c++) {
-                        const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
-                        if (!ws[cellRef]) continue;
-                        const valor = ws[cellRef].v;
-                        if (typeof valor === 'number' && valor < 0) {
-                            if (!ws[cellRef].s) ws[cellRef].s = {};
-                            ws[cellRef].s.font = { color: { rgb: "FF0000" } };
-                        }
-                    }
-                }
-            } catch (e) {}
+            } catch (e) {
+                console.warn('Erro ao aplicar estilos:', e);
+            }
             
-            XLSX.utils.book_append_sheet(wb, ws, 'Status');
-        }
-
-        // =====================================================
-        // ABA 4: CRE
-        // =====================================================
-        if (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) {
-            const { linhas: grupos, mesesExibir } = dadosCRE;
-            
-            let totalGeral = 0;
-            grupos.forEach(g => { totalGeral += g.total; });
-            
-            const linhas = [];
-            linhas.push(['Total Tramitando CRE:', totalGeral]);
-            linhas.push([]);
-            
-            const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Acumulado'];
-            linhas.push(headers);
-            
-            grupos.forEach(g => {
-                const linha = [g.gestor, g.projeto, ''];
-                mesesExibir.forEach(mes => {
-                    const saldo = g.meses[mes]?.saldo ?? 0;
-                    linha.push(saldo);
-                });
-                linha.push(g.total);
-                linhas.push(linha);
-                
-                (g._consumos || []).forEach(c => {
-                    const dcLinha = ['', c.projetos?.nome || '-', `DC ${c.dc || '-'}`];
-                    mesesExibir.forEach(mes => {
-                        const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
-                        dcLinha.push(saldo);
-                    });
-                    dcLinha.push(Number(c.valor || 0));
-                    linhas.push(dcLinha);
-                });
-            });
-            
-            const ws = XLSX.utils.aoa_to_sheet(linhas);
-            const colWidths = [18, 18, 12];
-            mesesExibir.forEach(() => colWidths.push(14));
-            colWidths.push(16);
-            ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
-            // Estilos
-            try {
-                // Cabeçalho
-                const headerRow = 2;
-                const numCols = 3 + mesesExibir.length + 1;
-                for (let c = 0; c < numCols; c++) {
-                    const cellRef = XLSX.utils.encode_cell({ r: headerRow, c: c });
-                    if (!ws[cellRef]) continue;
-                    if (!ws[cellRef].s) ws[cellRef].s = {};
-                    ws[cellRef].s.fill = { fgColor: { rgb: "D9D9D9" } };
-                    ws[cellRef].s.font = { bold: true, color: { rgb: "000000" } };
-                    ws[cellRef].s.alignment = { horizontal: 'center', vertical: 'center' };
-                }
-                
-                // Valores negativos
-                for (let r = 0; r < linhas.length; r++) {
-                    for (let c = 3; c < numCols; c++) {
-                        const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
-                        if (!ws[cellRef]) continue;
-                        const valor = ws[cellRef].v;
-                        if (typeof valor === 'number' && valor < 0) {
-                            if (!ws[cellRef].s) ws[cellRef].s = {};
-                            ws[cellRef].s.font = { color: { rgb: "FF0000" } };
-                        }
-                    }
-                }
-            } catch (e) {}
-            
-            XLSX.utils.book_append_sheet(wb, ws, 'CRE');
+            XLSXStyle.utils.book_append_sheet(wb, ws, 'Pendencias');
         }
 
         // Salvar o arquivo
         const dataHoje = new Date().toISOString().slice(0, 10);
-        XLSX.writeFile(wb, `Relatorio_Dashboards_${dataHoje}.xlsx`);
+        XLSXStyle.writeFile(wb, `Relatorio_Dashboards_${dataHoje}.xlsx`);
 
     } catch (e) {
         console.error('Erro ao exportar relatório:', e);
