@@ -1271,7 +1271,7 @@ nav.sidenav{
 .theme-pendencias .total-geral-stat {
   border-right: 1px solid rgba(139, 0, 0, 0.15);
 }
-/* Adicione no final do arquivo styles.css */
+/* Estilo do botão de relatório */
 .btn-report {
   background: #6C757D;
   color: #fff;
