@@ -3,10 +3,24 @@ import { temPermissao } from './session.js';
 import { aplicarMascaras, initFlyouts } from './utils.js';
 import { setPermissoes } from './usuarios.js';
 import { 
-    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial, 
-    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
-    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais, 
-    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais
+    carregarPaginasTutoriais, 
+    initFormPaginaTutorial, 
+    editarPaginaTutorial, 
+    excluirPaginaTutorial,
+    filtrarPaginasTutoriais,
+    limparFiltrosPaginasTutoriais,
+    irParaPaginaPaginaTutorial,
+    carregarSecoesPagina,
+    initFormSecaoTutorial,
+    editarSecaoTutorial,
+    excluirSecaoTutorial,
+    cancelarEdicaoSecao,
+    cancelarEdicaoPaginaTutorial,
+    fecharGerenciadorSecoes,
+    carregarPaginasVisualizar,
+    filtrarVisualizarTutoriais,
+    limparFiltrosVisualizarTutoriais,
+    irParaPaginaVisualizarTutoriais
 } from './tutoriais.js';
 
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias } from './dashboards.js';
@@ -44,7 +58,7 @@ export function gerarMenu(permissoes) {
             { id: 'historico-consumo-dcs', label: 'Histórico Consumo das DCs', area: 'consumos' },
             { id: 'dcs', label: 'DC\'s', area: 'dcs' }
         ]},
-        { id: 'tutoriais', label: 'Tutoriais', icon: 'tutoriais', area: 'tutoriais', type: 'flyout', children: [
+        { id: 'tutoriais', label: 'Tutoriais', icon: 'tutoriais', area: 'tutoriais-visualizar', type: 'flyout', children: [
             { id: 'tutoriais-visualizar', label: 'Visualizar Tutoriais', area: 'tutoriais-visualizar' },
             { id: 'tutoriais-gerenciar', label: 'Gerenciar Tutoriais', area: 'tutoriais-gerenciar' }
         ]},
@@ -262,10 +276,10 @@ export async function carregarDadosAba(nomeAba) {
         carregarSelectProjetos('filt-dcs-projeto');
     }
     else if (nomeAba === 'tutoriais-visualizar') {
-        carregarTutoriaisVisualizar();
+        carregarPaginasVisualizar();
     }
     else if (nomeAba === 'tutoriais-gerenciar') {
-        carregarTutoriais();
+        carregarPaginasTutoriais();
     }
     else if (nomeAba === 'adm-user') carregarUsuarios();
     else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
@@ -303,8 +317,8 @@ export function carregarTodasListas() {
     carregarStatusMed();
     carregarStatusNF();
     carregarDatasLimites();
-    carregarTutoriais();
-    carregarTutoriaisVisualizar();
+    carregarPaginasTutoriais();
+    carregarPaginasVisualizar();
     carregarSelectEmpresas('contrato-empresa');
     carregarSelectEmpresas('projeto-empresa');
     carregarSelectEmpresas('diretor-empresa');
@@ -360,8 +374,7 @@ export function cancelarEdicao(tipo) {
         'statusdc': 'statusdc',
         'statusmed': 'statusmed',
         'statusnf': 'statusnf',
-        'datalimite': 'datalimite',
-        'tutorial': 'tutorial'
+        'datalimite': 'datalimite'
     };
     const prefixo = prefixos[tipo] || tipo;
     document.getElementById(prefixo + '-edit-id').value = '';

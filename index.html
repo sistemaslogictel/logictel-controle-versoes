@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.23.5 - Controle de Medições e DCs - Logictel</title>
+<title>V.23.6 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -394,22 +394,107 @@
       <div id="consumo-pagination"></div>
     </div>
 
-    <!-- ===================== VISUALIZAR TUTORIAIS ===================== -->
-    <div id="tab-tutoriais-visualizar" class="tab-content space-y-6">
-      <div id="header-tutoriais-visualizar"></div>
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group">
-          <label class="filter-label">Buscar por Título</label>
-          <input type="text" id="filt-tutorial-visualizar-titulo" placeholder="Digite para buscar..." class="input" oninput="filtrarVisualizarTutoriais()">
+<!-- ===================== VISUALIZAR TUTORIAIS ===================== -->
+<div id="tab-tutoriais-visualizar" class="tab-content space-y-6">
+  <div id="header-tutoriais-visualizar"></div>
+  <div class="filters-section-title">🔍 Filtros</div>
+  <div class="filters-bar-grid">
+    <div class="filter-group">
+      <label class="filter-label">Buscar por Título</label>
+      <input type="text" id="filt-tutorial-visualizar-titulo" placeholder="Digite para buscar..." class="input" oninput="filtrarVisualizarTutoriais()">
+    </div>
+    <div class="filter-group filter-actions">
+      <button onclick="filtrarVisualizarTutoriais()" class="btn-primary">Filtrar</button>
+      <button onclick="limparFiltrosVisualizarTutoriais()" class="btn-clear-filters">Limpar</button>
+    </div>
+  </div>
+  <div class="dc-cards-grid" id="tutoriais-paginas-container"><div class="p-6 text-center" style="color:var(--text-soft)">Carregando tutoriais...</div></div>
+  <div id="tutoriais-visualizar-pagination"></div>
+</div>
+
+    <!-- ===================== GERENCIAR TUTORIAIS ===================== -->
+    <div id="tab-tutoriais-gerenciar" class="tab-content space-y-4">
+      <div id="header-tutoriais-gerenciar"></div>
+      
+      <!-- Formulário de Página -->
+      <div class="card card-pad">
+        <h3 style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:12px;">📄 Gerenciar Páginas</h3>
+        <form id="form-pagina-tutorial" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input type="hidden" id="pagina-edit-id" value="">
+          <div>
+            <label class="label">Título da Página *</label>
+            <input type="text" id="pagina-titulo" required placeholder="Ex: CADASTRANDO MEDIÇÃO" class="input">
+          </div>
+          <div>
+            <label class="label">Ordem</label>
+            <input type="number" id="pagina-ordem" placeholder="0" class="input" value="0">
+          </div>
+          <div class="flex items-end gap-2">
+            <button type="button" onclick="cancelarEdicaoPaginaTutorial()" class="btn-cancel" style="display:none;" id="pagina-cancel-btn">Cancelar</button>
+            <button type="submit" class="btn-primary w-full">Salvar Página</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista de Páginas -->
+      <div class="card">
+        <div class="filters-bar-grid" style="margin-bottom:12px;">
+          <div class="filter-group">
+            <label class="filter-label">Filtrar Páginas</label>
+            <input type="text" id="filt-pagina-titulo" placeholder="Digite para buscar..." class="input" oninput="filtrarPaginasTutoriais()">
+          </div>
+          <div class="filter-group filter-actions">
+            <button onclick="filtrarPaginasTutoriais()" class="btn-primary">Filtrar</button>
+            <button onclick="limparFiltrosPaginasTutoriais()" class="btn-clear-filters">Limpar</button>
+          </div>
         </div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarVisualizarTutoriais()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosVisualizarTutoriais()" class="btn-clear-filters">Limpar</button>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead><tr class="th-row"><th>Título</th><th>Ordem</th><th>Ações</th><th>Seções</th></tr></thead>
+            <tbody id="tabela-paginas-tutoriais"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="paginas-tutoriais-pagination"></div>
+      </div>
+
+      <!-- Gerenciador de Seções -->
+      <div id="secoes-manager" style="display:none;">
+        <div class="card card-pad" style="border:2px solid var(--primary);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="font-weight:700;font-size:16px;color:var(--primary);">📋 Seções da Página: <span id="secoes-pagina-titulo"></span></h3>
+            <button onclick="fecharGerenciadorSecoes()" class="btn-cancel" style="font-size:10px;">Fechar</button>
+          </div>
+          <input type="hidden" id="secoes-pagina-id" value="">
+          
+          <!-- Formulário de Seção -->
+          <form id="form-secao-tutorial" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="margin-bottom:16px;display:none;">
+            <input type="hidden" id="secao-edit-id" value="">
+            <div>
+              <label class="label">Subtítulo *</label>
+              <input type="text" id="secao-subtitulo" required placeholder="Ex: Colocar DC em EE - EM EXECUÇÃO" class="input">
+            </div>
+            <div>
+              <label class="label">Ordem</label>
+              <input type="number" id="secao-ordem" placeholder="0" class="input" value="0">
+            </div>
+            <div>
+              <label class="label">URL do GIF</label>
+              <input type="text" id="secao-gif-url" placeholder="https://exemplo.com/imagem.gif" class="input">
+            </div>
+            <div class="flex items-end gap-2">
+              <button type="button" onclick="cancelarEdicaoSecao()" class="btn-cancel" style="display:none;" id="secao-cancel-btn">Cancelar</button>
+              <button type="submit" class="btn-primary w-full">Salvar Seção</button>
+            </div>
+            <div class="md:col-span-2">
+              <label class="label">Descrição</label>
+              <textarea id="secao-descricao" rows="3" placeholder="Descrição detalhada da seção..." class="input"></textarea>
+            </div>
+          </form>
+          
+          <!-- Lista de Seções -->
+          <div id="secoes-tutoriais-container"></div>
         </div>
       </div>
-      <div class="dc-cards-grid" id="tutoriais-cards-container"><div class="p-6 text-center" style="color:var(--text-soft)">Carregando tutoriais...</div></div>
-      <div id="tutoriais-visualizar-pagination"></div>
     </div>
 
     <!-- ===================== GERENCIAR TUTORIAIS ===================== -->

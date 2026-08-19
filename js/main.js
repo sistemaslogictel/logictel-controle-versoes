@@ -6,16 +6,40 @@ import { verificarSessao, fazerLogin, fazerLogout, validarSenha, gerarSenhaForte
 import { aplicarMascaras, toggleSidebar, limparFiltros } from './utils.js';
 import { mudarAba, carregarTodasListas, cancelarEdicao, irParaPrimeiraAbaAcessivel } from './navigation.js';
 
-import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias } from './dashboards.js';
+import { 
+    carregarDashApropriacao, 
+    carregarDashDON, 
+    carregarDashCRE, 
+    carregarDashPendencias, 
+    exportarExcelDON, 
+    exportarExcelStatus, 
+    exportarExcelCRE, 
+    exportarExcelPendencias,
+    exportarRelatorioCompleto
+} from './dashboards.js';
 import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
 import { initFormMedicao, editarMedicao, excluirMedicao, filtrarMedicoes, limparFiltrosMedicoes, irParaPaginaMed, carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed } from './medicoes.js';
 import { carregarDatasLimites, initFormDataLimite, editarDataLimite, excluirDataLimite, atualizarTopbarDatasLimites, filtrarDatasLimites, limparFiltrosDatasLimites } from './datasLimites.js';
 import { 
-    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial, 
-    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
-    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais, 
-    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais
+    carregarPaginasTutoriais, 
+    initFormPaginaTutorial, 
+    editarPaginaTutorial, 
+    excluirPaginaTutorial,
+    filtrarPaginasTutoriais,
+    limparFiltrosPaginasTutoriais,
+    irParaPaginaPaginaTutorial,
+    carregarSecoesPagina,
+    initFormSecaoTutorial,
+    editarSecaoTutorial,
+    excluirSecaoTutorial,
+    cancelarEdicaoSecao,
+    cancelarEdicaoPaginaTutorial,
+    fecharGerenciadorSecoes,
+    carregarPaginasVisualizar,
+    filtrarVisualizarTutoriais,
+    limparFiltrosVisualizarTutoriais,
+    irParaPaginaVisualizarTutoriais
 } from './tutoriais.js';
 
 import {
@@ -46,7 +70,9 @@ Object.assign(window, {
         pend: carregarDashPendencias
     }),
     // dashboards
-    carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias,
+    carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, 
+    exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias,
+    exportarRelatorioCompleto,
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards,
     // consumo
@@ -57,11 +83,25 @@ Object.assign(window, {
     carregarHistoricoMedicoes, filtrarHistoricoMedicoes, limparFiltrosHistoricoMedicoes, irParaPaginaHistMed,
     // datas limites
     editarDataLimite, excluirDataLimite, filtrarDatasLimites, limparFiltrosDatasLimites,
-    // tutoriais
-    carregarTutoriais, initFormTutorial, editarTutorial, excluirTutorial,
-    filtrarTutoriais, limparFiltrosTutoriais, irParaPaginaTutorial,
-    carregarTutoriaisVisualizar, filtrarVisualizarTutoriais,
-    limparFiltrosVisualizarTutoriais, irParaPaginaVisualizarTutoriais,
+    // tutoriais - páginas
+    carregarPaginasTutoriais, 
+    initFormPaginaTutorial, 
+    editarPaginaTutorial, 
+    excluirPaginaTutorial,
+    filtrarPaginasTutoriais,
+    limparFiltrosPaginasTutoriais,
+    irParaPaginaPaginaTutorial,
+    carregarSecoesPagina,
+    initFormSecaoTutorial,
+    editarSecaoTutorial,
+    excluirSecaoTutorial,
+    cancelarEdicaoSecao,
+    cancelarEdicaoPaginaTutorial,
+    fecharGerenciadorSecoes,
+    carregarPaginasVisualizar,
+    filtrarVisualizarTutoriais,
+    limparFiltrosVisualizarTutoriais,
+    irParaPaginaVisualizarTutoriais,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,
@@ -88,7 +128,8 @@ function initFormListeners() {
     initFormStatusNF();
     initFormUsuario();
     initFormDataLimite();
-    initFormTutorial();
+    initFormPaginaTutorial();
+    initFormSecaoTutorial();
 }
 
 function iniciarApp() {
