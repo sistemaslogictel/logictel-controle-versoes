@@ -14,8 +14,7 @@ import {
     exportarExcelDON, 
     exportarExcelStatus, 
     exportarExcelCRE, 
-    exportarExcelPendencias,
-    exportarRelatorioCompleto
+    exportarExcelPendencias
 } from './dashboards.js';
 import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
@@ -72,7 +71,6 @@ Object.assign(window, {
     // dashboards
     carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, 
     exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias,
-    exportarRelatorioCompleto,
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards,
     // consumo
