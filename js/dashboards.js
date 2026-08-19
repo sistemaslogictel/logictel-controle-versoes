@@ -222,6 +222,233 @@ export function exportarExcelPendencias() {
 }
 
 // =====================================================
+// EXPORTAÇÃO DE RELATÓRIO COMPLETO (TODOS OS DASHBOARDS)
+// =====================================================
+export function exportarRelatorioCompleto() {
+    try {
+        const dadosDON = _ultimoRenderDON;
+        const dadosStatus = _ultimoRenderStatus;
+        const dadosCRE = _ultimoRenderCRE;
+        const dadosPendencias = _ultimoRenderPendencias;
+
+        // Verificar se pelo menos um dashboard tem dados
+        const temDados = (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) ||
+                        (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) ||
+                        (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) ||
+                        (dadosPendencias && dadosPendencias.linhas && dadosPendencias.linhas.length > 0);
+
+        if (!temDados) {
+            alert('Nenhum dado disponível para exportar. Carregue os dashboards primeiro.');
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+
+        // =====================================================
+        // ABA 1: Pendências
+        // =====================================================
+        if (dadosPendencias && dadosPendencias.linhas && dadosPendencias.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosPendencias;
+            
+            let totalGeral = 0;
+            grupos.forEach(g => { totalGeral += g.total; });
+            
+            const wsData = [];
+            wsData.push(['', 'Total de pendências:', totalGeral]);
+            wsData.push([]);
+            wsData.push([]);
+            
+            grupos.forEach((g) => {
+                wsData.push(['', `${g.gestor}:`, g.total]);
+                wsData.push([]);
+                
+                const headers = ['', 'Projeto', 'Empresa', 'Gestor_Logictel', 'Gestor_Cliente', 'Acumulado', ...mesesExibir];
+                wsData.push(headers);
+                
+                const consumosPorProjeto = {};
+                (g._consumos || []).forEach(c => {
+                    const projetoNome = c.projetos?.nome || 'N/A';
+                    if (!consumosPorProjeto[projetoNome]) {
+                        consumosPorProjeto[projetoNome] = {
+                            empresa: c.empresas?.nome || '',
+                            gestor_logictel: g.gestor,
+                            consumos: []
+                        };
+                    }
+                    consumosPorProjeto[projetoNome].consumos.push(c);
+                });
+                
+                Object.keys(consumosPorProjeto).forEach((projetoNome) => {
+                    const grupo = consumosPorProjeto[projetoNome];
+                    
+                    grupo.consumos.forEach((c, cIdx) => {
+                        const linha = [];
+                        linha.push('');
+                        linha.push(cIdx === 0 ? projetoNome : '');
+                        linha.push(cIdx === 0 ? grupo.empresa : '');
+                        linha.push(cIdx === 0 ? grupo.gestor_logictel : '');
+                        linha.push(c.diretores?.nome || '');
+                        const valor = Number(c.valor || 0);
+                        linha.push(valor);
+                        mesesExibir.forEach(mes => {
+                            const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? valor : 0;
+                            linha.push(saldo);
+                        });
+                        wsData.push(linha);
+                    });
+                });
+                wsData.push([]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 18, 22, 18, 25, 14];
+            mesesExibir.forEach(() => colWidths.push(14));
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'Pendencias');
+        }
+
+        // =====================================================
+        // ABA 2: DON
+        // =====================================================
+        if (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) {
+            const { projetos, mesesExibir } = dadosDON;
+            
+            let totalGeral = 0;
+            projetos.forEach(proj => { totalGeral += proj.total; });
+            
+            const wsData = [];
+            wsData.push(['', 'Total DON:', totalGeral]);
+            wsData.push([]);
+            wsData.push([]);
+            
+            const headers = ['', 'Projeto', 'Empresa', 'Diretor', 'Acumulado', ...mesesExibir];
+            wsData.push(headers);
+            
+            projetos.forEach(proj => {
+                const projLinha = ['', proj.projeto, proj.empresa || '', ''];
+                mesesExibir.forEach(mes => {
+                    const saldo = proj.meses[mes]?.saldo ?? 0;
+                    projLinha.push(saldo);
+                });
+                projLinha.push(proj.total);
+                wsData.push(projLinha);
+                
+                Object.values(proj.diretores)
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                    .forEach(dir => {
+                        const dirLinha = ['', '', '', dir.nome];
+                        mesesExibir.forEach(mes => {
+                            const saldo = dir.meses[mes]?.saldo ?? 0;
+                            dirLinha.push(saldo);
+                        });
+                        dirLinha.push(dir.total);
+                        wsData.push(dirLinha);
+                    });
+                wsData.push([]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 18, 22, 18];
+            mesesExibir.forEach(() => colWidths.push(14));
+            colWidths.push(14);
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'DON');
+        }
+
+        // =====================================================
+        // ABA 3: Status
+        // =====================================================
+        if (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosStatus;
+            
+            let totalGeral = 0;
+            grupos.forEach(g => { totalGeral += g.total; });
+            
+            const wsData = [];
+            wsData.push(['', 'Total Status:', totalGeral]);
+            wsData.push([]);
+            wsData.push([]);
+            
+            const headers = ['', 'Gestão', 'Projeto', 'Acumulado', ...mesesExibir];
+            wsData.push(headers);
+            
+            grupos.forEach(g => {
+                const linha = ['', g.gestor, g.projeto];
+                mesesExibir.forEach(mes => {
+                    const saldo = g.meses[mes]?.saldo ?? 0;
+                    linha.push(saldo);
+                });
+                linha.push(g.total);
+                wsData.push(linha);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 18, 18];
+            mesesExibir.forEach(() => colWidths.push(14));
+            colWidths.push(14);
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'Status');
+        }
+
+        // =====================================================
+        // ABA 4: CRE
+        // =====================================================
+        if (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) {
+            const { linhas: grupos, mesesExibir } = dadosCRE;
+            
+            let totalGeral = 0;
+            grupos.forEach(g => { totalGeral += g.total; });
+            
+            const wsData = [];
+            wsData.push(['', 'Total Tramitando CRE:', totalGeral]);
+            wsData.push([]);
+            wsData.push([]);
+            
+            const headers = ['', 'Gestão', 'Projeto', 'DC *', 'Acumulado', ...mesesExibir];
+            wsData.push(headers);
+            
+            grupos.forEach(g => {
+                const linha = ['', g.gestor, g.projeto, ''];
+                mesesExibir.forEach(mes => {
+                    const saldo = g.meses[mes]?.saldo ?? 0;
+                    linha.push(saldo);
+                });
+                linha.push(g.total);
+                wsData.push(linha);
+                
+                (g._consumos || []).forEach(c => {
+                    const dcLinha = ['', '', c.projetos?.nome || '-', `DC ${c.dc || '-'}`];
+                    mesesExibir.forEach(mes => {
+                        const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
+                        dcLinha.push(saldo);
+                    });
+                    dcLinha.push(Number(c.valor || 0));
+                    wsData.push(dcLinha);
+                });
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 18, 18, 12];
+            mesesExibir.forEach(() => colWidths.push(14));
+            colWidths.push(14);
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'CRE');
+        }
+
+        const dataHoje = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(wb, `Relatorio_Dashboards_${dataHoje}.xlsx`);
+
+    } catch (e) {
+        console.error('Erro ao exportar relatório:', e);
+        alert('Erro ao exportar relatório: ' + e.message);
+    }
+}
+
+// =====================================================
 // CÁLCULO DE SALDO PARA STATUS (com exclusão de CRE e Pendências)
 // =====================================================
 function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {

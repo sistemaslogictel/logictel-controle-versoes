@@ -14,7 +14,8 @@ import {
     exportarExcelDON, 
     exportarExcelStatus, 
     exportarExcelCRE, 
-    exportarExcelPendencias
+    exportarExcelPendencias,
+    exportarRelatorioCompleto
 } from './dashboards.js';
 import { carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards } from './dccards.js';
 import { carregarGestoresPorProjeto, controlarCamposNF, initFormConsumo, editarConsumo, excluirConsumo, exportarExcel, filtrarConsumos, limparFiltrosConsumo, irParaPaginaConsumo } from './consumo.js';
@@ -38,7 +39,9 @@ import {
     carregarPaginasVisualizar,
     filtrarVisualizarTutoriais,
     limparFiltrosVisualizarTutoriais,
-    irParaPaginaVisualizarTutoriais
+    irParaPaginaVisualizarTutoriais,
+    uploadGif,
+    removerGif
 } from './tutoriais.js';
 
 import {
@@ -71,6 +74,7 @@ Object.assign(window, {
     // dashboards
     carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias, 
     exportarExcelDON, exportarExcelStatus, exportarExcelCRE, exportarExcelPendencias,
+    exportarRelatorioCompleto,
     // DC cards
     carregarDCCards, irParaConsumo, irParaPaginaDC, filtrarDCCards, limparFiltrosDCCards, inicializarFiltrosDCCards,
     // consumo
@@ -100,6 +104,8 @@ Object.assign(window, {
     filtrarVisualizarTutoriais,
     limparFiltrosVisualizarTutoriais,
     irParaPaginaVisualizarTutoriais,
+    uploadGif,
+    removerGif,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,
