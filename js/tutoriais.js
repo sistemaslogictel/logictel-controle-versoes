@@ -303,6 +303,7 @@ function renderizarSecoesPagina() {
 
     container.innerHTML = '';
     _todasSecoesPagina.forEach((s, index) => {
+        const hasGif = s.gif_url && s.gif_url.length > 0;
         container.innerHTML += `
             <div class="secao-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
@@ -311,7 +312,7 @@ function renderizarSecoesPagina() {
                             ${index + 1}. ${s.subtitulo || 'Sem título'}
                         </div>
                         ${s.descricao ? `<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${s.descricao}</div>` : ''}
-                        ${s.gif_url ? `<div style="font-size:12px;color:var(--primary);">📹 GIF: ${s.gif_url}</div>` : ''}
+                        ${hasGif ? `<div style="font-size:12px;color:var(--primary);">📹 GIF: <a href="${s.gif_url}" target="_blank" style="color:var(--primary);text-decoration:underline;">Ver GIF</a></div>` : ''}
                         <div style="font-size:10px;color:var(--text-soft);">Ordem: ${s.ordem || 0}</div>
                     </div>
                     <div style="display:flex;gap:4px;flex-shrink:0;">
@@ -319,10 +320,110 @@ function renderizarSecoesPagina() {
                         <button onclick="excluirSecaoTutorial(${s.id})" class="btn-danger" style="font-size:9px;padding:3px 8px;">✕</button>
                     </div>
                 </div>
+                ${hasGif ? `
+                    <div style="margin-top:8px; background:var(--paper); border-radius:4px; padding:8px; text-align:center; border:1px solid var(--border);">
+                        <img src="${s.gif_url}" alt="${s.subtitulo}" style="max-width:100%; max-height:200px; border-radius:4px;" onerror="this.style.display='none';">
+                        <div style="font-size:9px; color:var(--text-soft); margin-top:2px;">GIF em looping</div>
+                    </div>
+                ` : ''}
             </div>
         `;
     });
 }
+
+// =====================================================
+// UPLOAD DE GIF PARA SUPABASE STORAGE
+// =====================================================
+
+// Upload do GIF
+window.uploadGif = async function() {
+    const fileInput = document.getElementById('secao-gif-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Selecione um arquivo GIF primeiro!');
+        return;
+    }
+
+    // Validar tamanho (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('O arquivo é muito grande. Máximo permitido: 10MB');
+        return;
+    }
+
+    // Validar tipo
+    const tiposPermitidos = ['image/gif', 'image/webp', 'video/mp4'];
+    if (!tiposPermitidos.includes(file.type)) {
+        alert('Por favor, selecione um arquivo GIF, WEBP ou MP4.');
+        return;
+    }
+
+    try {
+        // Mostrar loading
+        const btnUpload = document.querySelector('#form-secao-tutorial .btn-primary');
+        const textoOriginal = btnUpload.textContent;
+        btnUpload.textContent = '⏳ Enviando...';
+        btnUpload.disabled = true;
+
+        // Gerar nome único para o arquivo
+        const timestamp = Date.now();
+        const nomeArquivo = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const caminho = `tutoriais/gifs/${nomeArquivo}`;
+
+        // Fazer upload para o Supabase Storage
+        const { data, error } = await supabaseClient.storage
+            .from('tutoriais')
+            .upload(caminho, file, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: file.type
+            });
+
+        if (error) {
+            console.error('Erro no upload:', error);
+            alert('Erro ao fazer upload: ' + error.message);
+            btnUpload.textContent = textoOriginal;
+            btnUpload.disabled = false;
+            return;
+        }
+
+        // Obter URL pública do arquivo
+        const { data: urlData } = supabaseClient.storage
+            .from('tutoriais')
+            .getPublicUrl(caminho);
+
+        const publicUrl = urlData.publicUrl;
+
+        // Salvar URL no campo hidden
+        document.getElementById('secao-gif-url').value = publicUrl;
+        
+        // Mostrar preview
+        document.getElementById('gif-preview').style.display = 'block';
+        document.getElementById('gif-filename').textContent = file.name;
+
+        alert('GIF enviado com sucesso!');
+        btnUpload.textContent = textoOriginal;
+        btnUpload.disabled = false;
+
+        // Limpar o input file
+        fileInput.value = '';
+
+    } catch (e) {
+        console.error('Erro no upload:', e);
+        alert('Erro ao fazer upload: ' + e.message);
+        const btnUpload = document.querySelector('#form-secao-tutorial .btn-primary');
+        btnUpload.textContent = 'Upload';
+        btnUpload.disabled = false;
+    }
+};
+
+// Remover GIF
+window.removerGif = function() {
+    document.getElementById('secao-gif-url').value = '';
+    document.getElementById('gif-preview').style.display = 'none';
+    document.getElementById('gif-filename').textContent = '';
+    document.getElementById('secao-gif-file').value = '';
+};
 
 // Inicializar formulário de seção
 export function initFormSecaoTutorial() {
@@ -377,9 +478,15 @@ export function initFormSecaoTutorial() {
             }
 
             alert(editId ? 'Seção atualizada com sucesso!' : 'Seção salva com sucesso!');
+            
+            // Reset do formulário
             form.reset();
             document.getElementById('secao-edit-id').value = '';
             document.getElementById('secao-cancel-btn').style.display = 'none';
+            document.getElementById('secao-gif-url').value = '';
+            document.getElementById('gif-preview').style.display = 'none';
+            document.getElementById('gif-filename').textContent = '';
+            document.getElementById('secao-gif-file').value = '';
             
             if (paginaId) {
                 await carregarSecoesPagina(parseInt(paginaId));
@@ -413,9 +520,20 @@ export async function editarSecaoTutorial(id) {
         document.getElementById('secao-edit-id').value = id;
         document.getElementById('secao-subtitulo').value = data.subtitulo || '';
         document.getElementById('secao-descricao').value = data.descricao || '';
-        document.getElementById('secao-gif-url').value = data.gif_url || '';
         document.getElementById('secao-ordem').value = data.ordem || 0;
         document.getElementById('secao-cancel-btn').style.display = 'inline-block';
+
+        // Se tiver GIF, mostrar preview
+        if (data.gif_url && data.gif_url.length > 0) {
+            document.getElementById('secao-gif-url').value = data.gif_url;
+            document.getElementById('gif-preview').style.display = 'block';
+            const nomeArquivo = data.gif_url.split('/').pop();
+            document.getElementById('gif-filename').textContent = nomeArquivo || 'GIF carregado';
+        } else {
+            document.getElementById('secao-gif-url').value = '';
+            document.getElementById('gif-preview').style.display = 'none';
+            document.getElementById('gif-filename').textContent = '';
+        }
 
         // Garantir que o gerenciador de seções esteja visível
         document.getElementById('secoes-manager').style.display = 'block';
@@ -458,6 +576,10 @@ export async function excluirSecaoTutorial(id) {
 export function cancelarEdicaoSecao() {
     document.getElementById('secao-edit-id').value = '';
     document.getElementById('secao-cancel-btn').style.display = 'none';
+    document.getElementById('secao-gif-url').value = '';
+    document.getElementById('gif-preview').style.display = 'none';
+    document.getElementById('gif-filename').textContent = '';
+    document.getElementById('secao-gif-file').value = '';
     document.getElementById('form-secao-tutorial').reset();
 }
 
@@ -571,12 +693,13 @@ window.abrirPaginaTutorial = async function(paginaId) {
             html += `<div class="p-6 text-center" style="color:var(--text-soft);">Nenhuma seção cadastrada para este tutorial.</div>`;
         } else {
             secoes.forEach((s, index) => {
+                const hasGif = s.gif_url && s.gif_url.length > 0;
                 html += `
                     <div style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border);">
                         <h3 style="font-family:'Inter', sans-serif; font-size:16px; font-weight:700; color:var(--text); margin-bottom:8px;">
                             ${index + 1}. ${s.subtitulo}
                         </h3>
-                        ${s.gif_url ? `
+                        ${hasGif ? `
                             <div style="margin:12px 0; text-align:center; background:var(--paper); border-radius:8px; padding:12px; border:1px solid var(--border);">
                                 <img src="${s.gif_url}" alt="${s.subtitulo}" style="max-width:100%; max-height:400px; border-radius:4px;" onerror="this.style.display='none';">
                                 <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">GIF em looping</div>
