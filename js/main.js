@@ -38,9 +38,7 @@ import {
     carregarPaginasVisualizar,
     filtrarVisualizarTutoriais,
     limparFiltrosVisualizarTutoriais,
-    irParaPaginaVisualizarTutoriais,
-    uploadGif,
-    removerGif
+    irParaPaginaVisualizarTutoriais
 } from './tutoriais.js';
 
 import {
@@ -102,8 +100,6 @@ Object.assign(window, {
     filtrarVisualizarTutoriais,
     limparFiltrosVisualizarTutoriais,
     irParaPaginaVisualizarTutoriais,
-    uploadGif,
-    removerGif,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,

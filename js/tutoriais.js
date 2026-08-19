@@ -331,100 +331,6 @@ function renderizarSecoesPagina() {
     });
 }
 
-// =====================================================
-// UPLOAD DE GIF PARA SUPABASE STORAGE
-// =====================================================
-
-// Upload do GIF
-window.uploadGif = async function() {
-    const fileInput = document.getElementById('secao-gif-file');
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        alert('Selecione um arquivo GIF primeiro!');
-        return;
-    }
-
-    // Validar tamanho (máximo 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-        alert('O arquivo é muito grande. Máximo permitido: 10MB');
-        return;
-    }
-
-    // Validar tipo
-    const tiposPermitidos = ['image/gif', 'image/webp', 'video/mp4'];
-    if (!tiposPermitidos.includes(file.type)) {
-        alert('Por favor, selecione um arquivo GIF, WEBP ou MP4.');
-        return;
-    }
-
-    try {
-        // Mostrar loading
-        const btnUpload = document.querySelector('#form-secao-tutorial .btn-primary');
-        const textoOriginal = btnUpload.textContent;
-        btnUpload.textContent = '⏳ Enviando...';
-        btnUpload.disabled = true;
-
-        // Gerar nome único para o arquivo
-        const timestamp = Date.now();
-        const nomeArquivo = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-        const caminho = `tutoriais/gifs/${nomeArquivo}`;
-
-        // Fazer upload para o Supabase Storage
-        const { data, error } = await supabaseClient.storage
-            .from('tutoriais')
-            .upload(caminho, file, {
-                cacheControl: '3600',
-                upsert: false,
-                contentType: file.type
-            });
-
-        if (error) {
-            console.error('Erro no upload:', error);
-            alert('Erro ao fazer upload: ' + error.message);
-            btnUpload.textContent = textoOriginal;
-            btnUpload.disabled = false;
-            return;
-        }
-
-        // Obter URL pública do arquivo
-        const { data: urlData } = supabaseClient.storage
-            .from('tutoriais')
-            .getPublicUrl(caminho);
-
-        const publicUrl = urlData.publicUrl;
-
-        // Salvar URL no campo hidden
-        document.getElementById('secao-gif-url').value = publicUrl;
-        
-        // Mostrar preview
-        document.getElementById('gif-preview').style.display = 'block';
-        document.getElementById('gif-filename').textContent = file.name;
-
-        alert('GIF enviado com sucesso!');
-        btnUpload.textContent = textoOriginal;
-        btnUpload.disabled = false;
-
-        // Limpar o input file
-        fileInput.value = '';
-
-    } catch (e) {
-        console.error('Erro no upload:', e);
-        alert('Erro ao fazer upload: ' + e.message);
-        const btnUpload = document.querySelector('#form-secao-tutorial .btn-primary');
-        btnUpload.textContent = 'Upload';
-        btnUpload.disabled = false;
-    }
-};
-
-// Remover GIF
-window.removerGif = function() {
-    document.getElementById('secao-gif-url').value = '';
-    document.getElementById('gif-preview').style.display = 'none';
-    document.getElementById('gif-filename').textContent = '';
-    document.getElementById('secao-gif-file').value = '';
-};
-
 // Inicializar formulário de seção
 export function initFormSecaoTutorial() {
     const form = document.getElementById('form-secao-tutorial');
@@ -742,3 +648,97 @@ export function limparFiltrosVisualizarTutoriais() {
     _paginaAtualVisualizarPaginas = 1;
     carregarPaginasVisualizar();
 }
+
+// =====================================================
+// UPLOAD DE GIF PARA SUPABASE STORAGE
+// =====================================================
+
+// Upload do GIF
+window.uploadGif = async function() {
+    const fileInput = document.getElementById('secao-gif-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Selecione um arquivo GIF primeiro!');
+        return;
+    }
+
+    // Validar tamanho (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('O arquivo é muito grande. Máximo permitido: 10MB');
+        return;
+    }
+
+    // Validar tipo
+    const tiposPermitidos = ['image/gif', 'image/webp', 'video/mp4'];
+    if (!tiposPermitidos.includes(file.type)) {
+        alert('Por favor, selecione um arquivo GIF, WEBP ou MP4.');
+        return;
+    }
+
+    try {
+        // Mostrar loading
+        const btnUpload = document.querySelector('#form-secao-tutorial .btn-primary');
+        const textoOriginal = btnUpload.textContent;
+        btnUpload.textContent = '⏳ Enviando...';
+        btnUpload.disabled = true;
+
+        // Gerar nome único para o arquivo
+        const timestamp = Date.now();
+        const nomeArquivo = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const caminho = `tutoriais/gifs/${nomeArquivo}`;
+
+        // Fazer upload para o Supabase Storage
+        const { data, error } = await supabaseClient.storage
+            .from('tutoriais')
+            .upload(caminho, file, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: file.type
+            });
+
+        if (error) {
+            console.error('Erro no upload:', error);
+            alert('Erro ao fazer upload: ' + error.message);
+            btnUpload.textContent = textoOriginal;
+            btnUpload.disabled = false;
+            return;
+        }
+
+        // Obter URL pública do arquivo
+        const { data: urlData } = supabaseClient.storage
+            .from('tutoriais')
+            .getPublicUrl(caminho);
+
+        const publicUrl = urlData.publicUrl;
+
+        // Salvar URL no campo hidden
+        document.getElementById('secao-gif-url').value = publicUrl;
+        
+        // Mostrar preview
+        document.getElementById('gif-preview').style.display = 'block';
+        document.getElementById('gif-filename').textContent = file.name;
+
+        alert('GIF enviado com sucesso!');
+        btnUpload.textContent = textoOriginal;
+        btnUpload.disabled = false;
+
+        // Limpar o input file
+        fileInput.value = '';
+
+    } catch (e) {
+        console.error('Erro no upload:', e);
+        alert('Erro ao fazer upload: ' + e.message);
+        const btnUpload = document.querySelector('#form-secao-tutorial .btn-primary');
+        btnUpload.textContent = 'Upload';
+        btnUpload.disabled = false;
+    }
+};
+
+// Remover GIF
+window.removerGif = function() {
+    document.getElementById('secao-gif-url').value = '';
+    document.getElementById('gif-preview').style.display = 'none';
+    document.getElementById('gif-filename').textContent = '';
+    document.getElementById('secao-gif-file').value = '';
+};
