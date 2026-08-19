@@ -231,8 +231,14 @@ export function exportarRelatorioCompleto() {
         const dadosCRE = _ultimoRenderCRE;
         const dadosPendencias = _ultimoRenderPendencias;
 
-        if (!dadosPendencias) {
-            alert('Carregue o dashboard de Pendências antes de exportar o relatório.');
+        // Verificar se pelo menos um dashboard tem dados
+        const temDados = (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) ||
+                        (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) ||
+                        (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) ||
+                        (dadosPendencias && dadosPendencias.linhas && dadosPendencias.linhas.length > 0);
+
+        if (!temDados) {
+            alert('Nenhum dado disponível para exportar. Carregue os dashboards primeiro.');
             return;
         }
 
@@ -371,6 +377,18 @@ export function exportarRelatorioCompleto() {
             ws['!merges'] = merges;
             
             XLSX.utils.book_append_sheet(wb, ws, 'Pendencias');
+        } else {
+            // Criar uma aba de Pendências com mensagem "Sem dados"
+            const wsData = [
+                ['', 'Total de pendências:', 0],
+                [],
+                [],
+                ['', 'Nenhum dado de pendências disponível']
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 30, 14];
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            XLSX.utils.book_append_sheet(wb, ws, 'Pendencias');
         }
 
         // =====================================================
@@ -439,6 +457,18 @@ export function exportarRelatorioCompleto() {
             ws['!merges'] = merges;
             
             XLSX.utils.book_append_sheet(wb, ws, 'DON');
+        } else {
+            // Criar uma aba de DON com mensagem "Sem dados"
+            const wsData = [
+                ['', 'Total DON:', 0],
+                [],
+                [],
+                ['', 'Nenhum dado de DON disponível']
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 20, 14];
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            XLSX.utils.book_append_sheet(wb, ws, 'DON');
         }
 
         // =====================================================
@@ -475,6 +505,18 @@ export function exportarRelatorioCompleto() {
             colWidths.push(14);
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
             
+            XLSX.utils.book_append_sheet(wb, ws, 'Status');
+        } else {
+            // Criar uma aba de Status com mensagem "Sem dados"
+            const wsData = [
+                ['', 'Total Status:', 0],
+                [],
+                [],
+                ['', 'Nenhum dado de Status disponível']
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 20, 14];
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
             XLSX.utils.book_append_sheet(wb, ws, 'Status');
         }
 
@@ -535,6 +577,18 @@ export function exportarRelatorioCompleto() {
             });
             ws['!merges'] = merges;
             
+            XLSX.utils.book_append_sheet(wb, ws, 'CRE');
+        } else {
+            // Criar uma aba de CRE com mensagem "Sem dados"
+            const wsData = [
+                ['', 'Total Tramitando CRE:', 0],
+                [],
+                [],
+                ['', 'Nenhum dado de CRE disponível']
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const colWidths = [4, 20, 14];
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
             XLSX.utils.book_append_sheet(wb, ws, 'CRE');
         }
 
