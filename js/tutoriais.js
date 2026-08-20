@@ -15,7 +15,8 @@ let _secoesAtuais = [];
 let _cacheArquivos = {};
 let _zoomNivel = 0;
 const ZOOM_MAXIMO = 5;
-const ZOOM_PASSO = 0.2;
+const ZOOM_PASSO = 0.15;
+let _marcadorPagina = null; // Armazena o ID da seção marcada
 
 // =====================================================
 // PÁGINAS DE TUTORIAIS (CRUD)
@@ -375,11 +376,9 @@ function renderizarSecoesPaginaPlaceholder() {
 async function verificarArquivosSecoes() {
     for (const s of _todasSecoesPagina) {
         const nomeArquivo = s.nome_arquivo || s.subtitulo || 'sem_nome';
-        // Remove extensão se já tiver
         const nomeSemExtensao = nomeArquivo.replace(/\.[^.]+$/, '');
         const basePath = `assets/gifs/${nomeSemExtensao}`;
         
-        // Verificar .gif
         const gifExiste = await verificarArquivoExiste(`${basePath}.gif`);
         let imagemEncontrada = false;
         let caminhoImagem = '';
@@ -390,7 +389,6 @@ async function verificarArquivosSecoes() {
             caminhoImagem = `${basePath}.gif`;
             extensao = '.gif';
         } else {
-            // Verificar .png
             const pngExiste = await verificarArquivoExiste(`${basePath}.png`);
             if (pngExiste) {
                 imagemEncontrada = true;
@@ -399,7 +397,6 @@ async function verificarArquivosSecoes() {
             }
         }
         
-        // Atualizar o DOM com o resultado
         const loadingEl = document.getElementById(`loading-${s.id}`);
         const containerEl = document.getElementById(`imagem-container-${s.id}`);
         
@@ -483,7 +480,6 @@ export function initFormSecaoTutorial() {
             document.getElementById('secao-edit-id').value = '';
             document.getElementById('secao-cancel-btn').style.display = 'none';
             
-            // Limpar cache para recarregar
             _cacheArquivos = {};
             
             if (paginaId) {
@@ -644,21 +640,51 @@ function aplicarZoom(img, nivel) {
     const escala = 1 + (nivel * ZOOM_PASSO);
     img.style.transform = `scale(${escala})`;
     img.style.transition = 'transform 0.2s ease';
+    img.style.transformOrigin = 'center center';
 }
 
 function handleZoomClick(img, event) {
     event.stopPropagation();
     
-    // Se o zoom está no máximo, começa a diminuir
-    if (_zoomNivel >= ZOOM_MAXIMO) {
-        _zoomNivel = -1;
+    // Botão esquerdo (1) = zoom in
+    if (event.button === 0) {
+        if (_zoomNivel < ZOOM_MAXIMO) {
+            _zoomNivel++;
+        } else {
+            _zoomNivel = 0;
+        }
+    }
+    // Botão direito (2) = zoom out
+    else if (event.button === 2) {
+        if (_zoomNivel > 0) {
+            _zoomNivel--;
+        } else {
+            _zoomNivel = ZOOM_MAXIMO;
+        }
     }
     
-    _zoomNivel++;
+    aplicarZoom(img, _zoomNivel);
+}
+
+function handleWheelZoom(img, event) {
+    event.preventDefault();
+    event.stopPropagation();
     
-    // Se passou do máximo, volta para 0
-    if (_zoomNivel > ZOOM_MAXIMO) {
-        _zoomNivel = 0;
+    // Scroll para frente = zoom in
+    if (event.deltaY < 0) {
+        if (_zoomNivel < ZOOM_MAXIMO) {
+            _zoomNivel++;
+        } else {
+            _zoomNivel = 0;
+        }
+    }
+    // Scroll para trás = zoom out
+    else if (event.deltaY > 0) {
+        if (_zoomNivel > 0) {
+            _zoomNivel--;
+        } else {
+            _zoomNivel = ZOOM_MAXIMO;
+        }
     }
     
     aplicarZoom(img, _zoomNivel);
@@ -672,16 +698,39 @@ function atualizarIndicadoresPassos() {
     document.querySelectorAll('.passo-indicador').forEach((el, idx) => {
         el.classList.remove('passo-ativo');
         el.style.background = 'transparent';
-        if (idx === _paginaAtualVisualizacao) {
-            el.classList.add('passo-ativo');
+        el.style.borderColor = 'var(--primary)';
+        el.style.boxShadow = 'none';
+        
+        // Verificar se este passo está marcado
+        const secao = _secoesAtuais[idx];
+        if (secao && _marcadorPagina === secao.id) {
             el.style.background = '#FFD700';
             el.style.borderColor = '#D4A800';
-            el.style.boxShadow = '0 0 12px rgba(255,215,0,0.6)';
-        } else {
-            el.style.borderColor = 'var(--primary)';
-            el.style.boxShadow = 'none';
+            el.style.boxShadow = '0 0 16px rgba(255,215,0,0.8)';
+            el.classList.add('passo-marcado');
+        }
+        
+        if (idx === _paginaAtualVisualizacao) {
+            el.classList.add('passo-ativo');
+            // Se também estiver marcado, mantém o dourado, senão usa o azul
+            if (_marcadorPagina !== secao?.id) {
+                el.style.background = 'var(--primary)';
+                el.style.borderColor = 'var(--primary-dark)';
+                el.style.boxShadow = '0 0 12px rgba(26,58,122,0.4)';
+            }
         }
     });
+    
+    // Atualizar botão "Ir para Marcador"
+    const btnIrMarcador = document.getElementById('btn-ir-para-marcador');
+    if (btnIrMarcador) {
+        if (_marcadorPagina !== null) {
+            btnIrMarcador.style.display = 'inline-flex';
+            btnIrMarcador.innerHTML = `📍 Ir para Marcador (Passo ${_secoesAtuais.findIndex(s => s.id === _marcadorPagina) + 1})`;
+        } else {
+            btnIrMarcador.style.display = 'none';
+        }
+    }
 }
 
 function irParaPasso(index) {
@@ -711,12 +760,39 @@ function passoAnterior() {
 }
 
 // =====================================================
+// FUNÇÃO DE MARCADOR DE PÁGINA
+// =====================================================
+function toggleMarcadorPagina(secaoId) {
+    if (_marcadorPagina === secaoId) {
+        _marcadorPagina = null;
+    } else {
+        _marcadorPagina = secaoId;
+    }
+    atualizarIndicadoresPassos();
+}
+
+function irParaMarcador() {
+    if (_marcadorPagina !== null) {
+        const index = _secoesAtuais.findIndex(s => s.id === _marcadorPagina);
+        if (index !== -1) {
+            irParaPasso(index);
+        } else {
+            _marcadorPagina = null;
+            atualizarIndicadoresPassos();
+        }
+    }
+}
+
+// =====================================================
 // EXPORTAÇÃO DE FUNÇÕES GLOBAIS
 // =====================================================
 window.irParaPasso = irParaPasso;
 window.proximoPasso = proximoPasso;
 window.passoAnterior = passoAnterior;
 window.handleZoomClick = handleZoomClick;
+window.handleWheelZoom = handleWheelZoom;
+window.toggleMarcadorPagina = toggleMarcadorPagina;
+window.irParaMarcador = irParaMarcador;
 
 // =====================================================
 // ABRIR PÁGINA DE TUTORIAL PARA VISUALIZAÇÃO
@@ -748,6 +824,7 @@ window.abrirPaginaTutorial = async function(paginaId) {
         _secoesAtuais = secoes || [];
         _paginaAtualVisualizacao = 0;
         _zoomNivel = 0;
+        _marcadorPagina = null; // Resetar marcador ao abrir
 
         const conteudo = document.getElementById('modal-tutorial-conteudo');
         let html = `
@@ -759,20 +836,26 @@ window.abrirPaginaTutorial = async function(paginaId) {
         if (!secoes || secoes.length === 0) {
             html += `<div class="p-6 text-center" style="color:var(--text-soft);">Nenhuma seção cadastrada para este tutorial.</div>`;
         } else {
-            // Indicadores de passo
+            // Indicadores de passo com marcador
             html += `
-                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-                    ${secoes.map((s, idx) => `
-                        <button class="passo-indicador" 
-                                onclick="irParaPasso(${idx})" 
-                                style="width:14px; height:14px; border-radius:50%; border:2px solid var(--primary); background:transparent; cursor:pointer; transition:all 0.3s ease; padding:0;"
-                                title="Passo ${idx + 1}: ${s.subtitulo}">
-                        </button>
-                    `).join('')}
+                <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        ${secoes.map((s, idx) => `
+                            <button class="passo-indicador" 
+                                    onclick="irParaPasso(${idx})" 
+                                    style="width:16px; height:16px; border-radius:50%; border:2px solid var(--primary); background:transparent; cursor:pointer; transition:all 0.3s ease; padding:0;"
+                                    title="Passo ${idx + 1}: ${s.subtitulo}">
+                            </button>
+                        `).join('')}
+                    </div>
+                    <button id="btn-ir-para-marcador" 
+                            onclick="irParaMarcador()" 
+                            style="display:none; background:#FFD700; color:#000; border:2px solid #D4A800; border-radius:6px; padding:4px 14px; font-size:10px; font-weight:600; cursor:pointer; align-items:center; gap:4px;">
+                        📍 Ir para Marcador
+                    </button>
                 </div>
             `;
 
-            // Limpar cache antes de verificar
             _cacheArquivos = {};
 
             for (const s of secoes) {
@@ -780,7 +863,6 @@ window.abrirPaginaTutorial = async function(paginaId) {
                 const nomeSemExtensao = nomeArquivo.replace(/\.[^.]+$/, '');
                 const basePath = `assets/gifs/${nomeSemExtensao}`;
                 
-                // Verificar arquivos com cache
                 const gifExiste = await verificarArquivoExiste(`${basePath}.gif`);
                 let caminhoImagem = '';
                 let extensao = '';
@@ -801,10 +883,29 @@ window.abrirPaginaTutorial = async function(paginaId) {
                 
                 const index = secoes.indexOf(s);
                 const imgId = `img-${s.id}`;
+                const isMarcado = _marcadorPagina === s.id;
+                
                 html += `
-                    <div id="secao-${s.id}" style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border); scroll-margin-top: 20px;">
-                        <div style="font-family:'Inter', sans-serif; font-size:16px; font-weight:700; color:var(--text); margin-bottom:8px;">
-                            ${index + 1}. ${s.subtitulo}
+                    <div id="secao-${s.id}" style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border); scroll-margin-top: 20px; ${isMarcado ? 'background:rgba(255,215,0,0.05); border-left:4px solid #FFD700; padding-left:12px; border-radius:4px;' : ''}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                            <div style="font-family:'Inter', sans-serif; font-size:16px; font-weight:700; color:var(--text);">
+                                ${index + 1}. ${s.subtitulo}
+                            </div>
+                            <button onclick="toggleMarcadorPagina(${s.id})" 
+                                    style="background:${isMarcado ? '#FFD700' : 'transparent'}; 
+                                           color:${isMarcado ? '#000' : 'var(--text-muted)'}; 
+                                           border:2px solid ${isMarcado ? '#D4A800' : 'var(--border)'}; 
+                                           border-radius:6px; 
+                                           padding:2px 10px; 
+                                           font-size:10px; 
+                                           font-weight:600; 
+                                           cursor:pointer; 
+                                           transition:all 0.2s ease;
+                                           display:flex; 
+                                           align-items:center; 
+                                           gap:4px;">
+                                ${isMarcado ? '📍 Marcado' : '☐ Marcar'}
+                            </button>
                         </div>
                         <div style="margin:12px 0; text-align:center; background:var(--paper); border-radius:8px; padding:12px; border:1px solid var(--border); position:relative; overflow:hidden;">
                             ${imagemEncontrada ? `
@@ -813,11 +914,13 @@ window.abrirPaginaTutorial = async function(paginaId) {
                                          src="${caminhoImagem}" 
                                          alt="${s.subtitulo}" 
                                          style="max-width:100%; max-height:400px; border-radius:4px; display:block; margin:0 auto; cursor:pointer; transition:transform 0.2s ease; transform:scale(1);"
-                                         onclick="handleZoomClick(this, event)">
+                                         onmousedown="handleZoomClick(this, event)"
+                                         onwheel="handleWheelZoom(this, event)"
+                                         oncontextmenu="return false;">
                                     <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); color:white; padding:4px 10px; border-radius:4px; font-size:10px; pointer-events:none; opacity:0.7;">
-                                        Clique para zoom (${ZOOM_MAXIMO} níveis)
+                                        🔍 Clique: +zoom | Botão direito: -zoom | Scroll: zoom
                                     </div>
-                                    <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">${nomeSemExtensao}${extensao} (Clique na imagem para zoom)</div>
+                                    <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">${nomeSemExtensao}${extensao} (Clique ou scroll para zoom)</div>
                                 </div>
                             ` : `
                                 <div style="color:var(--text-soft); padding:20px;">Arquivo não encontrado: ${nomeSemExtensao}.gif ou .png</div>
@@ -849,11 +952,11 @@ window.abrirPaginaTutorial = async function(paginaId) {
 
         // Fechar ao clicar fora do modal
         const modal = document.getElementById('modal-visualizacao-tutorial');
-        modal.addEventListener('click', function(event) {
+        modal.onclick = function(event) {
             if (event.target === this) {
                 fecharVisualizacaoTutorial();
             }
-        });
+        };
 
         document.getElementById('modal-visualizacao-tutorial').style.display = 'flex';
 
@@ -867,6 +970,7 @@ window.abrirPaginaTutorial = async function(paginaId) {
 window.fecharVisualizacaoTutorial = function() {
     document.getElementById('modal-visualizacao-tutorial').style.display = 'none';
     _zoomNivel = 0;
+    // Não resetar o marcador ao fechar, para manter se reabrir
 };
 
 // Filtrar visualizar tutoriais
