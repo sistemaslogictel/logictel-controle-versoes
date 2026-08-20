@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.23.14 - Controle de Medições e DCs - Logictel</title>
+<title>V.23.15 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -470,7 +470,7 @@
           </div>
           <input type="hidden" id="secoes-pagina-id" value="">
           
-          <!-- Formulário de Seção - SEM UPLOAD -->
+          <!-- Formulário de Seção - COM CAMPO NOME ARQUIVO -->
           <form id="form-secao-tutorial" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="margin-bottom:16px;display:none;">
             <input type="hidden" id="secao-edit-id" value="">
             <div>
@@ -478,9 +478,14 @@
               <input type="text" id="secao-subtitulo" required placeholder="Ex: Colocar DC em EE - EM EXECUÇÃO" class="input">
             </div>
             <div>
-              <label class="label">Ordem (Número do GIF)</label>
+              <label class="label">Ordem</label>
               <input type="number" id="secao-ordem" placeholder="1" class="input" value="1">
-              <span style="font-size:9px;color:var(--text-soft);">O GIF será carregado de assets/gifs/{ordem}.gif</span>
+              <span style="font-size:9px;color:var(--text-soft);">Define a ordem de exibição</span>
+            </div>
+            <div class="md:col-span-2">
+              <label class="label">Nome do Arquivo (GIF/PNG)</label>
+              <input type="text" id="secao-nome-arquivo" placeholder="Ex: passo_1 (sem extensão)" class="input">
+              <span style="font-size:9px;color:var(--text-soft);">Deixe em branco para usar o subtítulo como nome. O sistema busca em assets/gifs/</span>
             </div>
             <div class="md:col-span-2">
               <label class="label">Descrição</label>
@@ -816,16 +821,19 @@
       </div>
     </div>
 
-  <!-- ===================== MODAL VISUALIZAÇÃO TUTORIAL ===================== -->
-  <div id="modal-visualizacao-tutorial" style="display:none; position:fixed; inset:0; background:rgba(8,16,32,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:var(--surface); border-radius:16px; max-width:800px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); padding:32px 36px; position:relative;">
-      <button onclick="fecharVisualizacaoTutorial()" style="position:absolute; top:12px; right:16px; background:transparent; border:none; font-size:20px; color:var(--text-soft); cursor:pointer; font-family:'Inter', sans-serif;">✕</button>
-      <div id="modal-tutorial-conteudo"></div>
-      <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-        <button onclick="fecharVisualizacaoTutorial()" class="btn-cancel" style="padding:10px 24px; font-family:'Inter', sans-serif;">Fechar</button>
+    <!-- ===================== MODAL VISUALIZAÇÃO TUTORIAL ===================== -->
+    <div id="modal-visualizacao-tutorial" style="display:none; position:fixed; inset:0; background:rgba(8,16,32,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+      <div style="background:var(--surface); border-radius:16px; max-width:800px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); padding:32px 36px; position:relative;">
+        <button onclick="fecharVisualizacaoTutorial()" style="position:absolute; top:12px; right:16px; background:transparent; border:none; font-size:20px; color:var(--text-soft); cursor:pointer; font-family:'Inter', sans-serif;">✕</button>
+        <div id="modal-tutorial-conteudo"></div>
+        <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+          <button onclick="fecharVisualizacaoTutorial()" class="btn-cancel" style="padding:10px 24px; font-family:'Inter', sans-serif;">Fechar</button>
+        </div>
       </div>
     </div>
-  </div>
+
+  </main>
+</div>
 
 <script type="module" src="js/main.js?v=20260814"></script>
 </body>
