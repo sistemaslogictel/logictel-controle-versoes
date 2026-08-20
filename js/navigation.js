@@ -53,10 +53,10 @@ export function gerarMenu(permissoes) {
             { id: 'cad-medicao', label: 'Cadastro de Medição', area: 'medicoes' },
             { id: 'historico-medicoes', label: 'Histórico das Medições', area: 'medicoes' }
         ]},
-        { id: 'dcs', label: 'DC\'s', icon: 'dcs', area: 'dcs', type: 'flyout', children: [
+        { id: 'dcs', label: 'DCs', icon: 'dcs', area: 'dcs', type: 'flyout', children: [
             { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' },
             { id: 'historico-consumo-dcs', label: 'Histórico Consumo das DCs', area: 'consumos' },
-            { id: 'dcs', label: 'DC\'s', area: 'dcs' }
+            { id: 'dcs', label: 'DCs', area: 'dcs' }
         ]},
         { id: 'tutoriais', label: 'Tutoriais', icon: 'tutoriais', area: 'tutoriais-visualizar', type: 'flyout', children: [
             { id: 'tutoriais-visualizar', label: 'Visualizar Tutoriais', area: 'tutoriais-visualizar' },
@@ -401,33 +401,33 @@ const NAVEGACAO_MAP = {
     'cad-medicao': {
         titulo: 'Cadastro de Medição',
         botoes: [
-            { id: 'historico-medicoes', label: '📋 Histórico', area: 'medicoes' }
+            { id: 'historico-medicoes', label: 'Histórico', area: 'medicoes' }
         ]
     },
     'historico-medicoes': {
         titulo: 'Histórico das Medições',
         botoes: [
-            { id: 'cad-medicao', label: '➕ Novo Cadastro', area: 'medicoes' }
+            { id: 'cad-medicao', label: 'Novo Cadastro', area: 'medicoes' }
         ]
     },
     'dcs': {
-        titulo: '📋 DC\'s',
+        titulo: 'DCs',
         botoes: [
-            { id: 'cad-consumo', label: '📝 Consumo DC', area: 'consumos' },
-            { id: 'historico-consumo-dcs', label: '📋 Histórico', area: 'consumos' }
+            { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' },
+            { id: 'historico-consumo-dcs', label: 'Histórico', area: 'consumos' }
         ]
     },
     'cad-consumo': {
         titulo: 'Consumo DC',
         botoes: [
-            { id: 'dcs', label: '📋 DC\'s', area: 'dcs' }
+            { id: 'dcs', label: 'DCs', area: 'dcs' }
         ]
     },
     'historico-consumo-dcs': {
         titulo: 'Histórico Consumo das DCs',
         botoes: [
-            { id: 'dcs', label: '📋 DC\'s', area: 'dcs' },
-            { id: 'cad-consumo', label: '📝 Consumo DC', area: 'consumos' }
+            { id: 'dcs', label: 'DCs', area: 'dcs' },
+            { id: 'cad-consumo', label: 'Consumo DC', area: 'consumos' }
         ]
     },
     'tutoriais-visualizar': {
@@ -437,39 +437,39 @@ const NAVEGACAO_MAP = {
     'tutoriais-gerenciar': {
         titulo: 'Gerenciar Tutoriais',
         botoes: [
-            { id: 'tutoriais-visualizar', label: '📚 Visualizar', area: 'tutoriais-visualizar' }
+            { id: 'tutoriais-visualizar', label: 'Visualizar', area: 'tutoriais-visualizar' }
         ]
     },
     'dash-don': {
         titulo: 'Dashboard DON',
         botoes: [
-            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },
-            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' },
-            { id: 'dash-pendencias', label: '📊 Pendências', area: 'dash-pendencias' }
+            { id: 'dash-apropriacao', label: 'Status', area: 'dash-apropriacao' },
+            { id: 'dash-cre', label: 'CRE', area: 'dash-cre' },
+            { id: 'dash-pendencias', label: 'Pendências', area: 'dash-pendencias' }
         ]
     },
     'dash-apropriacao': {
         titulo: 'Dashboard Status',
         botoes: [
-            { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
-            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' },
-            { id: 'dash-pendencias', label: '📊 Pendências', area: 'dash-pendencias' }
+            { id: 'dash-don', label: 'DON', area: 'dash-don' },
+            { id: 'dash-cre', label: 'CRE', area: 'dash-cre' },
+            { id: 'dash-pendencias', label: 'Pendências', area: 'dash-pendencias' }
         ]
     },
     'dash-cre': {
         titulo: 'Dashboard Tramitando CRE',
         botoes: [
-            { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
-            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },
-            { id: 'dash-pendencias', label: '📊 Pendências', area: 'dash-pendencias' }
+            { id: 'dash-don', label: 'DON', area: 'dash-don' },
+            { id: 'dash-apropriacao', label: 'Status', area: 'dash-apropriacao' },
+            { id: 'dash-pendencias', label: 'Pendências', area: 'dash-pendencias' }
         ]
     },
     'dash-pendencias': {
         titulo: 'Dashboard Pendências',
         botoes: [
-            { id: 'dash-don', label: '📊 DON', area: 'dash-don' },
-            { id: 'dash-apropriacao', label: '📊 Status', area: 'dash-apropriacao' },
-            { id: 'dash-cre', label: '📊 CRE', area: 'dash-cre' }
+            { id: 'dash-don', label: 'DON', area: 'dash-don' },
+            { id: 'dash-apropriacao', label: 'Status', area: 'dash-apropriacao' },
+            { id: 'dash-cre', label: 'CRE', area: 'dash-cre' }
         ]
     }
 };

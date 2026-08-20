@@ -307,9 +307,6 @@ function renderizarSecoesPagina() {
         const gifNumber = s.ordem || (index + 1);
         const gifPath = `assets/gifs/${gifNumber}.gif`;
         
-        // Verificar se o GIF existe (usando um placeholder se não existir)
-        const hasGif = true; // Assumimos que o GIF existe, o onerror vai lidar com a falha
-        
         container.innerHTML += `
             <div class="secao-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
@@ -318,17 +315,17 @@ function renderizarSecoesPagina() {
                             ${index + 1}. ${s.subtitulo || 'Sem título'}
                         </div>
                         ${s.descricao ? `<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${s.descricao}</div>` : ''}
-                        <div style="font-size:12px;color:var(--primary);">📹 GIF: ${gifNumber}.gif</div>
+                        <div style="font-size:12px;color:var(--primary);">GIF: ${gifNumber}.gif</div>
                         <div style="font-size:10px;color:var(--text-soft);">Ordem: ${s.ordem || 0}</div>
                     </div>
                     <div style="display:flex;gap:4px;flex-shrink:0;">
-                        <button onclick="editarSecaoTutorial(${s.id})" class="btn-edit" style="font-size:9px;padding:3px 8px;">✎</button>
-                        <button onclick="excluirSecaoTutorial(${s.id})" class="btn-danger" style="font-size:9px;padding:3px 8px;">✕</button>
+                        <button onclick="editarSecaoTutorial(${s.id})" class="btn-edit" style="font-size:9px;padding:3px 8px;">Editar</button>
+                        <button onclick="excluirSecaoTutorial(${s.id})" class="btn-danger" style="font-size:9px;padding:3px 8px;">Excluir</button>
                     </div>
                 </div>
                 <div style="margin-top:8px; background:var(--paper); border-radius:4px; padding:8px; text-align:center; border:1px solid var(--border);">
-                    <img src="${gifPath}" alt="${s.subtitulo}" style="max-width:100%; max-height:200px; border-radius:4px;" onerror="this.style.display='none';">
-                    <div style="font-size:9px; color:var(--text-soft); margin-top:2px;">GIF: ${gifNumber}.gif</div>
+                    <img src="${gifPath}" alt="${s.subtitulo}" style="max-width:100%; max-height:200px; border-radius:4px; display:block; margin:0 auto;" onerror="this.style.display='none';">
+                    <div style="font-size:9px; color:var(--text-soft); margin-top:2px;">${gifNumber}.gif</div>
                 </div>
             </div>
         `;
@@ -523,11 +520,11 @@ export async function carregarPaginasVisualizar() {
             container.innerHTML += `
                 <div class="dc-card" style="border-left-color: var(--primary); cursor:pointer;" onclick="abrirPaginaTutorial(${p.id})">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <div class="dc-number" style="font-size:16px;">📚 ${p.titulo}</div>
+                        <div class="dc-number" style="font-size:16px;">${p.titulo}</div>
                         <div style="font-size:12px; color:var(--text-soft);">Ordem: ${p.ordem || 0}</div>
                     </div>
                     <div style="margin-top:8px; padding-top:6px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
-                        <button onclick="event.stopPropagation(); abrirPaginaTutorial(${p.id})" class="btn-primary" style="font-size:10.5px; padding:4px 14px;">▶ Abrir</button>
+                        <button onclick="event.stopPropagation(); abrirPaginaTutorial(${p.id})" class="btn-primary" style="font-size:10.5px; padding:4px 14px;">Abrir</button>
                     </div>
                 </div>
             `;
@@ -572,9 +569,9 @@ window.abrirPaginaTutorial = async function(paginaId) {
         // Montar conteúdo do modal
         const conteudo = document.getElementById('modal-tutorial-conteudo');
         let html = `
-            <h2 style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--text); margin-bottom:20px; text-align:center; border-bottom:2px solid var(--border); padding-bottom:12px;">
+            <div style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--text); margin-bottom:20px; text-align:center; border-bottom:2px solid var(--border); padding-bottom:12px;">
                 ${pagina.titulo}
-            </h2>
+            </div>
         `;
 
         if (!secoes || secoes.length === 0) {
@@ -587,12 +584,12 @@ window.abrirPaginaTutorial = async function(paginaId) {
                 
                 html += `
                     <div style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border);">
-                        <h3 style="font-family:'Inter', sans-serif; font-size:16px; font-weight:700; color:var(--text); margin-bottom:8px;">
+                        <div style="font-family:'Inter', sans-serif; font-size:16px; font-weight:700; color:var(--text); margin-bottom:8px;">
                             ${index + 1}. ${s.subtitulo}
-                        </h3>
+                        </div>
                         <div style="margin:12px 0; text-align:center; background:var(--paper); border-radius:8px; padding:12px; border:1px solid var(--border);">
-                            <img src="${gifPath}" alt="${s.subtitulo}" style="max-width:100%; max-height:400px; border-radius:4px;" onerror="this.style.display='none';">
-                            <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">GIF: ${gifNumber}.gif</div>
+                            <img src="${gifPath}" alt="${s.subtitulo}" style="max-width:100%; max-height:400px; border-radius:4px; display:block; margin:0 auto;" onerror="this.style.display='none';">
+                            <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">${gifNumber}.gif</div>
                         </div>
                         ${s.descricao ? `
                             <div style="font-size:13px; color:var(--text); line-height:1.6; padding:8px 0;">
