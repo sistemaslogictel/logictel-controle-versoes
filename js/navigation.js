@@ -374,7 +374,9 @@ export function cancelarEdicao(tipo) {
         'statusdc': 'statusdc',
         'statusmed': 'statusmed',
         'statusnf': 'statusnf',
-        'datalimite': 'datalimite'
+        'datalimite': 'datalimite',
+        'pagina': 'pagina',
+        'secao': 'secao'
     };
     const prefixo = prefixos[tipo] || tipo;
     document.getElementById(prefixo + '-edit-id').value = '';

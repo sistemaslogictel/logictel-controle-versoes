@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.23.8 - Controle de Medições e DCs - Logictel</title>
+<title>V.23.11 - Controle de Medições e DCs - Logictel</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -415,11 +415,10 @@
       <div class="dc-cards-grid" id="tutoriais-paginas-container"><div class="p-6 text-center" style="color:var(--text-soft)">Carregando tutoriais...</div></div>
       <div id="tutoriais-visualizar-pagination"></div>
     </div>
-
-    <!-- ===================== GERENCIAR TUTORIAIS ===================== -->
-    <div id="tab-tutoriais-gerenciar" class="tab-content space-y-4">
-      <div id="header-tutoriais-gerenciar"></div>
-      
+<!-- ===================== GERENCIAR TUTORIAIS ===================== -->
+<div id="tab-tutoriais-gerenciar" class="tab-content space-y-4">
+  <div id="header-tutoriais-gerenciar"></div>
+  
       <!-- Formulário de Página -->
       <div class="card card-pad">
         <h3 style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:12px;">📄 Gerenciar Páginas</h3>
@@ -470,7 +469,7 @@
           </div>
           <input type="hidden" id="secoes-pagina-id" value="">
           
-          <!-- Formulário de Seção -->
+          <!-- Formulário de Seção - SEM UPLOAD -->
           <form id="form-secao-tutorial" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="margin-bottom:16px;display:none;">
             <input type="hidden" id="secao-edit-id" value="">
             <div>
@@ -478,31 +477,17 @@
               <input type="text" id="secao-subtitulo" required placeholder="Ex: Colocar DC em EE - EM EXECUÇÃO" class="input">
             </div>
             <div>
-              <label class="label">Ordem</label>
-              <input type="number" id="secao-ordem" placeholder="0" class="input" value="0">
-            </div>
-            <div>
-              <label class="label">GIF</label>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <input type="file" id="secao-gif-file" accept=".gif,.webp,.mp4" style="flex:1; padding:4px;" class="input">
-                <button type="button" onclick="uploadGif()" class="btn-primary" style="white-space:nowrap; font-size:10px; padding:6px 12px;">Upload</button>
-              </div>
-              <input type="hidden" id="secao-gif-url" value="">
-              <div id="gif-preview" style="margin-top:4px; display:none;">
-                <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-soft);">
-                  <span>📹 GIF carregado:</span>
-                  <span id="gif-filename" style="color:var(--primary);"></span>
-                  <button type="button" onclick="removerGif()" class="btn-danger" style="font-size:8px; padding:2px 6px;">✕</button>
-                </div>
-              </div>
-            </div>
-            <div class="flex items-end gap-2">
-              <button type="button" onclick="cancelarEdicaoSecao()" class="btn-cancel" style="display:none;" id="secao-cancel-btn">Cancelar</button>
-              <button type="submit" class="btn-primary w-full">Salvar Seção</button>
+              <label class="label">Ordem (Número do GIF)</label>
+              <input type="number" id="secao-ordem" placeholder="1" class="input" value="1">
+              <span style="font-size:9px;color:var(--text-soft);">O GIF será carregado de <strong>assets/gifs/{ordem}.gif</strong></span>
             </div>
             <div class="md:col-span-2">
               <label class="label">Descrição</label>
               <textarea id="secao-descricao" rows="3" placeholder="Descrição detalhada da seção..." class="input"></textarea>
+            </div>
+            <div class="flex items-end gap-2">
+              <button type="button" onclick="cancelarEdicaoSecao()" class="btn-cancel" style="display:none;" id="secao-cancel-btn">Cancelar</button>
+              <button type="submit" class="btn-primary w-full">Salvar Seção</button>
             </div>
           </form>
           
@@ -511,7 +496,7 @@
         </div>
       </div>
     </div>
-        
+
     <!-- ===================== CADASTRO USUÁRIO ===================== -->
     <div id="tab-adm-user" class="tab-content space-y-4">
       <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Usuário</h2>
