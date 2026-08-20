@@ -1308,3 +1308,61 @@ nav.sidenav{
   background: #5A6268;
   transform: translateY(-1px);
 }
+
+/* Garantir que GIFs executem corretamente */
+#modal-tutorial-conteudo img {
+    image-rendering: auto;
+    animation: none;
+}
+#modal-tutorial-conteudo video {
+    background: var(--paper);
+}
+
+/* =====================================================
+   TUTORIAIS - INDICADORES DE PASSO
+   ===================================================== */
+.passo-indicador {
+    transition: all 0.3s ease;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+.passo-indicador.passo-ativo {
+    background: var(--primary) !important;
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(26,58,122,0.4);
+}
+.passo-indicador:hover {
+    transform: scale(1.1);
+}
+
+/* Modal de zoom da imagem */
+.modal-zoom {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    padding: 20px;
+}
+.modal-zoom img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* Botões de navegação do tutorial */
+.btn-tutorial-nav {
+    font-size: 10px;
+    padding: 4px 12px;
+}

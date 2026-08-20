@@ -9,6 +9,8 @@ let _todasSecoes = [];
 let _paginaAtualPagina = 1;
 let _paginaAtualVisualizar = 1;
 const ITENS_POR_PAGINA = 12;
+let _paginaAtualVisualizacao = 0; // Para controle do passo atual
+let _secoesAtuais = [];
 
 // =====================================================
 // PÁGINAS DE TUTORIAIS (CRUD)
@@ -158,7 +160,7 @@ export function initFormPaginaTutorial() {
     });
 }
 
-// Editar página
+// Editar página - CORRIGIDO
 export async function editarPaginaTutorial(id) {
     try {
         const { data, error } = await supabaseClient
@@ -176,14 +178,20 @@ export async function editarPaginaTutorial(id) {
             return;
         }
 
+        // Mudar para a aba de gerenciar
         window.mudarAba('tutoriais-gerenciar');
 
-        document.getElementById('pagina-edit-id').value = id;
-        document.getElementById('pagina-titulo').value = data.titulo || '';
-        document.getElementById('pagina-ordem').value = data.ordem || 0;
-        document.getElementById('pagina-cancel-btn').style.display = 'inline-block';
+        // Aguardar um pouco para a aba ser carregada
+        setTimeout(() => {
+            // Preencher o formulário
+            document.getElementById('pagina-edit-id').value = id;
+            document.getElementById('pagina-titulo').value = data.titulo || '';
+            document.getElementById('pagina-ordem').value = data.ordem || 0;
+            document.getElementById('pagina-cancel-btn').style.display = 'inline-block';
 
-        document.getElementById('form-pagina-tutorial').scrollIntoView({ behavior: 'smooth' });
+            // Rolar para o formulário
+            document.getElementById('form-pagina-tutorial').scrollIntoView({ behavior: 'smooth' });
+        }, 300);
     } catch (e) {
         console.error('Erro ao editar página:', e);
         alert('Erro ao carregar dados da página.');
@@ -303,9 +311,12 @@ function renderizarSecoesPagina() {
 
     container.innerHTML = '';
     _todasSecoesPagina.forEach((s, index) => {
-        // Gerar nome do arquivo GIF baseado na ordem
-        const gifNumber = s.ordem || (index + 1);
-        const gifPath = `assets/gifs/${gifNumber}.gif`;
+        // Gerar nome do arquivo GIF/PNG baseado no subtitulo
+        const nomeArquivo = s.subtitulo ? s.subtitulo.trim().replace(/[^a-zA-Z0-9áéíóúâêôãõàèìòùçÁÉÍÓÚÂÊÔÃÕÀÈÌÒÙÇ\s]/g, '').replace(/\s+/g, ' ') : 'sem_nome';
+        const extensoes = ['.gif', '.png'];
+        
+        // Criar o caminho base
+        const basePath = `assets/gifs/${nomeArquivo}`;
         
         container.innerHTML += `
             <div class="secao-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
@@ -315,7 +326,7 @@ function renderizarSecoesPagina() {
                             ${index + 1}. ${s.subtitulo || 'Sem título'}
                         </div>
                         ${s.descricao ? `<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${s.descricao}</div>` : ''}
-                        <div style="font-size:12px;color:var(--primary);">GIF: ${gifNumber}.gif</div>
+                        <div style="font-size:12px;color:var(--primary);">Arquivo: ${nomeArquivo}.gif ou .png</div>
                         <div style="font-size:10px;color:var(--text-soft);">Ordem: ${s.ordem || 0}</div>
                     </div>
                     <div style="display:flex;gap:4px;flex-shrink:0;">
@@ -324,8 +335,8 @@ function renderizarSecoesPagina() {
                     </div>
                 </div>
                 <div style="margin-top:8px; background:var(--paper); border-radius:4px; padding:8px; text-align:center; border:1px solid var(--border);">
-                    <img src="${gifPath}" alt="${s.subtitulo}" style="max-width:100%; max-height:200px; border-radius:4px; display:block; margin:0 auto;" onerror="this.style.display='none';">
-                    <div style="font-size:9px; color:var(--text-soft); margin-top:2px;">${gifNumber}.gif</div>
+                    <img src="${basePath}.gif" alt="${s.subtitulo}" style="max-width:100%; max-height:200px; border-radius:4px; display:block; margin:0 auto;" onerror="this.onerror=null; this.src='${basePath}.png'; this.onerror=function(){this.style.display='none'; this.parentElement.innerHTML += '<div style=\\'color:var(--text-soft);padding:10px;\\'>Arquivo não encontrado: ${nomeArquivo}.gif ou .png</div>';};">
+                    <div style="font-size:9px; color:var(--text-soft); margin-top:2px;">${nomeArquivo}.gif / .png</div>
                 </div>
             </div>
         `;
@@ -418,15 +429,15 @@ export async function editarSecaoTutorial(id) {
             return;
         }
 
+        // Garantir que o gerenciador de seções esteja visível
+        document.getElementById('secoes-manager').style.display = 'block';
+        document.getElementById('form-secao-tutorial').style.display = 'block';
+
         document.getElementById('secao-edit-id').value = id;
         document.getElementById('secao-subtitulo').value = data.subtitulo || '';
         document.getElementById('secao-descricao').value = data.descricao || '';
         document.getElementById('secao-ordem').value = data.ordem || 0;
         document.getElementById('secao-cancel-btn').style.display = 'inline-block';
-
-        // Garantir que o gerenciador de seções esteja visível
-        document.getElementById('secoes-manager').style.display = 'block';
-        document.getElementById('form-secao-tutorial').style.display = 'block';
 
         document.getElementById('form-secao-tutorial').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
@@ -539,6 +550,46 @@ export async function carregarPaginasVisualizar() {
     }
 }
 
+// Função para navegar para um passo específico
+function irParaPasso(index) {
+    _paginaAtualVisualizacao = index;
+    const secao = _secoesAtuais[index];
+    if (secao) {
+        const elemento = document.getElementById(`secao-${secao.id}`);
+        if (elemento) {
+            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    atualizarIndicadoresPassos();
+}
+
+// Função para atualizar os indicadores de passo
+function atualizarIndicadoresPassos() {
+    document.querySelectorAll('.passo-indicador').forEach((el, idx) => {
+        if (idx === _paginaAtualVisualizacao) {
+            el.classList.add('passo-ativo');
+        } else {
+            el.classList.remove('passo-ativo');
+        }
+    });
+}
+
+// Função para ir para o próximo passo
+function proximoPasso() {
+    if (_paginaAtualVisualizacao < _secoesAtuais.length - 1) {
+        _paginaAtualVisualizacao++;
+        irParaPasso(_paginaAtualVisualizacao);
+    }
+}
+
+// Função para ir para o passo anterior
+function passoAnterior() {
+    if (_paginaAtualVisualizacao > 0) {
+        _paginaAtualVisualizacao--;
+        irParaPasso(_paginaAtualVisualizacao);
+    }
+}
+
 // Abrir página de tutorial para visualização
 window.abrirPaginaTutorial = async function(paginaId) {
     try {
@@ -566,6 +617,9 @@ window.abrirPaginaTutorial = async function(paginaId) {
             return;
         }
 
+        _secoesAtuais = secoes || [];
+        _paginaAtualVisualizacao = 0;
+
         // Montar conteúdo do modal
         const conteudo = document.getElementById('modal-tutorial-conteudo');
         let html = `
@@ -577,31 +631,74 @@ window.abrirPaginaTutorial = async function(paginaId) {
         if (!secoes || secoes.length === 0) {
             html += `<div class="p-6 text-center" style="color:var(--text-soft);">Nenhuma seção cadastrada para este tutorial.</div>`;
         } else {
+            // Indicadores de passo (bolinhas)
+            html += `
+                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+                    ${secoes.map((s, idx) => `
+                        <button class="passo-indicador ${idx === 0 ? 'passo-ativo' : ''}" 
+                                onclick="irParaPasso(${idx})" 
+                                style="width:12px; height:12px; border-radius:50%; border:2px solid var(--primary); background:${idx === 0 ? 'var(--primary)' : 'transparent'}; cursor:pointer; transition:all 0.3s ease; padding:0;"
+                                title="Passo ${idx + 1}: ${s.subtitulo}">
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
             secoes.forEach((s, index) => {
-                // Gerar nome do arquivo GIF baseado na ordem
-                const gifNumber = s.ordem || (index + 1);
-                const gifPath = `assets/gifs/${gifNumber}.gif`;
+                // Gerar nome do arquivo baseado no subtitulo
+                const nomeArquivo = s.subtitulo ? s.subtitulo.trim().replace(/[^a-zA-Z0-9áéíóúâêôãõàèìòùçÁÉÍÓÚÂÊÔÃÕÀÈÌÒÙÇ\s]/g, '').replace(/\s+/g, ' ') : 'sem_nome';
+                const basePath = `assets/gifs/${nomeArquivo}`;
                 
                 html += `
-                    <div style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border);">
+                    <div id="secao-${s.id}" style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border); scroll-margin-top: 20px;">
                         <div style="font-family:'Inter', sans-serif; font-size:16px; font-weight:700; color:var(--text); margin-bottom:8px;">
                             ${index + 1}. ${s.subtitulo}
                         </div>
-                        <div style="margin:12px 0; text-align:center; background:var(--paper); border-radius:8px; padding:12px; border:1px solid var(--border);">
-                            <img src="${gifPath}" alt="${s.subtitulo}" style="max-width:100%; max-height:400px; border-radius:4px; display:block; margin:0 auto;" onerror="this.style.display='none';">
-                            <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">${gifNumber}.gif</div>
+                        <div style="margin:12px 0; text-align:center; background:var(--paper); border-radius:8px; padding:12px; border:1px solid var(--border); position:relative;">
+                            <img src="${basePath}.gif" 
+                                 alt="${s.subtitulo}" 
+                                 style="max-width:100%; max-height:400px; border-radius:4px; display:block; margin:0 auto; cursor:zoom-in;" 
+                                 onclick="abrirZoomImagem(this.src)"
+                                 onerror="this.onerror=null; this.src='${basePath}.png'; this.onerror=function(){this.style.display='none'; this.parentElement.innerHTML += '<div style=\\'color:var(--text-soft);padding:20px;\\'>Arquivo não encontrado: ${nomeArquivo}.gif ou .png</div>';};">
+                            <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">${nomeArquivo}.gif / .png (Clique para ampliar)</div>
                         </div>
                         ${s.descricao ? `
                             <div style="font-size:13px; color:var(--text); line-height:1.6; padding:8px 0;">
                                 ${s.descricao}
                             </div>
                         ` : ''}
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+                            <div style="font-size:11px; color:var(--text-soft);">
+                                Passo ${index + 1} de ${secoes.length}
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                ${index > 0 ? `<button onclick="passoAnterior()" class="btn-secondary" style="font-size:10px; padding:4px 12px;">Anterior</button>` : ''}
+                                ${index < secoes.length - 1 ? `<button onclick="proximoPasso()" class="btn-primary" style="font-size:10px; padding:4px 12px;">Próximo</button>` : `<button onclick="fecharVisualizacaoTutorial()" class="btn-primary" style="font-size:10px; padding:4px 12px;">Concluir</button>`}
+                            </div>
+                        </div>
                     </div>
                 `;
             });
         }
 
         conteudo.innerHTML = html;
+
+        // Adicionar estilos para os indicadores
+        const style = document.createElement('style');
+        style.textContent = `
+            .passo-indicador {
+                transition: all 0.3s ease;
+            }
+            .passo-indicador.passo-ativo {
+                background: var(--primary) !important;
+                transform: scale(1.2);
+                box-shadow: 0 0 8px rgba(26,58,122,0.4);
+            }
+            .passo-indicador:hover {
+                transform: scale(1.1);
+            }
+        `;
+        document.head.appendChild(style);
 
         // Mostrar o modal
         document.getElementById('modal-visualizacao-tutorial').style.display = 'flex';
@@ -612,10 +709,43 @@ window.abrirPaginaTutorial = async function(paginaId) {
     }
 };
 
+// Função para abrir zoom da imagem
+window.abrirZoomImagem = function(src) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999;
+        display:flex; align-items:center; justify-content:center; cursor:zoom-out;
+        padding:20px;
+    `;
+    modal.onclick = function() { document.body.removeChild(modal); };
+    
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = `
+        max-width:90%; max-height:90%; object-fit:contain;
+        border-radius:8px; box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    `;
+    
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+};
+
 // Fechar visualização do tutorial
 window.fecharVisualizacaoTutorial = function() {
     document.getElementById('modal-visualizacao-tutorial').style.display = 'none';
+    // Remover estilos adicionados
+    const styles = document.querySelectorAll('style');
+    styles.forEach(s => {
+        if (s.textContent.includes('.passo-indicador')) {
+            s.remove();
+        }
+    });
 };
+
+// Exportar funções de navegação para uso global
+window.irParaPasso = irParaPasso;
+window.proximoPasso = proximoPasso;
+window.passoAnterior = passoAnterior;
 
 // Filtrar visualizar tutoriais
 export function filtrarVisualizarTutoriais() {
