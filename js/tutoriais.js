@@ -9,8 +9,9 @@ let _todasSecoes = [];
 let _paginaAtualPagina = 1;
 let _paginaAtualVisualizar = 1;
 const ITENS_POR_PAGINA = 12;
-let _paginaAtualVisualizacao = 0; // Para controle do passo atual
+let _paginaAtualVisualizacao = 0;
 let _secoesAtuais = [];
+let _cacheArquivos = {}; // Cache para evitar verificações repetidas
 
 // =====================================================
 // PÁGINAS DE TUTORIAIS (CRUD)
@@ -160,7 +161,7 @@ export function initFormPaginaTutorial() {
     });
 }
 
-// Editar página - CORRIGIDO
+// Editar página
 export async function editarPaginaTutorial(id) {
     try {
         const { data, error } = await supabaseClient
@@ -178,18 +179,13 @@ export async function editarPaginaTutorial(id) {
             return;
         }
 
-        // Mudar para a aba de gerenciar
         window.mudarAba('tutoriais-gerenciar');
 
-        // Aguardar um pouco para a aba ser carregada
         setTimeout(() => {
-            // Preencher o formulário
             document.getElementById('pagina-edit-id').value = id;
             document.getElementById('pagina-titulo').value = data.titulo || '';
             document.getElementById('pagina-ordem').value = data.ordem || 0;
             document.getElementById('pagina-cancel-btn').style.display = 'inline-block';
-
-            // Rolar para o formulário
             document.getElementById('form-pagina-tutorial').scrollIntoView({ behavior: 'smooth' });
         }, 300);
     } catch (e) {
@@ -202,7 +198,6 @@ export async function editarPaginaTutorial(id) {
 export async function excluirPaginaTutorial(id) {
     if (!confirm('Tem certeza que deseja excluir esta página e todas as suas seções?')) return;
     try {
-        // Excluir seções primeiro
         const { error: secoesError } = await supabaseClient
             .from('tutoriais_secoes')
             .delete()
@@ -254,6 +249,28 @@ export function fecharGerenciadorSecoes() {
 let _paginaAtualSelecionada = null;
 let _todasSecoesPagina = [];
 
+// Função para verificar se um arquivo existe (com cache)
+function verificarArquivoExiste(url) {
+    return new Promise((resolve) => {
+        // Verificar cache
+        if (_cacheArquivos[url] !== undefined) {
+            resolve(_cacheArquivos[url]);
+            return;
+        }
+        
+        const img = new Image();
+        img.onload = function() {
+            _cacheArquivos[url] = true;
+            resolve(true);
+        };
+        img.onerror = function() {
+            _cacheArquivos[url] = false;
+            resolve(false);
+        };
+        img.src = url;
+    });
+}
+
 // Carregar seções de uma página específica
 export async function carregarSecoesPagina(paginaId) {
     _paginaAtualSelecionada = paginaId;
@@ -263,7 +280,6 @@ export async function carregarSecoesPagina(paginaId) {
     container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Carregando seções...</div>';
 
     try {
-        // Buscar nome da página
         const { data: paginaData } = await supabaseClient
             .from('tutoriais_paginas')
             .select('titulo')
@@ -272,7 +288,6 @@ export async function carregarSecoesPagina(paginaId) {
 
         const tituloPagina = paginaData?.titulo || 'Página não encontrada';
 
-        // Buscar seções
         const { data, error } = await supabaseClient
             .from('tutoriais_secoes')
             .select('*')
@@ -286,12 +301,18 @@ export async function carregarSecoesPagina(paginaId) {
 
         _todasSecoesPagina = data || [];
 
-        // Mostrar o gerenciador de seções
         document.getElementById('secoes-pagina-titulo').textContent = tituloPagina;
         document.getElementById('secoes-pagina-id').value = paginaId;
         document.getElementById('secoes-manager').style.display = 'block';
         document.getElementById('form-secao-tutorial').style.display = 'block';
 
+        // Renderizar com placeholder primeiro
+        renderizarSecoesPaginaPlaceholder();
+        
+        // Verificar arquivos em background
+        await verificarArquivosSecoes();
+        
+        // Renderizar com resultados
         renderizarSecoesPagina();
     } catch (e) {
         console.error('Erro ao carregar seções:', e);
@@ -299,24 +320,19 @@ export async function carregarSecoesPagina(paginaId) {
     }
 }
 
-// Renderizar seções
-function renderizarSecoesPagina() {
+// Renderizar placeholder enquanto verifica arquivos
+function renderizarSecoesPaginaPlaceholder() {
     const container = document.getElementById('secoes-tutoriais-container');
     if (!container) return;
 
     if (_todasSecoesPagina.length === 0) {
-        container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma seção cadastrada. Clique em "Salvar Seção" para começar.</div>';
+        container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Nenhuma seção cadastrada.</div>';
         return;
     }
 
     container.innerHTML = '';
     _todasSecoesPagina.forEach((s, index) => {
-        // Gerar nome do arquivo GIF/PNG baseado no subtitulo
         const nomeArquivo = s.subtitulo ? s.subtitulo.trim().replace(/[^a-zA-Z0-9áéíóúâêôãõàèìòùçÁÉÍÓÚÂÊÔÃÕÀÈÌÒÙÇ\s]/g, '').replace(/\s+/g, ' ') : 'sem_nome';
-        const extensoes = ['.gif', '.png'];
-        
-        // Criar o caminho base
-        const basePath = `assets/gifs/${nomeArquivo}`;
         
         container.innerHTML += `
             <div class="secao-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
@@ -335,12 +351,64 @@ function renderizarSecoesPagina() {
                     </div>
                 </div>
                 <div style="margin-top:8px; background:var(--paper); border-radius:4px; padding:8px; text-align:center; border:1px solid var(--border);">
-                    <img src="${basePath}.gif" alt="${s.subtitulo}" style="max-width:100%; max-height:200px; border-radius:4px; display:block; margin:0 auto;" onerror="this.onerror=null; this.src='${basePath}.png'; this.onerror=function(){this.style.display='none'; this.parentElement.innerHTML += '<div style=\\'color:var(--text-soft);padding:10px;\\'>Arquivo não encontrado: ${nomeArquivo}.gif ou .png</div>';};">
-                    <div style="font-size:9px; color:var(--text-soft); margin-top:2px;">${nomeArquivo}.gif / .png</div>
+                    <div style="color:var(--text-soft); padding:10px;" id="loading-${s.id}">Carregando imagem...</div>
+                    <div id="imagem-container-${s.id}" style="display:none;"></div>
                 </div>
             </div>
         `;
     });
+}
+
+// Verificar arquivos em background
+async function verificarArquivosSecoes() {
+    for (const s of _todasSecoesPagina) {
+        const nomeArquivo = s.subtitulo ? s.subtitulo.trim().replace(/[^a-zA-Z0-9áéíóúâêôãõàèìòùçÁÉÍÓÚÂÊÔÃÕÀÈÌÒÙÇ\s]/g, '').replace(/\s+/g, ' ') : 'sem_nome';
+        const basePath = `assets/gifs/${nomeArquivo}`;
+        
+        // Verificar .gif
+        const gifExiste = await verificarArquivoExiste(`${basePath}.gif`);
+        let imagemEncontrada = false;
+        let caminhoImagem = '';
+        let extensao = '';
+        
+        if (gifExiste) {
+            imagemEncontrada = true;
+            caminhoImagem = `${basePath}.gif`;
+            extensao = '.gif';
+        } else {
+            // Verificar .png
+            const pngExiste = await verificarArquivoExiste(`${basePath}.png`);
+            if (pngExiste) {
+                imagemEncontrada = true;
+                caminhoImagem = `${basePath}.png`;
+                extensao = '.png';
+            }
+        }
+        
+        // Atualizar o DOM com o resultado
+        const loadingEl = document.getElementById(`loading-${s.id}`);
+        const containerEl = document.getElementById(`imagem-container-${s.id}`);
+        
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (containerEl) {
+            containerEl.style.display = 'block';
+            if (imagemEncontrada) {
+                containerEl.innerHTML = `
+                    <img src="${caminhoImagem}" alt="${s.subtitulo}" style="max-width:100%; max-height:200px; border-radius:4px; display:block; margin:0 auto;">
+                    <div style="font-size:9px; color:var(--text-soft); margin-top:2px;">${nomeArquivo}${extensao}</div>
+                `;
+            } else {
+                containerEl.innerHTML = `
+                    <div style="color:var(--text-soft); padding:10px;">Arquivo não encontrado: ${nomeArquivo}.gif ou .png</div>
+                `;
+            }
+        }
+    }
+}
+
+// Renderizar seções com resultados
+function renderizarSecoesPagina() {
+    // Já foi feito pelo verificarArquivosSecoes
 }
 
 // Inicializar formulário de seção
@@ -395,10 +463,12 @@ export function initFormSecaoTutorial() {
 
             alert(editId ? 'Seção atualizada com sucesso!' : 'Seção salva com sucesso!');
             
-            // Reset do formulário
             form.reset();
             document.getElementById('secao-edit-id').value = '';
             document.getElementById('secao-cancel-btn').style.display = 'none';
+            
+            // Limpar cache para recarregar
+            _cacheArquivos = {};
             
             if (paginaId) {
                 await carregarSecoesPagina(parseInt(paginaId));
@@ -429,7 +499,6 @@ export async function editarSecaoTutorial(id) {
             return;
         }
 
-        // Garantir que o gerenciador de seções esteja visível
         document.getElementById('secoes-manager').style.display = 'block';
         document.getElementById('form-secao-tutorial').style.display = 'block';
 
@@ -462,6 +531,7 @@ export async function excluirSecaoTutorial(id) {
 
         alert('Seção excluída com sucesso!');
         const paginaId = document.getElementById('secoes-pagina-id').value;
+        _cacheArquivos = {};
         if (paginaId) {
             await carregarSecoesPagina(parseInt(paginaId));
         }
@@ -550,7 +620,7 @@ export async function carregarPaginasVisualizar() {
     }
 }
 
-// Função para navegar para um passo específico
+// Navegação entre passos
 function irParaPasso(index) {
     _paginaAtualVisualizacao = index;
     const secao = _secoesAtuais[index];
@@ -563,7 +633,6 @@ function irParaPasso(index) {
     atualizarIndicadoresPassos();
 }
 
-// Função para atualizar os indicadores de passo
 function atualizarIndicadoresPassos() {
     document.querySelectorAll('.passo-indicador').forEach((el, idx) => {
         if (idx === _paginaAtualVisualizacao) {
@@ -574,7 +643,6 @@ function atualizarIndicadoresPassos() {
     });
 }
 
-// Função para ir para o próximo passo
 function proximoPasso() {
     if (_paginaAtualVisualizacao < _secoesAtuais.length - 1) {
         _paginaAtualVisualizacao++;
@@ -582,7 +650,6 @@ function proximoPasso() {
     }
 }
 
-// Função para ir para o passo anterior
 function passoAnterior() {
     if (_paginaAtualVisualizacao > 0) {
         _paginaAtualVisualizacao--;
@@ -593,7 +660,6 @@ function passoAnterior() {
 // Abrir página de tutorial para visualização
 window.abrirPaginaTutorial = async function(paginaId) {
     try {
-        // Buscar dados da página
         const { data: pagina, error: paginaError } = await supabaseClient
             .from('tutoriais_paginas')
             .select('*')
@@ -605,7 +671,6 @@ window.abrirPaginaTutorial = async function(paginaId) {
             return;
         }
 
-        // Buscar seções da página
         const { data: secoes, error: secoesError } = await supabaseClient
             .from('tutoriais_secoes')
             .select('*')
@@ -620,7 +685,6 @@ window.abrirPaginaTutorial = async function(paginaId) {
         _secoesAtuais = secoes || [];
         _paginaAtualVisualizacao = 0;
 
-        // Montar conteúdo do modal
         const conteudo = document.getElementById('modal-tutorial-conteudo');
         let html = `
             <div style="font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--text); margin-bottom:20px; text-align:center; border-bottom:2px solid var(--border); padding-bottom:12px;">
@@ -631,7 +695,7 @@ window.abrirPaginaTutorial = async function(paginaId) {
         if (!secoes || secoes.length === 0) {
             html += `<div class="p-6 text-center" style="color:var(--text-soft);">Nenhuma seção cadastrada para este tutorial.</div>`;
         } else {
-            // Indicadores de passo (bolinhas)
+            // Indicadores de passo
             html += `
                 <div style="display:flex; justify-content:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
                     ${secoes.map((s, idx) => `
@@ -644,23 +708,48 @@ window.abrirPaginaTutorial = async function(paginaId) {
                 </div>
             `;
 
-            secoes.forEach((s, index) => {
-                // Gerar nome do arquivo baseado no subtitulo
+            // Limpar cache antes de verificar
+            _cacheArquivos = {};
+
+            for (const s of secoes) {
                 const nomeArquivo = s.subtitulo ? s.subtitulo.trim().replace(/[^a-zA-Z0-9áéíóúâêôãõàèìòùçÁÉÍÓÚÂÊÔÃÕÀÈÌÒÙÇ\s]/g, '').replace(/\s+/g, ' ') : 'sem_nome';
                 const basePath = `assets/gifs/${nomeArquivo}`;
                 
+                // Verificar arquivos com cache
+                const gifExiste = await verificarArquivoExiste(`${basePath}.gif`);
+                let caminhoImagem = '';
+                let extensao = '';
+                let imagemEncontrada = false;
+                
+                if (gifExiste) {
+                    imagemEncontrada = true;
+                    caminhoImagem = `${basePath}.gif`;
+                    extensao = '.gif';
+                } else {
+                    const pngExiste = await verificarArquivoExiste(`${basePath}.png`);
+                    if (pngExiste) {
+                        imagemEncontrada = true;
+                        caminhoImagem = `${basePath}.png`;
+                        extensao = '.png';
+                    }
+                }
+                
+                const index = secoes.indexOf(s);
                 html += `
                     <div id="secao-${s.id}" style="margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border); scroll-margin-top: 20px;">
                         <div style="font-family:'Inter', sans-serif; font-size:16px; font-weight:700; color:var(--text); margin-bottom:8px;">
                             ${index + 1}. ${s.subtitulo}
                         </div>
                         <div style="margin:12px 0; text-align:center; background:var(--paper); border-radius:8px; padding:12px; border:1px solid var(--border); position:relative;">
-                            <img src="${basePath}.gif" 
-                                 alt="${s.subtitulo}" 
-                                 style="max-width:100%; max-height:400px; border-radius:4px; display:block; margin:0 auto; cursor:zoom-in;" 
-                                 onclick="abrirZoomImagem(this.src)"
-                                 onerror="this.onerror=null; this.src='${basePath}.png'; this.onerror=function(){this.style.display='none'; this.parentElement.innerHTML += '<div style=\\'color:var(--text-soft);padding:20px;\\'>Arquivo não encontrado: ${nomeArquivo}.gif ou .png</div>';};">
-                            <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">${nomeArquivo}.gif / .png (Clique para ampliar)</div>
+                            ${imagemEncontrada ? `
+                                <img src="${caminhoImagem}" 
+                                     alt="${s.subtitulo}" 
+                                     style="max-width:100%; max-height:400px; border-radius:4px; display:block; margin:0 auto; cursor:zoom-in;" 
+                                     onclick="abrirZoomImagem(this.src)">
+                                <div style="font-size:10px; color:var(--text-soft); margin-top:4px;">${nomeArquivo}${extensao} (Clique para ampliar)</div>
+                            ` : `
+                                <div style="color:var(--text-soft); padding:20px;">Arquivo não encontrado: ${nomeArquivo}.gif ou .png</div>
+                            `}
                         </div>
                         ${s.descricao ? `
                             <div style="font-size:13px; color:var(--text); line-height:1.6; padding:8px 0;">
@@ -678,12 +767,11 @@ window.abrirPaginaTutorial = async function(paginaId) {
                         </div>
                     </div>
                 `;
-            });
+            }
         }
 
         conteudo.innerHTML = html;
 
-        // Adicionar estilos para os indicadores
         const style = document.createElement('style');
         style.textContent = `
             .passo-indicador {
@@ -700,7 +788,6 @@ window.abrirPaginaTutorial = async function(paginaId) {
         `;
         document.head.appendChild(style);
 
-        // Mostrar o modal
         document.getElementById('modal-visualizacao-tutorial').style.display = 'flex';
 
     } catch (e) {
@@ -709,7 +796,7 @@ window.abrirPaginaTutorial = async function(paginaId) {
     }
 };
 
-// Função para abrir zoom da imagem
+// Zoom da imagem
 window.abrirZoomImagem = function(src) {
     const modal = document.createElement('div');
     modal.style.cssText = `
@@ -730,10 +817,9 @@ window.abrirZoomImagem = function(src) {
     document.body.appendChild(modal);
 };
 
-// Fechar visualização do tutorial
+// Fechar visualização
 window.fecharVisualizacaoTutorial = function() {
     document.getElementById('modal-visualizacao-tutorial').style.display = 'none';
-    // Remover estilos adicionados
     const styles = document.querySelectorAll('style');
     styles.forEach(s => {
         if (s.textContent.includes('.passo-indicador')) {
@@ -742,7 +828,7 @@ window.fecharVisualizacaoTutorial = function() {
     });
 };
 
-// Exportar funções de navegação para uso global
+// Exportar funções de navegação
 window.irParaPasso = irParaPasso;
 window.proximoPasso = proximoPasso;
 window.passoAnterior = passoAnterior;
