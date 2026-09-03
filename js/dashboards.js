@@ -164,25 +164,25 @@ export function exportarExcelDON() {
 export function exportarExcelStatus() {
     if (!_ultimoRenderStatus) { alert('Não há dados para exportar.'); return; }
     const { linhas: grupos, mesesExibir } = _ultimoRenderStatus;
-    const headers = ['Gestão', 'Projeto', 'Descrição', ...mesesExibir, 'Total'];
-    const linhas = grupos.map(g => [g.gestor, g.projeto, g.descricao, ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+    const headers = ['Gestão', 'Projeto', 'Acumulado', ...mesesExibir, 'Total'];
+    const linhas = grupos.map(g => [g.gestor, g.projeto, formatarValor(g.total), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
     exportarTabelaParaExcel('Dashboard_Status', headers, linhas);
 }
 
 export function exportarExcelCRE() {
     if (!_ultimoRenderCRE) { alert('Não há dados para exportar.'); return; }
     const { linhas: grupos, mesesExibir } = _ultimoRenderCRE;
-    const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Total'];
+    const headers = ['Gestão', 'Projeto', 'Acumulado', ...mesesExibir, 'Total'];
     const linhas = [];
     grupos.forEach(g => {
         // Linha do grupo
-        linhas.push([g.gestor, g.projeto, '-', ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+        linhas.push([g.gestor, g.projeto, formatarValor(g.total), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
         // Linhas das DCs
         (g._consumos || []).forEach(c => {
             const linha = [
                 '↳',
                 c.projetos?.nome || '-',
-                `DC ${c.dc || '-'}`,
+                '',
                 ...mesesExibir.map(m => {
                     const saldo = m === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
                     return saldo;
@@ -198,17 +198,17 @@ export function exportarExcelCRE() {
 export function exportarExcelPendencias() {
     if (!_ultimoRenderPendencias) { alert('Não há dados para exportar.'); return; }
     const { linhas: grupos, mesesExibir } = _ultimoRenderPendencias;
-    const headers = ['Gestão', 'Projeto', 'DC *', ...mesesExibir, 'Total'];
+    const headers = ['Gestão', 'Projeto', 'Acumulado', ...mesesExibir, 'Total'];
     const linhas = [];
     grupos.forEach(g => {
         // Linha do grupo
-        linhas.push([g.gestor, g.projeto, '-', ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+        linhas.push([g.gestor, g.projeto, formatarValor(g.total), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
         // Linhas das DCs
         (g._consumos || []).forEach(c => {
             const linha = [
                 '↳',
                 c.projetos?.nome || '-',
-                `DC ${c.dc || '-'}`,
+                '',
                 ...mesesExibir.map(m => {
                     const saldo = m === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
                     return saldo;
@@ -375,7 +375,7 @@ export function exportarRelatorioCompleto() {
             wsData.push(headers);
             
             grupos.forEach(g => {
-                const linha = ['', g.gestor, g.projeto];
+                const linha = ['', g.gestor, g.projeto, formatarValor(g.total)];
                 mesesExibir.forEach(mes => {
                     const saldo = g.meses[mes]?.saldo ?? 0;
                     linha.push(saldo);
@@ -385,7 +385,7 @@ export function exportarRelatorioCompleto() {
             });
             
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const colWidths = [4, 18, 18];
+            const colWidths = [4, 18, 18, 14];
             mesesExibir.forEach(() => colWidths.push(14));
             colWidths.push(14);
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
@@ -407,11 +407,11 @@ export function exportarRelatorioCompleto() {
             wsData.push([]);
             wsData.push([]);
             
-            const headers = ['', 'Gestão', 'Projeto', 'DC *', 'Acumulado', ...mesesExibir];
+            const headers = ['', 'Gestão', 'Projeto', 'Acumulado', ...mesesExibir];
             wsData.push(headers);
             
             grupos.forEach(g => {
-                const linha = ['', g.gestor, g.projeto, ''];
+                const linha = ['', g.gestor, g.projeto, formatarValor(g.total)];
                 mesesExibir.forEach(mes => {
                     const saldo = g.meses[mes]?.saldo ?? 0;
                     linha.push(saldo);
@@ -420,18 +420,16 @@ export function exportarRelatorioCompleto() {
                 wsData.push(linha);
                 
                 (g._consumos || []).forEach(c => {
-                    const dcLinha = ['', '', c.projetos?.nome || '-', `DC ${c.dc || '-'}`];
-                    mesesExibir.forEach(mes => {
+                    const dcLinha = ['', '', c.projetos?.nome || '-', '', ...mesesExibir.map(m => {
                         const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
-                        dcLinha.push(saldo);
-                    });
-                    dcLinha.push(Number(c.valor || 0));
+                        return saldo;
+                    }), Number(c.valor || 0)];
                     wsData.push(dcLinha);
                 });
             });
             
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const colWidths = [4, 18, 18, 12];
+            const colWidths = [4, 18, 18, 14];
             mesesExibir.forEach(() => colWidths.push(14));
             colWidths.push(14);
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
@@ -534,7 +532,6 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
 // FUNÇÃO PARA ORDENAR PROJETOS (306 antes de 340)
 // =====================================================
 function ordenarProjetos(projetos) {
-    // Função para extrair número do projeto (ex: "306 - Nome" -> 306)
     function extrairNumeroProjeto(nome) {
         if (!nome) return Infinity;
         const match = nome.match(/^(\d+)/);
@@ -643,11 +640,9 @@ function calcularGruposSaldoDON(medicoes, consumos) {
 
     const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
     
-    // ORDENAR OS PROJETOS (306 antes de 340)
     const gruposArray = Object.values(grupos);
     const gruposOrdenados = ordenarProjetos(gruposArray);
     
-    // Recriar o objeto com os grupos ordenados
     const gruposOrdenadosObj = {};
     gruposOrdenados.forEach(g => {
         gruposOrdenadosObj[g.projeto] = g;
@@ -762,8 +757,6 @@ function calcularGruposPendencias(consumos) {
 const ICONE_TOTAL_GERAL = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>`;
 const ICONE_CRE = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>`;
 const ICONE_PENDENCIAS = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/><path d="M12 8v4"/></svg>`;
-
-// CONTINUAÇÃO DE dashboards.js
 
 // =====================================================
 // CARD "TOTAL GERAL"
@@ -897,7 +890,7 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
         let html = `<tr class="${headerClass}">
             <th style="text-align:left;padding:10px 12px;">Gestão</th>
             <th style="text-align:left;padding:10px 12px;">Projeto</th>
-            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+            <th style="text-align:center;padding:10px 12px;min-width:90px;">Acumulado</th>`;
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -930,11 +923,17 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
     linhasOrdenadas.forEach(g => {
         totalGeral += g.total;
 
+        // Calcular o valor ACUMULADO (soma dos saldos de todos os meses)
+        let acumulado = 0;
+        mesesExibir.forEach(mes => {
+            acumulado += g.meses[mes]?.saldo || 0;
+        });
+
         let html = `
             <tr>
                 <td style="text-align:left;padding:10px 12px;font-weight:600;">${g.gestor}</td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${g.descricao}</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;color:var(--primary);">${formatarValor(acumulado)}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -966,7 +965,7 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         let html = `<tr class="don-header">
             <th style="text-align:left;padding:10px 12px;">Projeto</th>
             <th style="text-align:left;padding:10px 12px;">Diretor</th>
-            <th style="text-align:left;padding:10px 12px;">Descrição</th>`;
+            <th style="text-align:center;padding:10px 12px;min-width:90px;">Acumulado</th>`;
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -992,13 +991,19 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         const totalColor = proj.total < 0 ? 'color:#FF0000;' : (proj.total > 0 ? 'color:#00AA00;' : '');
         const projetoId = `projeto-${index}`;
 
+        // Calcular o valor ACUMULADO do projeto (soma dos saldos de todos os meses)
+        let acumuladoProjeto = 0;
+        mesesExibir.forEach(mes => {
+            acumuladoProjeto += proj.meses[mes]?.saldo || 0;
+        });
+
         let html = `
             <tr class="projeto-row" data-projeto="${projetoId}" style="border-top:2px solid var(--primary);background:var(--primary-100);cursor:pointer;">
                 <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">
                     <span class="expand-icon" id="icon-${projetoId}">▶</span> ${proj.projeto}
                 </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;color:var(--text-soft);">—</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);">${proj.descricao}</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;color:var(--primary);">${formatarValor(acumuladoProjeto)}</td>
         `;
         mesesExibir.forEach(mes => {
             const saldo = proj.meses[mes]?.saldo;
@@ -1015,11 +1020,18 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         const diretores = Object.values(proj.diretores).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
         diretores.forEach(dir => {
             const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
+            
+            // Calcular o valor ACUMULADO do diretor
+            let acumuladoDiretor = 0;
+            mesesExibir.forEach(mes => {
+                acumuladoDiretor += dir.meses[mes]?.saldo || 0;
+            });
+            
             let dirHtml = `
                 <tr class="diretor-row" data-parent-projeto="${projetoId}" style="display:none;border-bottom:1px solid var(--border);">
                     <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);">↳</td>
                     <td style="text-align:left;padding:8px 12px;font-weight:500;">${dir.nome}</td>
-                    <td style="text-align:left;padding:8px 12px;color:var(--text-soft);font-size:12px;">—</td>
+                    <td style="text-align:center;padding:8px 12px;font-weight:600;color:var(--primary);">${formatarValor(acumuladoDiretor)}</td>
             `;
             mesesExibir.forEach(mes => {
                 const saldo = dir.meses[mes]?.saldo;
@@ -1063,7 +1075,7 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         let html = `<tr class="cre-header">
             <th style="text-align:left;padding:10px 12px;">Gestão</th>
             <th style="text-align:left;padding:10px 12px;">Projeto</th>
-            <th style="text-align:left;padding:10px 12px;">DC *</th>`;
+            <th style="text-align:center;padding:10px 12px;min-width:90px;">Acumulado</th>`;
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -1098,13 +1110,19 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         totalGeral += g.total;
         const grupoId = `cre-grupo-${index}`;
 
+        // Calcular o valor ACUMULADO do grupo
+        let acumuladoGrupo = 0;
+        mesesExibir.forEach(mes => {
+            acumuladoGrupo += g.meses[mes]?.saldo || 0;
+        });
+
         let html = `
             <tr class="cre-grupo-row" data-grupo="${grupoId}" style="border-top:2px solid var(--gold);background:var(--gold-bg);cursor:pointer;">
                 <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">
                     <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
                 </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">-</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;color:var(--gold);">${formatarValor(acumuladoGrupo)}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -1125,11 +1143,19 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         if (consumos.length > 0) {
             consumos.forEach(c => {
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+                // Calcular acumulado da DC (só tem valor em um mês específico)
+                let acumuladoDC = 0;
+                mesesExibir.forEach(mes => {
+                    if (mes === (c.mes_medido || c.mes_apropriacao)) {
+                        acumuladoDC += Number(c.valor || 0);
+                    }
+                });
+                
                 let dcHtml = `
                     <tr class="dc-row-cre" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFFDF5;">
                         <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳</td>
                         <td style="text-align:left;padding:8px 12px;font-weight:500;color:var(--text-soft);font-size:12px;">${c.projetos?.nome || '-'}</td>
-                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--primary);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">DC ${c.dc || '-'}</td>
+                        <td style="text-align:center;padding:8px 12px;font-weight:600;color:var(--gold);">${formatarValor(acumuladoDC)}</td>
                 `;
                 mesesExibir.forEach(mes => {
                     const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
@@ -1174,7 +1200,7 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         let html = `<tr class="pendencias-header">
             <th style="text-align:left;padding:10px 12px;">Gestão</th>
             <th style="text-align:left;padding:10px 12px;">Projeto</th>
-            <th style="text-align:left;padding:10px 12px;">DC *</th>`;
+            <th style="text-align:center;padding:10px 12px;min-width:90px;">Acumulado</th>`;
         mesesExibir.forEach(mes => {
             html += `<th style="text-align:center;padding:10px 12px;min-width:90px;">${mes}</th>`;
         });
@@ -1209,13 +1235,19 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         totalGeral += g.total;
         const grupoId = `pend-grupo-${index}`;
 
+        // Calcular o valor ACUMULADO do grupo
+        let acumuladoGrupo = 0;
+        mesesExibir.forEach(mes => {
+            acumuladoGrupo += g.meses[mes]?.saldo || 0;
+        });
+
         let html = `
             <tr class="pend-grupo-row" data-grupo="${grupoId}" style="border-top:2px solid #8B0000;background:#FDE8E8;cursor:pointer;">
                 <td style="text-align:left;padding:10px 12px;font-weight:700;font-size:14px;">
                     <span class="expand-icon" id="icon-${grupoId}">▶</span> ${g.gestor}
                 </td>
                 <td style="text-align:left;padding:10px 12px;font-weight:500;">${g.projeto}</td>
-                <td style="text-align:left;padding:10px 12px;color:var(--text-soft);font-size:12px;">-</td>
+                <td style="text-align:center;padding:10px 12px;font-weight:700;color:#8B0000;">${formatarValor(acumuladoGrupo)}</td>
         `;
 
         mesesExibir.forEach(mes => {
@@ -1236,11 +1268,19 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         if (consumos.length > 0) {
             consumos.forEach(c => {
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+                // Calcular acumulado da DC
+                let acumuladoDC = 0;
+                mesesExibir.forEach(mes => {
+                    if (mes === (c.mes_medido || c.mes_apropriacao)) {
+                        acumuladoDC += Number(c.valor || 0);
+                    }
+                });
+                
                 let dcHtml = `
                     <tr class="dc-row-pend" data-parent-grupo="${grupoId}" style="display:none;border-bottom:1px solid var(--border);background:#FFF5F5;">
                         <td style="text-align:left;padding:8px 12px;padding-left:24px;font-weight:500;color:var(--text-soft);font-size:12px;">↳</td>
                         <td style="text-align:left;padding:8px 12px;font-weight:500;color:var(--text-soft);font-size:12px;">${c.projetos?.nome || '-'}</td>
-                        <td style="text-align:left;padding:8px 12px;font-weight:600;color:var(--danger);cursor:pointer;" onclick="abrirVisualizacaoDC(${c.id})">DC ${c.dc || '-'}</td>
+                        <td style="text-align:center;padding:8px 12px;font-weight:600;color:#8B0000;">${formatarValor(acumuladoDC)}</td>
                 `;
                 mesesExibir.forEach(mes => {
                     const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
@@ -1378,120 +1418,6 @@ export async function carregarDashApropriacao() {
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
-    }
-}
-
-// =====================================================
-// DASHBOARD DON (AZUL)
-// =====================================================
-export async function carregarDashDON() {
-    const tbody = document.getElementById('tabela-dash-don');
-    if (!tbody) return;
-
-    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
-
-    try {
-        await carregarStatusNfMap();
-        const filtros = lerFiltrosDashboard('don');
-        
-        const { data: medicoes, error: errorMed } = await supabaseClient
-            .from('medicoes')
-            .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_don,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
-            `);
-        if (errorMed) throw errorMed;
-
-        const { data: consumos, error: errorCons } = await supabaseClient
-            .from('consumo_dc')
-            .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
-            `);
-        if (errorCons) throw errorCons;
-
-        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros, 'don');
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'don');
-        
-        const { grupos, mesesExibir } = calcularGruposSaldoDON(
-            medicoesFiltradas, 
-            consumosFiltrados
-        );
-        
-        renderizarDashboardDON('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-total-geral');
-        registrarUltimaAtualizacao();
-    } catch (e) {
-        console.error('Erro ao carregar dashboard DON:', e);
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
-    }
-}
-
-// =====================================================
-// DASHBOARD CRE
-// =====================================================
-export async function carregarDashCRE() {
-    const tbody = document.getElementById('tabela-dash-cre');
-    if (!tbody) return;
-
-    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
-
-    try {
-        await carregarStatusNfMap();
-        const filtros = lerFiltrosDashboard('cre');
-        
-        const { data: consumos, error: errorCons } = await supabaseClient
-            .from('consumo_dc')
-            .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
-            `);
-        if (errorCons) throw errorCons;
-
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'cre');
-        
-        const { grupos, mesesExibir } = calcularGruposCRE(consumosFiltrados);
-        
-        renderizarDashboardCRE('cre-header', 'tabela-dash-cre', grupos, mesesExibir, 'cre-total-geral');
-        registrarUltimaAtualizacao();
-    } catch (e) {
-        console.error('Erro ao carregar dashboard CRE:', e);
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
-    }
-}
-
-// =====================================================
-// DASHBOARD PENDÊNCIAS (VERMELHO)
-// =====================================================
-export async function carregarDashPendencias() {
-    const tbody = document.getElementById('tabela-dash-pendencias');
-    if (!tbody) return;
-
-    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
-
-    try {
-        await carregarStatusNfMap();
-        const filtros = lerFiltrosDashboard('pendencias');
-        
-        const { data: consumos, error: errorCons } = await supabaseClient
-            .from('consumo_dc')
-            .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id,
-                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
-                projetos(nome), gestores_logictel(nome), diretores(nome)
-            `);
-        if (errorCons) throw errorCons;
-
-        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'pendencias');
-        
-        const { grupos, mesesExibir } = calcularGruposPendencias(consumosFiltrados);
-        
-        renderizarDashboardPendencias('pend-header', 'tabela-dash-pendencias', grupos, mesesExibir, 'pend-total-geral');
-        registrarUltimaAtualizacao();
-    } catch (e) {
-        console.error('Erro ao carregar dashboard Pendências:', e);
         tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
     }
 }
