@@ -531,6 +531,27 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
 }
 
 // =====================================================
+// FUNÇÃO PARA ORDENAR PROJETOS (306 antes de 340)
+// =====================================================
+function ordenarProjetos(projetos) {
+    // Função para extrair número do projeto (ex: "306 - Nome" -> 306)
+    function extrairNumeroProjeto(nome) {
+        if (!nome) return Infinity;
+        const match = nome.match(/^(\d+)/);
+        if (match) {
+            return parseInt(match[1]);
+        }
+        return Infinity;
+    }
+
+    return projetos.sort((a, b) => {
+        const numA = extrairNumeroProjeto(a.projeto);
+        const numB = extrairNumeroProjeto(b.projeto);
+        return numA - numB;
+    });
+}
+
+// =====================================================
 // CÁLCULO DE SALDO PARA DON (com exclusão de CRE e Pendências)
 // =====================================================
 function calcularGruposSaldoDON(medicoes, consumos) {
@@ -621,7 +642,18 @@ function calcularGruposSaldoDON(medicoes, consumos) {
     }
 
     const mesesExibir = Array.from(mesesComSaldo).sort((a, b) => MESES_ORDEM.indexOf(a) - MESES_ORDEM.indexOf(b));
-    return { grupos, mesesExibir };
+    
+    // ORDENAR OS PROJETOS (306 antes de 340)
+    const gruposArray = Object.values(grupos);
+    const gruposOrdenados = ordenarProjetos(gruposArray);
+    
+    // Recriar o objeto com os grupos ordenados
+    const gruposOrdenadosObj = {};
+    gruposOrdenados.forEach(g => {
+        gruposOrdenadosObj[g.projeto] = g;
+    });
+    
+    return { grupos: gruposOrdenadosObj, mesesExibir };
 }
 
 // =====================================================
@@ -730,6 +762,8 @@ function calcularGruposPendencias(consumos) {
 const ICONE_TOTAL_GERAL = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>`;
 const ICONE_CRE = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>`;
 const ICONE_PENDENCIAS = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/><path d="M12 8v4"/></svg>`;
+
+// CONTINUAÇÃO DE dashboards.js
 
 // =====================================================
 // CARD "TOTAL GERAL"
@@ -880,10 +914,20 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
         return;
     }
 
+    // ORDENAR AS LINHAS POR PROJETO (306 antes de 340)
+    const linhasOrdenadas = linhas.sort((a, b) => {
+        function extrairNumero(nome) {
+            if (!nome) return Infinity;
+            const match = nome.match(/^(\d+)/);
+            return match ? parseInt(match[1]) : Infinity;
+        }
+        return extrairNumero(a.projeto) - extrairNumero(b.projeto);
+    });
+
     tbody.innerHTML = '';
     let totalGeral = 0;
 
-    linhas.forEach(g => {
+    linhasOrdenadas.forEach(g => {
         totalGeral += g.total;
 
         let html = `
@@ -910,7 +954,7 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
     });
 
     const renderFn = tema === 'cre' ? renderizarTotalGeralCardCRE : renderizarTotalGeralCard;
-    renderFn(totalCardId, tema, mesesExibir, linhas, totalGeral);
+    renderFn(totalCardId, tema, mesesExibir, linhasOrdenadas, totalGeral);
 }
 
 // =====================================================
@@ -1037,10 +1081,20 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         return;
     }
 
+    // ORDENAR AS LINHAS POR PROJETO (306 antes de 340)
+    const linhasOrdenadas = linhas.sort((a, b) => {
+        function extrairNumero(nome) {
+            if (!nome) return Infinity;
+            const match = nome.match(/^(\d+)/);
+            return match ? parseInt(match[1]) : Infinity;
+        }
+        return extrairNumero(a.projeto) - extrairNumero(b.projeto);
+    });
+
     tbody.innerHTML = '';
     let totalGeral = 0;
 
-    linhas.forEach((g, index) => {
+    linhasOrdenadas.forEach((g, index) => {
         totalGeral += g.total;
         const grupoId = `cre-grupo-${index}`;
 
@@ -1107,8 +1161,8 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         };
     });
 
-    _ultimoRenderCRE = { linhas: Object.values(grupos), mesesExibir };
-    renderizarTotalGeralCardCRE(totalCardId, 'cre', mesesExibir, linhas, totalGeral);
+    _ultimoRenderCRE = { linhas: linhasOrdenadas, mesesExibir };
+    renderizarTotalGeralCardCRE(totalCardId, 'cre', mesesExibir, linhasOrdenadas, totalGeral);
 }
 
 // =====================================================
@@ -1138,10 +1192,20 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         return;
     }
 
+    // ORDENAR AS LINHAS POR PROJETO (306 antes de 340)
+    const linhasOrdenadas = linhas.sort((a, b) => {
+        function extrairNumero(nome) {
+            if (!nome) return Infinity;
+            const match = nome.match(/^(\d+)/);
+            return match ? parseInt(match[1]) : Infinity;
+        }
+        return extrairNumero(a.projeto) - extrairNumero(b.projeto);
+    });
+
     tbody.innerHTML = '';
     let totalGeral = 0;
 
-    linhas.forEach((g, index) => {
+    linhasOrdenadas.forEach((g, index) => {
         totalGeral += g.total;
         const grupoId = `pend-grupo-${index}`;
 
@@ -1208,8 +1272,8 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         };
     });
 
-    _ultimoRenderPendencias = { linhas: Object.values(grupos), mesesExibir };
-    renderizarTotalGeralCardPendencias(totalCardId, 'pendencias', mesesExibir, linhas, totalGeral);
+    _ultimoRenderPendencias = { linhas: linhasOrdenadas, mesesExibir };
+    renderizarTotalGeralCardPendencias(totalCardId, 'pendencias', mesesExibir, linhasOrdenadas, totalGeral);
 }
 
 // =====================================================
