@@ -41,6 +41,8 @@ import {
     irParaPaginaVisualizarTutoriais
 } from './tutoriais.js';
 
+import { carregarBackup } from './backup.js';
+
 import {
     initFormEmpresa, editarEmpresa, excluirEmpresa,
     initFormDiretor, editarDiretor, excluirDiretor,
@@ -100,6 +102,8 @@ Object.assign(window, {
     filtrarVisualizarTutoriais,
     limparFiltrosVisualizarTutoriais,
     irParaPaginaVisualizarTutoriais,
+    // backup
+    carregarBackup,
     // cadastros
     editarEmpresa, excluirEmpresa,
     editarDiretor, excluirDiretor,
