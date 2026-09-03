@@ -148,14 +148,18 @@ function exportarTabelaParaExcel(nomeArquivo, headers, linhas) {
 export function exportarExcelDON() {
     if (!_ultimoRenderDON) { alert('Não há dados para exportar.'); return; }
     const { projetos, mesesExibir } = _ultimoRenderDON;
-    const headers = ['Projeto', 'Diretor', 'Descrição', ...mesesExibir, 'Total'];
+    const headers = ['Projeto', 'Diretor', 'Acumulado', ...mesesExibir, 'Total'];
     const linhas = [];
     projetos.forEach(proj => {
-        linhas.push([proj.projeto, '—', proj.descricao, ...mesesExibir.map(m => proj.meses[m]?.saldo ?? 0), proj.total]);
+        let acumulado = 0;
+        mesesExibir.forEach(m => { acumulado += proj.meses[m]?.saldo ?? 0; });
+        linhas.push([proj.projeto, '—', formatarValor(acumulado), ...mesesExibir.map(m => proj.meses[m]?.saldo ?? 0), proj.total]);
         Object.values(proj.diretores)
             .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
             .forEach(dir => {
-                linhas.push([`↳ ${proj.projeto}`, dir.nome, '—', ...mesesExibir.map(m => dir.meses[m]?.saldo ?? 0), dir.total]);
+                let acumuladoDir = 0;
+                mesesExibir.forEach(m => { acumuladoDir += dir.meses[m]?.saldo ?? 0; });
+                linhas.push([`↳ ${proj.projeto}`, dir.nome, formatarValor(acumuladoDir), ...mesesExibir.map(m => dir.meses[m]?.saldo ?? 0), dir.total]);
             });
     });
     exportarTabelaParaExcel('Dashboard_DON', headers, linhas);
@@ -165,7 +169,11 @@ export function exportarExcelStatus() {
     if (!_ultimoRenderStatus) { alert('Não há dados para exportar.'); return; }
     const { linhas: grupos, mesesExibir } = _ultimoRenderStatus;
     const headers = ['Gestão', 'Projeto', 'Acumulado', ...mesesExibir, 'Total'];
-    const linhas = grupos.map(g => [g.gestor, g.projeto, formatarValor(g.total), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
+    const linhas = grupos.map(g => {
+        let acumulado = 0;
+        mesesExibir.forEach(m => { acumulado += g.meses[m]?.saldo ?? 0; });
+        return [g.gestor, g.projeto, formatarValor(acumulado), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total];
+    });
     exportarTabelaParaExcel('Dashboard_Status', headers, linhas);
 }
 
@@ -175,14 +183,20 @@ export function exportarExcelCRE() {
     const headers = ['Gestão', 'Projeto', 'Acumulado', ...mesesExibir, 'Total'];
     const linhas = [];
     grupos.forEach(g => {
-        // Linha do grupo
-        linhas.push([g.gestor, g.projeto, formatarValor(g.total), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
-        // Linhas das DCs
+        let acumulado = 0;
+        mesesExibir.forEach(m => { acumulado += g.meses[m]?.saldo ?? 0; });
+        linhas.push([g.gestor, g.projeto, formatarValor(acumulado), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
         (g._consumos || []).forEach(c => {
+            let acumuladoDC = 0;
+            mesesExibir.forEach(m => {
+                if (m === (c.mes_medido || c.mes_apropriacao)) {
+                    acumuladoDC += Number(c.valor || 0);
+                }
+            });
             const linha = [
                 '↳',
                 c.projetos?.nome || '-',
-                '',
+                formatarValor(acumuladoDC),
                 ...mesesExibir.map(m => {
                     const saldo = m === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
                     return saldo;
@@ -201,14 +215,20 @@ export function exportarExcelPendencias() {
     const headers = ['Gestão', 'Projeto', 'Acumulado', ...mesesExibir, 'Total'];
     const linhas = [];
     grupos.forEach(g => {
-        // Linha do grupo
-        linhas.push([g.gestor, g.projeto, formatarValor(g.total), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
-        // Linhas das DCs
+        let acumulado = 0;
+        mesesExibir.forEach(m => { acumulado += g.meses[m]?.saldo ?? 0; });
+        linhas.push([g.gestor, g.projeto, formatarValor(acumulado), ...mesesExibir.map(m => g.meses[m]?.saldo ?? 0), g.total]);
         (g._consumos || []).forEach(c => {
+            let acumuladoDC = 0;
+            mesesExibir.forEach(m => {
+                if (m === (c.mes_medido || c.mes_apropriacao)) {
+                    acumuladoDC += Number(c.valor || 0);
+                }
+            });
             const linha = [
                 '↳',
                 c.projetos?.nome || '-',
-                '',
+                formatarValor(acumuladoDC),
                 ...mesesExibir.map(m => {
                     const saldo = m === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
                     return saldo;
@@ -231,7 +251,6 @@ export function exportarRelatorioCompleto() {
         const dadosCRE = _ultimoRenderCRE;
         const dadosPendencias = _ultimoRenderPendencias;
 
-        // Verificar se pelo menos um dashboard tem dados
         const temDados = (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) ||
                         (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) ||
                         (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) ||
@@ -244,27 +263,22 @@ export function exportarRelatorioCompleto() {
 
         const wb = XLSX.utils.book_new();
 
-        // =====================================================
         // ABA 1: Pendências
-        // =====================================================
         if (dadosPendencias && dadosPendencias.linhas && dadosPendencias.linhas.length > 0) {
             const { linhas: grupos, mesesExibir } = dadosPendencias;
-            
             let totalGeral = 0;
             grupos.forEach(g => { totalGeral += g.total; });
-            
             const wsData = [];
             wsData.push(['', 'Total de pendências:', totalGeral]);
             wsData.push([]);
             wsData.push([]);
-            
             grupos.forEach((g) => {
-                wsData.push(['', `${g.gestor}:`, g.total]);
+                let acumulado = 0;
+                mesesExibir.forEach(m => { acumulado += g.meses[m]?.saldo ?? 0; });
+                wsData.push(['', `${g.gestor}:`, formatarValor(acumulado)]);
                 wsData.push([]);
-                
                 const headers = ['', 'Projeto', 'Empresa', 'Gestor_Logictel', 'Gestor_Cliente', 'Acumulado', ...mesesExibir];
                 wsData.push(headers);
-                
                 const consumosPorProjeto = {};
                 (g._consumos || []).forEach(c => {
                     const projetoNome = c.projetos?.nome || 'N/A';
@@ -277,10 +291,8 @@ export function exportarRelatorioCompleto() {
                     }
                     consumosPorProjeto[projetoNome].consumos.push(c);
                 });
-                
                 Object.keys(consumosPorProjeto).forEach((projetoNome) => {
                     const grupo = consumosPorProjeto[projetoNome];
-                    
                     grupo.consumos.forEach((c, cIdx) => {
                         const linha = [];
                         linha.push('');
@@ -289,7 +301,13 @@ export function exportarRelatorioCompleto() {
                         linha.push(cIdx === 0 ? grupo.gestor_logictel : '');
                         linha.push(c.diretores?.nome || '');
                         const valor = Number(c.valor || 0);
-                        linha.push(valor);
+                        let acumuladoDC = 0;
+                        mesesExibir.forEach(m => {
+                            if (m === (c.mes_medido || c.mes_apropriacao)) {
+                                acumuladoDC += valor;
+                            }
+                        });
+                        linha.push(formatarValor(acumuladoDC));
                         mesesExibir.forEach(mes => {
                             const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? valor : 0;
                             linha.push(saldo);
@@ -299,45 +317,40 @@ export function exportarRelatorioCompleto() {
                 });
                 wsData.push([]);
             });
-            
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const colWidths = [4, 18, 22, 18, 25, 14];
             mesesExibir.forEach(() => colWidths.push(14));
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
             XLSX.utils.book_append_sheet(wb, ws, 'Pendencias');
         }
 
-        // =====================================================
         // ABA 2: DON
-        // =====================================================
         if (dadosDON && dadosDON.projetos && dadosDON.projetos.length > 0) {
             const { projetos, mesesExibir } = dadosDON;
-            
             let totalGeral = 0;
             projetos.forEach(proj => { totalGeral += proj.total; });
-            
             const wsData = [];
             wsData.push(['', 'Total DON:', totalGeral]);
             wsData.push([]);
             wsData.push([]);
-            
             const headers = ['', 'Projeto', 'Empresa', 'Diretor', 'Acumulado', ...mesesExibir];
             wsData.push(headers);
-            
             projetos.forEach(proj => {
-                const projLinha = ['', proj.projeto, proj.empresa || '', ''];
+                let acumuladoProj = 0;
+                mesesExibir.forEach(m => { acumuladoProj += proj.meses[m]?.saldo ?? 0; });
+                const projLinha = ['', proj.projeto, proj.empresa || '', '', formatarValor(acumuladoProj)];
                 mesesExibir.forEach(mes => {
                     const saldo = proj.meses[mes]?.saldo ?? 0;
                     projLinha.push(saldo);
                 });
                 projLinha.push(proj.total);
                 wsData.push(projLinha);
-                
                 Object.values(proj.diretores)
                     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
                     .forEach(dir => {
-                        const dirLinha = ['', '', '', dir.nome];
+                        let acumuladoDir = 0;
+                        mesesExibir.forEach(m => { acumuladoDir += dir.meses[m]?.saldo ?? 0; });
+                        const dirLinha = ['', '', '', dir.nome, formatarValor(acumuladoDir)];
                         mesesExibir.forEach(mes => {
                             const saldo = dir.meses[mes]?.saldo ?? 0;
                             dirLinha.push(saldo);
@@ -347,35 +360,29 @@ export function exportarRelatorioCompleto() {
                     });
                 wsData.push([]);
             });
-            
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const colWidths = [4, 18, 22, 18];
+            const colWidths = [4, 18, 22, 18, 14];
             mesesExibir.forEach(() => colWidths.push(14));
             colWidths.push(14);
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
             XLSX.utils.book_append_sheet(wb, ws, 'DON');
         }
 
-        // =====================================================
         // ABA 3: Status
-        // =====================================================
         if (dadosStatus && dadosStatus.linhas && dadosStatus.linhas.length > 0) {
             const { linhas: grupos, mesesExibir } = dadosStatus;
-            
             let totalGeral = 0;
             grupos.forEach(g => { totalGeral += g.total; });
-            
             const wsData = [];
             wsData.push(['', 'Total Status:', totalGeral]);
             wsData.push([]);
             wsData.push([]);
-            
             const headers = ['', 'Gestão', 'Projeto', 'Acumulado', ...mesesExibir];
             wsData.push(headers);
-            
             grupos.forEach(g => {
-                const linha = ['', g.gestor, g.projeto, formatarValor(g.total)];
+                let acumulado = 0;
+                mesesExibir.forEach(m => { acumulado += g.meses[m]?.saldo ?? 0; });
+                const linha = ['', g.gestor, g.projeto, formatarValor(acumulado)];
                 mesesExibir.forEach(mes => {
                     const saldo = g.meses[mes]?.saldo ?? 0;
                     linha.push(saldo);
@@ -383,57 +390,56 @@ export function exportarRelatorioCompleto() {
                 linha.push(g.total);
                 wsData.push(linha);
             });
-            
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const colWidths = [4, 18, 18, 14];
             mesesExibir.forEach(() => colWidths.push(14));
             colWidths.push(14);
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
             XLSX.utils.book_append_sheet(wb, ws, 'Status');
         }
 
-        // =====================================================
         // ABA 4: CRE
-        // =====================================================
         if (dadosCRE && dadosCRE.linhas && dadosCRE.linhas.length > 0) {
             const { linhas: grupos, mesesExibir } = dadosCRE;
-            
             let totalGeral = 0;
             grupos.forEach(g => { totalGeral += g.total; });
-            
             const wsData = [];
             wsData.push(['', 'Total Tramitando CRE:', totalGeral]);
             wsData.push([]);
             wsData.push([]);
-            
             const headers = ['', 'Gestão', 'Projeto', 'Acumulado', ...mesesExibir];
             wsData.push(headers);
-            
             grupos.forEach(g => {
-                const linha = ['', g.gestor, g.projeto, formatarValor(g.total)];
+                let acumulado = 0;
+                mesesExibir.forEach(m => { acumulado += g.meses[m]?.saldo ?? 0; });
+                const linha = ['', g.gestor, g.projeto, formatarValor(acumulado)];
                 mesesExibir.forEach(mes => {
                     const saldo = g.meses[mes]?.saldo ?? 0;
                     linha.push(saldo);
                 });
                 linha.push(g.total);
                 wsData.push(linha);
-                
                 (g._consumos || []).forEach(c => {
-                    const dcLinha = ['', '', c.projetos?.nome || '-', '', ...mesesExibir.map(m => {
+                    let acumuladoDC = 0;
+                    mesesExibir.forEach(m => {
+                        if (m === (c.mes_medido || c.mes_apropriacao)) {
+                            acumuladoDC += Number(c.valor || 0);
+                        }
+                    });
+                    const dcLinha = ['', '', c.projetos?.nome || '-', formatarValor(acumuladoDC)];
+                    mesesExibir.forEach(mes => {
                         const saldo = mes === (c.mes_medido || c.mes_apropriacao) ? Number(c.valor || 0) : 0;
-                        return saldo;
-                    }), Number(c.valor || 0)];
+                        dcLinha.push(saldo);
+                    });
+                    dcLinha.push(Number(c.valor || 0));
                     wsData.push(dcLinha);
                 });
             });
-            
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const colWidths = [4, 18, 18, 14];
             mesesExibir.forEach(() => colWidths.push(14));
             colWidths.push(14);
             ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
             XLSX.utils.book_append_sheet(wb, ws, 'CRE');
         }
 
@@ -457,7 +463,6 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
             grupos[key] = {
                 gestor: origem.gestores_logictel?.nome || 'N/A',
                 projeto: origem.projetos?.nome || 'N/A',
-                descricao: origem.projetos?.nome || '',
                 meses: {},
                 _debitos: {},
                 _caixa: 0,
@@ -559,7 +564,6 @@ function calcularGruposSaldoDON(medicoes, consumos) {
         if (!grupos[key]) {
             grupos[key] = {
                 projeto: origem.projetos?.nome || 'N/A',
-                descricao: origem.projetos?.nome || '',
                 meses: {},
                 total: 0,
                 diretores: {}
@@ -669,7 +673,6 @@ function calcularGruposCRE(consumos) {
             grupos[key] = {
                 gestor: c.gestores_logictel?.nome || 'N/A',
                 projeto: c.projetos?.nome || 'N/A',
-                descricao: '',
                 meses: {},
                 total: 0,
                 _consumos: []
@@ -719,7 +722,6 @@ function calcularGruposPendencias(consumos) {
             grupos[key] = {
                 gestor: c.gestores_logictel?.nome || 'N/A',
                 projeto: c.projetos?.nome || 'N/A',
-                descricao: '',
                 meses: {},
                 total: 0,
                 _consumos: []
@@ -907,7 +909,6 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
         return;
     }
 
-    // ORDENAR AS LINHAS POR PROJETO (306 antes de 340)
     const linhasOrdenadas = linhas.sort((a, b) => {
         function extrairNumero(nome) {
             if (!nome) return Infinity;
@@ -923,7 +924,6 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
     linhasOrdenadas.forEach(g => {
         totalGeral += g.total;
 
-        // Calcular o valor ACUMULADO (soma dos saldos de todos os meses)
         let acumulado = 0;
         mesesExibir.forEach(mes => {
             acumulado += g.meses[mes]?.saldo || 0;
@@ -991,7 +991,6 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         const totalColor = proj.total < 0 ? 'color:#FF0000;' : (proj.total > 0 ? 'color:#00AA00;' : '');
         const projetoId = `projeto-${index}`;
 
-        // Calcular o valor ACUMULADO do projeto (soma dos saldos de todos os meses)
         let acumuladoProjeto = 0;
         mesesExibir.forEach(mes => {
             acumuladoProjeto += proj.meses[mes]?.saldo || 0;
@@ -1021,7 +1020,6 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
         diretores.forEach(dir => {
             const dTotalColor = dir.total < 0 ? 'color:#FF0000;' : (dir.total > 0 ? 'color:#00AA00;' : '');
             
-            // Calcular o valor ACUMULADO do diretor
             let acumuladoDiretor = 0;
             mesesExibir.forEach(mes => {
                 acumuladoDiretor += dir.meses[mes]?.saldo || 0;
@@ -1093,7 +1091,6 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         return;
     }
 
-    // ORDENAR AS LINHAS POR PROJETO (306 antes de 340)
     const linhasOrdenadas = linhas.sort((a, b) => {
         function extrairNumero(nome) {
             if (!nome) return Infinity;
@@ -1110,7 +1107,6 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         totalGeral += g.total;
         const grupoId = `cre-grupo-${index}`;
 
-        // Calcular o valor ACUMULADO do grupo
         let acumuladoGrupo = 0;
         mesesExibir.forEach(mes => {
             acumuladoGrupo += g.meses[mes]?.saldo || 0;
@@ -1138,12 +1134,10 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         `;
         tbody.innerHTML += html;
 
-        // Linhas de DCs (expandíveis)
         const consumos = g._consumos || [];
         if (consumos.length > 0) {
             consumos.forEach(c => {
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
-                // Calcular acumulado da DC (só tem valor em um mês específico)
                 let acumuladoDC = 0;
                 mesesExibir.forEach(mes => {
                     if (mes === (c.mes_medido || c.mes_apropriacao)) {
@@ -1171,7 +1165,6 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
         }
     });
 
-    // Evento de clique para expandir/colapsar
     document.querySelectorAll('.cre-grupo-row').forEach(row => {
         row.onclick = function () {
             const grupoId = this.dataset.grupo;
@@ -1218,7 +1211,6 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         return;
     }
 
-    // ORDENAR AS LINHAS POR PROJETO (306 antes de 340)
     const linhasOrdenadas = linhas.sort((a, b) => {
         function extrairNumero(nome) {
             if (!nome) return Infinity;
@@ -1235,7 +1227,6 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         totalGeral += g.total;
         const grupoId = `pend-grupo-${index}`;
 
-        // Calcular o valor ACUMULADO do grupo
         let acumuladoGrupo = 0;
         mesesExibir.forEach(mes => {
             acumuladoGrupo += g.meses[mes]?.saldo || 0;
@@ -1263,12 +1254,10 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         `;
         tbody.innerHTML += html;
 
-        // Linhas de DCs (expandíveis)
         const consumos = g._consumos || [];
         if (consumos.length > 0) {
             consumos.forEach(c => {
                 const valorFormatado = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
-                // Calcular acumulado da DC
                 let acumuladoDC = 0;
                 mesesExibir.forEach(mes => {
                     if (mes === (c.mes_medido || c.mes_apropriacao)) {
@@ -1296,7 +1285,6 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
         }
     });
 
-    // Evento de clique para expandir/colapsar
     document.querySelectorAll('.pend-grupo-row').forEach(row => {
         row.onclick = function () {
             const grupoId = this.dataset.grupo;
@@ -1418,6 +1406,120 @@ export async function carregarDashApropriacao() {
         registrarUltimaAtualizacao();
     } catch (e) {
         console.error('Erro ao carregar dashboard Status:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+    }
+}
+
+// =====================================================
+// DASHBOARD DON (AZUL)
+// =====================================================
+export async function carregarDashDON() {
+    const tbody = document.getElementById('tabela-dash-don');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
+
+    try {
+        await carregarStatusNfMap();
+        const filtros = lerFiltrosDashboard('don');
+        
+        const { data: medicoes, error: errorMed } = await supabaseClient
+            .from('medicoes')
+            .select(`
+                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_don,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorMed) throw errorMed;
+
+        const { data: consumos, error: errorCons } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id, projeto_id, gestor_logictel_id, diretor_id,
+                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const medicoesFiltradas = aplicarFiltrosDashboard(medicoes || [], filtros, 'don');
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'don');
+        
+        const { grupos, mesesExibir } = calcularGruposSaldoDON(
+            medicoesFiltradas, 
+            consumosFiltrados
+        );
+        
+        renderizarDashboardDON('don-header', 'tabela-dash-don', grupos, mesesExibir, 'don-total-geral');
+        registrarUltimaAtualizacao();
+    } catch (e) {
+        console.error('Erro ao carregar dashboard DON:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+    }
+}
+
+// =====================================================
+// DASHBOARD CRE
+// =====================================================
+export async function carregarDashCRE() {
+    const tbody = document.getElementById('tabela-dash-cre');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
+
+    try {
+        await carregarStatusNfMap();
+        const filtros = lerFiltrosDashboard('cre');
+        
+        const { data: consumos, error: errorCons } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id, projeto_id, gestor_logictel_id, diretor_id,
+                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'cre');
+        
+        const { grupos, mesesExibir } = calcularGruposCRE(consumosFiltrados);
+        
+        renderizarDashboardCRE('cre-header', 'tabela-dash-cre', grupos, mesesExibir, 'cre-total-geral');
+        registrarUltimaAtualizacao();
+    } catch (e) {
+        console.error('Erro ao carregar dashboard CRE:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
+    }
+}
+
+// =====================================================
+// DASHBOARD PENDÊNCIAS (VERMELHO)
+// =====================================================
+export async function carregarDashPendencias() {
+    const tbody = document.getElementById('tabela-dash-pendencias');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Carregando...</td></tr>`;
+
+    try {
+        await carregarStatusNfMap();
+        const filtros = lerFiltrosDashboard('pendencias');
+        
+        const { data: consumos, error: errorCons } = await supabaseClient
+            .from('consumo_dc')
+            .select(`
+                id, projeto_id, gestor_logictel_id, diretor_id,
+                mes_apropriacao, mes_medido, ano, valor, status_nf, dc,
+                projetos(nome), gestores_logictel(nome), diretores(nome)
+            `);
+        if (errorCons) throw errorCons;
+
+        const consumosFiltrados = aplicarFiltrosDashboard(consumos || [], filtros, 'pendencias');
+        
+        const { grupos, mesesExibir } = calcularGruposPendencias(consumosFiltrados);
+        
+        renderizarDashboardPendencias('pend-header', 'tabela-dash-pendencias', grupos, mesesExibir, 'pend-total-geral');
+        registrarUltimaAtualizacao();
+    } catch (e) {
+        console.error('Erro ao carregar dashboard Pendências:', e);
         tbody.innerHTML = `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
     }
 }
