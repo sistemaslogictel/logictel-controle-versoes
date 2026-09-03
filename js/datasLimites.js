@@ -281,47 +281,58 @@ export async function atualizarTopbarDatasLimites() {
 
     try {
         const hoje = new Date();
-        const mesAtual = hoje.toLocaleDateString('pt-BR', { month: 'long' });
+        const mesAtual = hoje.getMonth(); // 0 = Janeiro, 1 = Fevereiro, ...
         const anoAtual = hoje.getFullYear();
+        
+        const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        
+        const nomeMesAtual = mesesNomes[mesAtual];
 
         // Buscar a data limite do mês atual
         let { data, error } = await supabaseClient
             .from('datas_limites')
             .select('*')
-            .eq('mes', mesAtual)
+            .eq('mes', nomeMesAtual)
             .eq('ano', anoAtual)
             .maybeSingle();
 
-        // Se não tiver data para o mês atual, buscar a mais próxima
+        // Se não tiver data para o mês atual, buscar a mais próxima (mês seguinte ou futuro)
         if (!data) {
-            // Buscar a próxima data disponível (mês atual ou futuro)
-            const { data: proxima } = await supabaseClient
+            // Buscar todas as datas ordenadas por ano e mês
+            const { data: todas, error: errorTodas } = await supabaseClient
                 .from('datas_limites')
                 .select('*')
-                .gte('ano', anoAtual)
                 .order('ano', { ascending: true })
                 .order('mes', { ascending: true });
 
-            if (proxima && proxima.length > 0) {
-                // Verificar se tem para o mês atual ou próximo
-                const mesesOrdem = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            if (errorTodas) {
+                console.error('Erro ao buscar todas as datas:', errorTodas);
+            } else if (todas && todas.length > 0) {
+                // Encontrar a data mais próxima (mês atual ou futuro)
+                let dataEncontrada = null;
+                let menorDiferenca = Infinity;
                 
-                // Ordenar por proximidade do mês atual
-                const mesAtualIndex = mesesOrdem.indexOf(mesAtual);
-                const dataEncontrada = proxima.find(d => {
-                    const mesIndex = mesesOrdem.indexOf(d.mes);
-                    const anoDiff = d.ano - anoAtual;
-                    if (anoDiff > 0) return true;
-                    if (anoDiff === 0 && mesIndex >= mesAtualIndex) return true;
-                    return false;
-                });
+                for (const d of todas) {
+                    const mesIndex = mesesNomes.indexOf(d.mes);
+                    if (mesIndex === -1) continue;
+                    
+                    const diffAno = d.ano - anoAtual;
+                    const diffMes = mesIndex - mesAtual;
+                    const diffTotal = (diffAno * 12) + diffMes;
+                    
+                    // Só considerar meses atuais ou futuros (diffTotal >= 0)
+                    if (diffTotal >= 0 && diffTotal < menorDiferenca) {
+                        menorDiferenca = diffTotal;
+                        dataEncontrada = d;
+                    }
+                }
                 
                 if (dataEncontrada) {
                     data = dataEncontrada;
                 } else {
-                    // Se não encontrou, pega o primeiro disponível
-                    data = proxima[0];
+                    // Se não encontrou nenhuma futura, pega a última disponível
+                    data = todas[todas.length - 1];
                 }
             }
         }
@@ -373,12 +384,6 @@ function formatarDataLimiteTopbar(data, label) {
     const mes = String(dataLimite.getMonth() + 1).padStart(2, '0');
     const ano = dataLimite.getFullYear();
     const dataStr = `${dia}/${mes}/${ano}`;
-    
-    // NOVA LÓGICA DE CORES:
-    // - Amarela: 7 dias antes (diffDias <= 7 e diffDias > 3)
-    // - Vermelha: 3 dias antes (diffDias <= 3 e diffDias > 0)
-    // - Preta piscando: No dia (diffDias === 0)
-    // - Sem cor: Passou ou mais de 7 dias
     
     // Passou da data limite
     if (diffDias < 0) {
