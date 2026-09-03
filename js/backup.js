@@ -40,7 +40,7 @@ export async function carregarBackup() {
                 </button>
             </div>
             <p style="margin-top:12px; font-size:11px; color:var(--text-soft);">
-                Serão baixadas ${TABELAS_BACKUP.length} tabelas. JSON = arquivo único | CSV = uma tabela por arquivo (separador ;)
+                JSON = arquivo único com todas as tabelas | CSV = um arquivo por tabela (separador ;)
             </p>
         </div>
         <div id="backup-status" style="margin-top:16px;"></div>
@@ -133,7 +133,42 @@ window.baixarBackupJSON = async function() {
 };
 
 // =====================================================
-// BAIXAR BACKUP EM CSV (separador ;)
+// FUNÇÃO PARA CONVERTER DADOS EM CSV (separador ;)
+// =====================================================
+function converterParaCSV(dados) {
+    if (!dados || dados.length === 0) {
+        return '';
+    }
+
+    // Obter todas as chaves (colunas) do primeiro registro
+    const colunas = Object.keys(dados[0]);
+    
+    // Cabeçalho
+    let csv = colunas.join(';') + '\n';
+
+    // Linhas
+    for (const registro of dados) {
+        const linha = colunas.map(col => {
+            let valor = registro[col];
+            if (valor === null || valor === undefined) {
+                return '';
+            }
+            // Converter para string
+            valor = String(valor);
+            // Se contiver ; ou " ou quebra de linha, envolver em aspas
+            if (valor.includes(';') || valor.includes('"') || valor.includes('\n') || valor.includes('\r')) {
+                valor = '"' + valor.replace(/"/g, '""') + '"';
+            }
+            return valor;
+        });
+        csv += linha.join(';') + '\n';
+    }
+
+    return csv;
+}
+
+// =====================================================
+// BAIXAR BACKUP EM CSV (um arquivo por tabela)
 // =====================================================
 window.baixarBackupCSV = async function() {
     const statusEl = document.getElementById('backup-status');
@@ -153,13 +188,9 @@ window.baixarBackupCSV = async function() {
         const hora = String(dataAtual.getHours()).padStart(2, '0');
         const minuto = String(dataAtual.getMinutes()).padStart(2, '0');
 
-        // Criar um arquivo ZIP contendo todas as tabelas em CSV
-        // Como não temos biblioteca ZIP, vamos baixar uma por uma ou criar um único arquivo com todas as tabelas
-        
-        // Opção 1: Baixar um arquivo CSV único com todas as tabelas separadas por seções
-        let csvCompleto = '';
         let totalRegistros = 0;
         let tabelasBaixadas = 0;
+        const arquivosBaixados = [];
 
         for (const tabela of TABELAS_BACKUP) {
             statusEl.innerHTML = `
@@ -184,33 +215,32 @@ window.baixarBackupCSV = async function() {
             tabelasBaixadas++;
             totalRegistros += data.length;
 
-            // Adicionar cabeçalho da tabela
-            csvCompleto += `\n\n=== TABELA: ${tabela.toUpperCase()} ===\n\n`;
+            // Converter dados para CSV
+            const csv = converterParaCSV(data);
+            
+            // Adicionar metadados no início do arquivo
+            const metadata = `# Backup CSV - ${dataAtual.toLocaleString('pt-BR')}\n`;
+            const cabecalho = `# Tabela: ${tabela} | Registros: ${data.length}\n# Separador: ;\n`;
+            const csvCompleto = metadata + cabecalho + csv;
 
-            // Obter todas as chaves (colunas) do primeiro registro
-            const colunas = Object.keys(data[0]);
-            csvCompleto += colunas.join(';') + '\n';
+            // Criar blob e baixar
+            const blob = new Blob([csvCompleto], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const nomeArquivo = `${tabela}_${dia}_${mes}_${ano}.csv`;
 
-            // Adicionar linhas
-            for (const registro of data) {
-                const linha = colunas.map(col => {
-                    let valor = registro[col];
-                    if (valor === null || valor === undefined) {
-                        return '';
-                    }
-                    // Converter para string e escapar caracteres especiais
-                    valor = String(valor);
-                    // Se contiver ; ou " ou quebra de linha, envolver em aspas
-                    if (valor.includes(';') || valor.includes('"') || valor.includes('\n')) {
-                        valor = '"' + valor.replace(/"/g, '""') + '"';
-                    }
-                    return valor;
-                });
-                csvCompleto += linha.join(';') + '\n';
-            }
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = nomeArquivo;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            arquivosBaixados.push(nomeArquivo);
         }
 
-        if (csvCompleto === '') {
+        if (tabelasBaixadas === 0) {
             statusEl.innerHTML = `
                 <div class="p-4 text-center" style="background:var(--danger-bg); border-radius:8px; color:var(--danger);">
                     ❌ Nenhum dado encontrado para exportar.
@@ -219,28 +249,11 @@ window.baixarBackupCSV = async function() {
             return;
         }
 
-        // Adicionar metadados no início do arquivo
-        const metadata = `# Backup CSV - ${dataAtual.toLocaleString('pt-BR')}\n`;
-        const cabecalho = `# Tabelas: ${TABELAS_BACKUP.length} | Baixadas: ${tabelasBaixadas} | Registros: ${totalRegistros}\n# Separador: ;\n`;
-        csvCompleto = metadata + cabecalho + csvCompleto;
-
-        const blob = new Blob([csvCompleto], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        
-        const nomeArquivo = `backup_csv_${dia}_${mes}_${ano}_${hora}${minuto}.csv`;
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = nomeArquivo;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
         statusEl.innerHTML = `
             <div class="p-4 text-center" style="background:var(--success-bg); border-radius:8px; color:var(--success);">
                 ✅ Backup CSV concluído com sucesso!<br>
-                <span style="font-size:12px;">${tabelasBaixadas} tabelas, ${totalRegistros} registros baixados. Separador: ;</span>
+                <span style="font-size:12px;">${tabelasBaixadas} tabelas, ${totalRegistros} registros baixados.<br>
+                Arquivos: ${arquivosBaixados.join(', ')}</span>
             </div>
         `;
 
