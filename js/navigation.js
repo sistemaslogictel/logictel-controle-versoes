@@ -34,6 +34,7 @@ import {
     carregarGestoresLogictel, carregarStatusDC, carregarStatusMed, carregarStatusNF
 } from './cadastros.js';
 import { carregarDatasLimites, atualizarTopbarDatasLimites } from './datasLimites.js';
+import { carregarBackup } from './backup.js';
 
 // =====================================================
 // GERAR MENU DINÂMICO
@@ -62,6 +63,7 @@ export function gerarMenu(permissoes) {
             { id: 'tutoriais-visualizar', label: 'Visualizar Tutoriais', area: 'tutoriais-visualizar' },
             { id: 'tutoriais-gerenciar', label: 'Gerenciar Tutoriais', area: 'tutoriais-gerenciar' }
         ]},
+        { id: 'backup', label: 'Backup', icon: 'backup', area: 'backup', type: 'link' },
         { id: 'cadastros-adm', label: 'Cadastro ADM', icon: 'adm', area: 'adm-user', type: 'flyout', children: [
             { id: 'adm-user', label: 'Usuário', area: 'adm-user' }
         ]},
@@ -102,7 +104,8 @@ export function gerarMenu(permissoes) {
             'logictel': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
             'status': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
             'datas': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
-            'tutoriais': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/><path d="M8 4v12l4-3 4 3V4"/></svg>'
+            'tutoriais': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/><path d="M8 4v12l4-3 4 3V4"/></svg>',
+            'backup': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
         };
         return icons[name] || '';
     }
@@ -196,6 +199,7 @@ const AREA_MAP = {
     'dcs': 'dcs',
     'tutoriais-visualizar': 'tutoriais-visualizar',
     'tutoriais-gerenciar': 'tutoriais-gerenciar',
+    'backup': 'backup',
     'adm-user': 'adm-user',
     'adm-empresa': 'adm-cliente',
     'adm-diretor': 'adm-cliente',
@@ -280,6 +284,9 @@ export async function carregarDadosAba(nomeAba) {
     }
     else if (nomeAba === 'tutoriais-gerenciar') {
         carregarPaginasTutoriais();
+    }
+    else if (nomeAba === 'backup') {
+        carregarBackup();
     }
     else if (nomeAba === 'adm-user') carregarUsuarios();
     else if (nomeAba === 'adm-empresa') { carregarEmpresas(); carregarSelectEmpresas('empresa'); }
@@ -439,6 +446,10 @@ const NAVEGACAO_MAP = {
         botoes: [
             { id: 'tutoriais-visualizar', label: 'Visualizar', area: 'tutoriais-visualizar' }
         ]
+    },
+    'backup': {
+        titulo: 'Backup do Banco de Dados',
+        botoes: []
     },
     'dash-don': {
         titulo: 'Dashboard DON',
