@@ -284,6 +284,7 @@ export async function atualizarTopbarDatasLimites() {
         const mesAtual = hoje.toLocaleDateString('pt-BR', { month: 'long' });
         const anoAtual = hoje.getFullYear();
 
+        // Buscar a data limite do mês atual
         let { data, error } = await supabaseClient
             .from('datas_limites')
             .select('*')
@@ -291,7 +292,9 @@ export async function atualizarTopbarDatasLimites() {
             .eq('ano', anoAtual)
             .maybeSingle();
 
+        // Se não tiver data para o mês atual, buscar a mais próxima
         if (!data) {
+            // Buscar a próxima data disponível (mês atual ou futuro)
             const { data: proxima } = await supabaseClient
                 .from('datas_limites')
                 .select('*')
@@ -300,7 +303,26 @@ export async function atualizarTopbarDatasLimites() {
                 .order('mes', { ascending: true });
 
             if (proxima && proxima.length > 0) {
-                data = proxima[0];
+                // Verificar se tem para o mês atual ou próximo
+                const mesesOrdem = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                
+                // Ordenar por proximidade do mês atual
+                const mesAtualIndex = mesesOrdem.indexOf(mesAtual);
+                const dataEncontrada = proxima.find(d => {
+                    const mesIndex = mesesOrdem.indexOf(d.mes);
+                    const anoDiff = d.ano - anoAtual;
+                    if (anoDiff > 0) return true;
+                    if (anoDiff === 0 && mesIndex >= mesAtualIndex) return true;
+                    return false;
+                });
+                
+                if (dataEncontrada) {
+                    data = dataEncontrada;
+                } else {
+                    // Se não encontrou, pega o primeiro disponível
+                    data = proxima[0];
+                }
             }
         }
 
