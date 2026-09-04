@@ -806,7 +806,13 @@ nav.sidenav{
 .dash-table-container tbody td:last-child { border-right:none; text-align:center !important; font-weight:600; font-family:'IBM Plex Mono', monospace; }
 .dash-table-container tbody td:first-child { text-align:left !important; font-weight:600; }
 .dash-table-container tbody td:nth-child(2) { text-align:left !important; }
-.dash-table-container tbody td:nth-child(3) { text-align:left !important; color:var(--text-soft); }
+
+/* ========== CORREÇÃO: ACUMULADO CENTRALIZADO ========== */
+.dash-table-container tbody td:nth-child(3) { 
+    text-align:center !important; 
+    color:var(--text-soft); 
+}
+
 .dash-table-container tbody tr:hover { background:var(--paper); }
 .dash-table-container tbody tr:last-child td { border-bottom:none; }
 
