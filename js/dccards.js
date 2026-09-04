@@ -237,12 +237,11 @@ export async function carregarDCCards() {
             const statusCor = statusInfo?.cor || (statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB');
             
             // Determinar se é Logictel ou V.tal para classes
-            const isLogictel = statusResponsavel === 'Logictel' || statusResponsavel === 'Logictel' || !statusResponsavel || statusResponsavel === '';
             const isVtal = statusResponsavel === 'V.tal';
 
             // Construir a cor do degradê baseado na cor do status
             const corRgb = hexToRgb(statusCor);
-            const gradiente = `linear-gradient(145deg, rgba(${corRgb.r}, ${corRgb.g}, ${corRgb.b}, 0.08) 0%, rgba(${corRgb.r}, ${corRgb.g}, ${corRgb.b}, 0.02) 100%)`;
+            const gradiente = `linear-gradient(145deg, rgba(${corRgb.r}, ${corRgb.g}, ${corRgb.b}, 0.10) 0%, rgba(${corRgb.r}, ${corRgb.g}, ${corRgb.b}, 0.02) 100%)`;
 
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
             const projetoNome = c.projetos?.nome || 'N/A';
@@ -251,14 +250,16 @@ export async function carregarDCCards() {
             const aging = calcularAging(dataSolicitacao);
             const dataExibicao = formatarDataBr(dataSolicitacao);
 
-            // Ícone de status
+            // Definir ícone baseado no status (sem emoji)
             const statusIcon = isVtal ? '⚠️' : '✅';
 
-            // Montar o card com novo estilo
+            // Montar o card com layout correto
             container.innerHTML += `
                 <div class="dc-card dc-card-new" 
                      onclick="abrirVisualizacaoDC(${c.id})" 
                      style="border-left: 6px solid ${statusCor}; background: ${gradiente};">
+                    
+                    <!-- Linha 1: DC + Projeto + Valor -->
                     <div class="dc-card-header">
                         <div class="dc-card-title">
                             <span class="dc-number">DC ${c.dc}</span>
@@ -267,25 +268,25 @@ export async function carregarDCCards() {
                         <div class="dc-card-valor">R$ ${valorDc}</div>
                     </div>
                     
+                    <!-- Linha 2: Status -->
                     <div class="dc-card-status-row">
                         <span class="dc-status-badge ${isVtal ? 'vtal' : 'logictel'}" style="background: ${statusCor}22; color: ${statusCor}; border: 1px solid ${statusCor}44;">
                             ${statusIcon} ${statusNome}
                         </span>
                     </div>
                     
+                    <!-- Linha 3: Motivo/Observação -->
                     <div class="dc-card-motivo">
                         ${statusMotivo || 'Sem observação'}
                     </div>
                     
+                    <!-- Linha 4: Data + Aging -->
                     <div class="dc-card-footer">
-                        <div class="dc-card-data">
-                            <span>📅 ${dataExibicao}</span>
-                        </div>
-                        <div class="dc-card-aging ${aging.class}">
-                            🏠 Aging: ${aging.texto}
-                        </div>
+                        <span class="dc-card-data">${dataExibicao}</span>
+                        <span class="dc-card-aging ${aging.class}">🏠 Aging: ${aging.texto}</span>
                     </div>
                     
+                    <!-- Linha 5: Pedido e FR (se houver) -->
                     ${c.pedido ? `<div class="dc-card-pedido">📋 Pedido: ${c.pedido}</div>` : ''}
                     ${c.fr ? `<div class="dc-card-fr">📄 FR: ${c.fr}</div>` : ''}
                 </div>
