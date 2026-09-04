@@ -770,7 +770,6 @@ function renderizarTotalGeralCard(containerId, tema, mesesExibir, linhas, totalG
             </div>`;
     });
 
-    // Calcular acumulado total
     let acumuladoTotal = 0;
     linhas.forEach(g => {
         mesesExibir.forEach(mes => {
@@ -1512,4 +1511,4 @@ export async function carregarDashPendencias() {
         console.error('Erro ao carregar dashboard Pendências:', e);
         tbody.innerHTML = `<tr><td colspan="${3 + 0}" style="padding:20px;text-align:center;color:var(--text-soft);">Erro ao carregar dados.</td></tr>`;
     }
-}
+}       
