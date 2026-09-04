@@ -235,9 +235,14 @@ export async function carregarDCCards() {
             const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
             const statusResponsavel = statusInfo ? statusInfo.responsavel : (c.responsavel || '');
             const statusCor = statusInfo?.cor || (statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB');
+            
+            // Determinar se é Logictel ou V.tal para classes
+            const isLogictel = statusResponsavel === 'Logictel' || statusResponsavel === 'Logictel' || !statusResponsavel || statusResponsavel === '';
+            const isVtal = statusResponsavel === 'V.tal';
 
-            const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
-            const borderColor = statusCor;
+            // Construir a cor do degradê baseado na cor do status
+            const corRgb = hexToRgb(statusCor);
+            const gradiente = `linear-gradient(145deg, rgba(${corRgb.r}, ${corRgb.g}, ${corRgb.b}, 0.08) 0%, rgba(${corRgb.r}, ${corRgb.g}, ${corRgb.b}, 0.02) 100%)`;
 
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
             const projetoNome = c.projetos?.nome || 'N/A';
@@ -246,30 +251,43 @@ export async function carregarDCCards() {
             const aging = calcularAging(dataSolicitacao);
             const dataExibicao = formatarDataBr(dataSolicitacao);
 
-            const statusIcon = statusResponsavel === 'V.tal' ? '⚠️' : '✅';
+            // Ícone de status
+            const statusIcon = isVtal ? '⚠️' : '✅';
 
+            // Montar o card com novo estilo
             container.innerHTML += `
-                <div class="dc-card" onclick="abrirVisualizacaoDC(${c.id})" style="border-left-color: ${borderColor};">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <div class="dc-number" style="font-size:15px;">DC ${c.dc}</div>
-                        <div style="font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; color:var(--text);">R$ ${valorDc}</div>
+                <div class="dc-card dc-card-new" 
+                     onclick="abrirVisualizacaoDC(${c.id})" 
+                     style="border-left: 6px solid ${statusCor}; background: ${gradiente};">
+                    <div class="dc-card-header">
+                        <div class="dc-card-title">
+                            <span class="dc-number">DC ${c.dc}</span>
+                            <span class="dc-projeto-badge">${projetoNome}</span>
+                        </div>
+                        <div class="dc-card-valor">R$ ${valorDc}</div>
                     </div>
                     
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
-                        <div class="dc-status ${statusClass}" style="font-size:10px; padding:2px 8px;">${statusNome}</div>
+                    <div class="dc-card-status-row">
+                        <span class="dc-status-badge ${isVtal ? 'vtal' : 'logictel'}" style="background: ${statusCor}22; color: ${statusCor}; border: 1px solid ${statusCor}44;">
+                            ${statusIcon} ${statusNome}
+                        </span>
                     </div>
                     
-                    <div style="font-size:11px; color:var(--text-soft); margin-bottom:4px;">📋 ${projetoNome}</div>
-                    
-                    <div class="dc-motivo" style="font-size:10.5px; padding:4px 8px; margin-bottom:6px;">${statusIcon} ${statusMotivo || 'Sem observação'}</div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; border-top:1px solid var(--border); padding-top:6px;">
-                        <div class="dc-updated" style="margin:0; font-size:10.5px;">📅 ${dataExibicao}</div>
-                        <div class="dc-aging ${aging.class}" style="margin:0; font-size:10.5px;">🏠 Aging: ${aging.texto}</div>
+                    <div class="dc-card-motivo">
+                        ${statusMotivo || 'Sem observação'}
                     </div>
                     
-                    ${c.pedido ? `<div style="font-size:10px;color:var(--text-soft);margin-top:4px;">👤 Pedido: ${c.pedido}</div>` : ''}
-                    ${c.fr ? `<div style="font-size:10px;color:var(--text-soft);margin-top:2px;">📄 FR: ${c.fr}</div>` : ''}
+                    <div class="dc-card-footer">
+                        <div class="dc-card-data">
+                            <span>📅 ${dataExibicao}</span>
+                        </div>
+                        <div class="dc-card-aging ${aging.class}">
+                            🏠 Aging: ${aging.texto}
+                        </div>
+                    </div>
+                    
+                    ${c.pedido ? `<div class="dc-card-pedido">📋 Pedido: ${c.pedido}</div>` : ''}
+                    ${c.fr ? `<div class="dc-card-fr">📄 FR: ${c.fr}</div>` : ''}
                 </div>
             `;
         });
@@ -281,6 +299,16 @@ export async function carregarDCCards() {
         console.error('Erro inesperado:', e);
         container.innerHTML = '<div class="p-6 text-center" style="color:var(--text-soft)">Erro ao carregar DC\'s.</div>';
     }
+}
+
+// Função auxiliar para converter hex para rgb
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 52, g: 152, b: 219 };
 }
 
 // =====================================================
@@ -379,7 +407,7 @@ window.abrirVisualizacaoDC = async function(id) {
         const dataSolicitacaoFormatada = formatarDataBr(data.data_solicitacao_faturamento);
         const dataEmissaoNfFormatada = formatarDataBr(data.data_emissao_nf);
 
-        // Montar o HTML do modal - ADICIONADO CAMPO OBSERVAÇÕES
+        // Montar o HTML do modal
         const conteudo = document.getElementById('modal-visualizacao-conteudo');
         conteudo.innerHTML = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px 24px; font-size:13px;">
