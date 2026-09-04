@@ -535,6 +535,37 @@ function ordenarProjetos(projetos) {
 }
 
 // =====================================================
+// FUNÇÃO PARA DESTACAR LINHA AO CLICAR
+// =====================================================
+function adicionarDestaqueLinha(selector) {
+    try {
+        const elementos = document.querySelectorAll(selector);
+        if (!elementos || elementos.length === 0) return;
+        
+        elementos.forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', function(e) {
+                // Remove destaque de todas as linhas com a classe .linha-destaque
+                document.querySelectorAll('.linha-destaque').forEach(linha => {
+                    linha.classList.remove('linha-destaque');
+                    linha.style.background = '';
+                    linha.style.boxShadow = '';
+                    linha.style.outline = '';
+                });
+                // Adiciona destaque na linha clicada
+                this.classList.add('linha-destaque');
+                this.style.background = 'var(--primary-100)';
+                this.style.boxShadow = 'inset 0 0 0 2px var(--primary)';
+                this.style.outline = 'none';
+                this.style.borderRadius = '4px';
+            });
+        });
+    } catch (e) {
+        console.warn('Erro ao adicionar destaque às linhas:', e);
+    }
+}
+
+// =====================================================
 // CÁLCULO DE SALDO PARA DON
 // =====================================================
 function calcularGruposSaldoDON(medicoes, consumos) {
@@ -894,22 +925,32 @@ function renderizarTotalGeralCardPendencias(containerId, tema, mesesExibir, linh
 // =====================================================
 // FUNÇÃO PARA DESTACAR LINHA AO CLICAR
 // =====================================================
-function adicionarDestaqueLinha(rows) {
-    rows.forEach(row => {
-        row.addEventListener('click', function(e) {
-            // Remove destaque de todas as linhas
-            document.querySelectorAll('.linha-destaque').forEach(el => {
-                el.classList.remove('linha-destaque');
-                el.style.background = '';
-                el.style.boxShadow = '';
+function adicionarDestaqueLinha(selector) {
+    try {
+        const elementos = document.querySelectorAll(selector);
+        if (!elementos || elementos.length === 0) return;
+        
+        elementos.forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', function(e) {
+                // Remove destaque de todas as linhas com a classe .linha-destaque
+                document.querySelectorAll('.linha-destaque').forEach(linha => {
+                    linha.classList.remove('linha-destaque');
+                    linha.style.background = '';
+                    linha.style.boxShadow = '';
+                    linha.style.outline = '';
+                });
+                // Adiciona destaque na linha clicada
+                this.classList.add('linha-destaque');
+                this.style.background = 'var(--primary-100)';
+                this.style.boxShadow = 'inset 0 0 0 2px var(--primary)';
+                this.style.outline = 'none';
+                this.style.borderRadius = '4px';
             });
-            // Adiciona destaque na linha clicada
-            this.classList.add('linha-destaque');
-            this.style.background = 'var(--primary-100)';
-            this.style.boxShadow = 'inset 0 0 0 2px var(--primary)';
-            this.style.borderRadius = '4px';
         });
-    });
+    } catch (e) {
+        console.warn('Erro ao adicionar destaque às linhas:', e);
+    }
 }
 
 // =====================================================
@@ -979,7 +1020,9 @@ function renderizarDashboardStatus(headerId, tbodyId, grupos, mesesExibir, heade
     });
 
     // Adicionar evento de clique para destacar linha
-    document.querySelectorAll('#tabela-dash-apropriacao .linha-clicavel').forEach(adicionarDestaqueLinha);
+    setTimeout(function() {
+        adicionarDestaqueLinha('#tabela-dash-apropriacao .linha-clicavel');
+    }, 50);
 
     const renderFn = tema === 'cre' ? renderizarTotalGeralCardCRE : renderizarTotalGeralCard;
     renderFn(totalCardId, tema, mesesExibir, linhasOrdenadas, totalGeral);
@@ -1071,7 +1114,9 @@ function renderizarDashboardDON(headerId, tbodyId, grupos, mesesExibir, totalCar
     });
 
     // Adicionar evento de clique para destacar linha
-    document.querySelectorAll('#tabela-dash-don .linha-clicavel').forEach(adicionarDestaqueLinha);
+    setTimeout(function() {
+        adicionarDestaqueLinha('#tabela-dash-don .linha-clicavel');
+    }, 50);
 
     document.querySelectorAll('.projeto-row').forEach(row => {
         row.onclick = function (e) {
@@ -1194,7 +1239,9 @@ function renderizarDashboardCRE(headerId, tbodyId, grupos, mesesExibir, totalCar
     });
 
     // Adicionar evento de clique para destacar linha
-    document.querySelectorAll('#tabela-dash-cre .linha-clicavel').forEach(adicionarDestaqueLinha);
+    setTimeout(function() {
+        adicionarDestaqueLinha('#tabela-dash-cre .linha-clicavel');
+    }, 50);
 
     document.querySelectorAll('.cre-grupo-row').forEach(row => {
         row.onclick = function (e) {
@@ -1316,7 +1363,9 @@ function renderizarDashboardPendencias(headerId, tbodyId, grupos, mesesExibir, t
     });
 
     // Adicionar evento de clique para destacar linha
-    document.querySelectorAll('#tabela-dash-pendencias .linha-clicavel').forEach(adicionarDestaqueLinha);
+    setTimeout(function() {
+        adicionarDestaqueLinha('#tabela-dash-pendencias .linha-clicavel');
+    }, 50);
 
     document.querySelectorAll('.pend-grupo-row').forEach(row => {
         row.onclick = function (e) {
