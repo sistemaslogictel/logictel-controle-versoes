@@ -234,11 +234,9 @@ export async function carregarDCCards() {
             const statusNome = statusInfo ? `${statusInfo.codigo} - ${statusInfo.nome}` : (c.status_dc || 'Sem status');
             const statusMotivo = statusInfo ? statusInfo.motivo : (c.motivo || '');
             const statusResponsavel = statusInfo ? statusInfo.responsavel : (c.responsavel || '');
-            // CORRIGIDO: Usar a cor personalizada do status ou fallback
             const statusCor = statusInfo?.cor || (statusResponsavel === 'V.tal' ? '#FF6B35' : '#3498DB');
 
             const statusClass = statusResponsavel === 'V.tal' ? 'vtal' : 'logictel';
-            // Usar a cor personalizada para a borda
             const borderColor = statusCor;
 
             const valorDc = Number(c.valor || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
@@ -381,7 +379,7 @@ window.abrirVisualizacaoDC = async function(id) {
         const dataSolicitacaoFormatada = formatarDataBr(data.data_solicitacao_faturamento);
         const dataEmissaoNfFormatada = formatarDataBr(data.data_emissao_nf);
 
-        // Montar o HTML do modal
+        // Montar o HTML do modal - ADICIONADO CAMPO OBSERVAÇÕES
         const conteudo = document.getElementById('modal-visualizacao-conteudo');
         conteudo.innerHTML = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px 24px; font-size:13px;">
@@ -408,7 +406,7 @@ window.abrirVisualizacaoDC = async function(id) {
             </div>
             <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
                 <strong>Motivo/Observação:</strong><br>
-                <span id="vis-motivo" style="color:var(--text-muted);">${data.motivo || 'Sem observação'}</span>
+                <span id="vis-motivo" style="color:var(--text-muted);">${data.observacoes_consumo || data.motivo || 'Sem observação'}</span>
             </div>
         `;
 
