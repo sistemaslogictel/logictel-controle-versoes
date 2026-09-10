@@ -26,7 +26,7 @@ import {
 import { carregarDashApropriacao, carregarDashDON, carregarDashCRE, carregarDashPendencias } from './dashboards.js';
 import { carregarDCCards, inicializarFiltrosDCCards } from './dccards.js';
 import { carregarFiltroStatus, carregarSelectStatus, carregarSelectGestores, carregarSelectDiretores, carregarSelectEmpresas, carregarSelectProjetos, carregarSelectContratos, carregarFiltros, carregarStatusDCCustom, carregarFiltroStatusNF } from './selects.js';
-import { carregarMedicoes, carregarHistoricoMedicoes } from './medicoes.js';
+import { carregarMedicoes, carregarHistoricoMedicoes, toggleTipoAcerto } from './medicoes.js';
 import { carregarConsumos } from './consumo.js';
 import { carregarUsuarios } from './usuarios.js';
 import {
@@ -250,6 +250,12 @@ export async function carregarDadosAba(nomeAba) {
         carregarSelectGestores('med-gestor', 'gestores_logictel');
         carregarSelectDiretores('med-diretor');
         carregarSelectStatus('med-status', 'status_medicao');
+        // Resetar checkbox de acerto
+        const checkbox = document.getElementById('med-tipo-acerto');
+        if (checkbox) {
+            checkbox.checked = false;
+            if (typeof toggleTipoAcerto === 'function') toggleTipoAcerto();
+        }
     }
     else if (nomeAba === 'historico-medicoes') {
         carregarHistoricoMedicoes();

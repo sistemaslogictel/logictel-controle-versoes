@@ -1350,3 +1350,43 @@ nav.sidenav{
     font-size: 10px;
     padding: 4px 12px;
 }
+
+/* =====================================================
+   MEDIÇÃO DE ACERTO (V.26.01)
+   ===================================================== */
+.signed-money {
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Aviso de acerto no formulário */
+#med-tipo-acerto:checked + div label {
+    color: #8A6A0A;
+}
+
+/* Badge de acerto no histórico */
+.text-neg {
+    color: var(--danger) !important;
+    font-weight: 600;
+}
+
+.text-neutral {
+    color: var(--gold) !important;
+}
+
+/* =====================================================
+   LINHA DE ACERTO NO HISTÓRICO DE MEDIÇÕES (V.26.01)
+   ===================================================== */
+.medicoes-table-container tbody tr.acerto-row {
+    background: #FDE8E8 !important;
+    border-left: 4px solid var(--danger) !important;
+}
+.medicoes-table-container tbody tr.acerto-row:hover {
+    background: #FDD5D5 !important;
+}
+.medicoes-table-container tbody tr.acerto-row td {
+    color: #8B1A1A;
+}
+.medicoes-table-container tbody tr.acerto-row td.text-right.mono {
+    color: var(--danger) !important;
+    font-weight: 700;
+}

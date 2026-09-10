@@ -22,6 +22,67 @@ export function irParaPaginaHistMed(pagina) {
     renderizarTabelaHistoricoMedicoes();
 }
 
+// =====================================================
+// TOGGLE TIPO ACERTO
+// =====================================================
+export function toggleTipoAcerto() {
+    const checkbox = document.getElementById('med-tipo-acerto');
+    const campoStatusWrap = document.getElementById('campo-valor-status-wrap');
+    const campoValorStatus = document.getElementById('med-valor-status');
+    const labelValorDon = document.getElementById('label-valor-don');
+    const campoValorDon = document.getElementById('med-valor-don');
+
+    if (!checkbox) return;
+
+    if (checkbox.checked) {
+        // É acerto: esconde Valor Status e destaca Valor DON
+        if (campoStatusWrap) campoStatusWrap.style.display = 'none';
+        if (campoValorStatus) {
+            campoValorStatus.required = false;
+            campoValorStatus.value = '0,00';
+        }
+        if (labelValorDon) {
+            labelValorDon.innerHTML = 'Valor DON (ACERTO) *';
+            labelValorDon.style.color = '#8A6A0A';
+        }
+        if (campoValorDon) {
+            campoValorDon.placeholder = '-0,00';
+            // Sugere valor negativo automaticamente
+            const atual = campoValorDon.value;
+            if (atual && !atual.startsWith('-')) {
+                campoValorDon.value = '-' + atual;
+            }
+        }
+    } else {
+        // Não é acerto
+        if (campoStatusWrap) campoStatusWrap.style.display = '';
+        if (campoValorStatus) {
+            campoValorStatus.required = true;
+        }
+        if (labelValorDon) {
+            labelValorDon.innerHTML = 'Valor DON *';
+            labelValorDon.style.color = '';
+        }
+        if (campoValorDon) {
+            campoValorDon.placeholder = '0,00';
+            // Remove sinal negativo
+            const atual = campoValorDon.value;
+            if (atual && atual.startsWith('-')) {
+                campoValorDon.value = atual.substring(1);
+            }
+        }
+    }
+    aplicarMascaras();
+}
+
+// =====================================================
+// DETECTAR SE UMA MEDIÇÃO É ACERTO
+// =====================================================
+function medicoesEAcerto(m) {
+    // É acerto quando o valor_don é negativo
+    return Number(m.valor_don || 0) < 0;
+}
+
 export async function carregarMedicoes() {
     const tbody = document.getElementById('tabela-medicoes');
     if (!tbody) return;
@@ -157,16 +218,26 @@ function renderizarTabelaHistoricoMedicoes() {
         pagina.forEach(m => {
             const valorDon = Number(m.valor_don || 0);
             const valorStatus = Number(m.valor_status || 0);
-            
+            const isAcerto = valorDon < 0;
+
+            const badgeAcerto = isAcerto
+                ? `<span style="background:var(--gold-bg); color:#8A6A0A; padding:2px 8px; border-radius:10px; font-size:9px; font-weight:700; margin-left:6px; border:1px solid var(--gold);">ACERTO</span>`
+                : '';
+
+            // Linha vermelha para acertos
+            const rowStyle = isAcerto
+                ? 'background:#FDE8E8; border-left:4px solid var(--danger);'
+                : '';
+
             tbody.innerHTML += `
-                <tr class="td-row">
-                    <td>${m.id}</td>
+                <tr class="td-row" style="${rowStyle}">
+                    <td>${m.id}${badgeAcerto}</td>
                     <td>${m.projetos?.nome || '-'}</td>
                     <td>${m.gestores_logictel?.nome || '-'}</td>
                     <td>${m.diretores?.nome || '-'}</td>
                     <td>${m.mes}</td>
                     <td>${m.ano}</td>
-                    <td class="text-right mono">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    <td class="text-right mono ${isAcerto ? 'text-neg' : ''}" style="${isAcerto ? 'color:var(--danger);font-weight:700;' : ''}">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td class="text-right mono">R$ ${valorStatus.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td>${m.status_medicao || '-'}</td>
                     <td>${m.observacao || '-'}</td>
@@ -238,16 +309,21 @@ function renderizarTabelaMedicoes() {
         pagina.forEach(m => {
             const valorDon = Number(m.valor_don || 0);
             const valorStatus = Number(m.valor_status || 0);
+            const isAcerto = medicoesEAcerto(m);
+            
+            const badgeAcerto = isAcerto 
+                ? `<span style="background:var(--gold-bg); color:#8A6A0A; padding:2px 8px; border-radius:10px; font-size:9px; font-weight:700; margin-left:6px; border:1px solid var(--gold);">ACERTO</span>` 
+                : '';
             
             tbody.innerHTML += `
                 <tr class="td-row">
-                    <td>${m.id}</td>
+                    <td>${m.id}${badgeAcerto}</td>
                     <td>${m.projetos?.nome || '-'}</td>
                     <td>${m.gestores_logictel?.nome || '-'}</td>
                     <td>${m.diretores?.nome || '-'}</td>
                     <td>${m.mes}</td>
                     <td>${m.ano}</td>
-                    <td class="text-right mono">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
+                    <td class="text-right mono ${valorDon < 0 ? 'text-neg' : ''}">R$ ${valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td class="text-right mono">R$ ${valorStatus.toLocaleString('pt-BR', { minFractionDigits: 2 })}</td>
                     <td>${m.status_medicao || '-'}</td>
                     <td>${m.observacao || '-'}</td>
@@ -283,12 +359,21 @@ export function initFormMedicao() {
             alert('Projeto e Gestor são obrigatórios!');
             return;
         }
+
+        const isAcerto = document.getElementById('med-tipo-acerto')?.checked || false;
         
         const valorDonStr = document.getElementById('med-valor-don').value;
         const valorStatusStr = document.getElementById('med-valor-status').value;
         
-        const valorDon = valorParaNumero(valorDonStr);
-        const valorStatus = valorParaNumero(valorStatusStr);
+        let valorDon = valorParaNumero(valorDonStr);
+        let valorStatus = valorParaNumero(valorStatusStr);
+
+        // Se for ACERTO: força valor_don negativo e zera o status
+        if (isAcerto) {
+            // Garante que o valor seja negativo
+            valorDon = -Math.abs(valorDon);
+            valorStatus = 0;
+        }
 
         const dados = {
             projeto_id: parseInt(projetoId),
@@ -326,6 +411,12 @@ export function initFormMedicao() {
             document.getElementById('med-edit-id').value = '';
             document.getElementById('med-cancel-btn').style.display = 'none';
             
+            const checkbox = document.getElementById('med-tipo-acerto');
+            if (checkbox) {
+                checkbox.checked = false;
+                toggleTipoAcerto();
+            }
+            
             carregarMedicoes();
             carregarHistoricoMedicoes();
             carregarFiltros();
@@ -338,13 +429,10 @@ export function initFormMedicao() {
 }
 
 // =====================================================
-// EDIÇÃO DE MEDIÇÃO (COM CARREGAMENTO DE SELECTS)
+// EDIÇÃO DE MEDIÇÃO
 // =====================================================
 export async function editarMedicao(id) {
-    console.log('🔧 editarMedicao chamado para ID:', id);
-    
     try {
-        // 1. Buscar os dados da medição
         const { data, error } = await supabaseClient
             .from('medicoes')
             .select(`
@@ -373,30 +461,33 @@ export async function editarMedicao(id) {
             return;
         }
 
-        console.log('📋 Dados carregados:', data);
-
-        // 2. Mudar para a aba de cadastro de medição
         window.mudarAba('cad-medicao');
 
-        // 3. Aguardar e preencher os campos
         setTimeout(() => {
-            // Preencher os campos do formulário
+            const valorDon = Number(data.valor_don || 0);
+            const valorStatus = Number(data.valor_status || 0);
+            const isAcerto = valorDon < 0;
+
             document.getElementById('med-edit-id').value = id;
             document.getElementById('med-projeto').value = data.projeto_id || '';
             document.getElementById('med-gestor').value = data.gestor_logictel_id || '';
             document.getElementById('med-diretor').value = data.diretor_id || '';
             document.getElementById('med-mes').value = data.mes || '';
             document.getElementById('med-ano').value = data.ano || '';
-            document.getElementById('med-valor-don').value = Number(data.valor_don || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
-            document.getElementById('med-valor-status').value = Number(data.valor_status || 0).toLocaleString('pt-BR', { minFractionDigits: 2 });
+            document.getElementById('med-valor-don').value = valorDon.toLocaleString('pt-BR', { minFractionDigits: 2 });
+            document.getElementById('med-valor-status').value = valorStatus.toLocaleString('pt-BR', { minFractionDigits: 2 });
             document.getElementById('med-observacao').value = data.observacao || '';
             document.getElementById('med-data-email').value = data.data_email_medicao || '';
             document.getElementById('med-status').value = data.status_medicao || '';
             document.getElementById('med-cancel-btn').style.display = 'inline-block';
 
+            const checkbox = document.getElementById('med-tipo-acerto');
+            if (checkbox) {
+                checkbox.checked = isAcerto;
+                toggleTipoAcerto();
+            }
+
             document.getElementById('form-medicao').scrollIntoView({ behavior: 'smooth' });
-            
-            console.log('✅ Formulário preenchido com sucesso!');
         }, 300);
         
     } catch (e) {
@@ -428,7 +519,6 @@ export async function excluirMedicao(id) {
     }
 }
 
-// Expor funções no window para uso em onclick
 if (typeof window !== 'undefined') {
     window.editarMedicao = editarMedicao;
     window.excluirMedicao = excluirMedicao;
@@ -438,4 +528,5 @@ if (typeof window !== 'undefined') {
     window.limparFiltrosMedicoes = limparFiltrosMedicoes;
     window.filtrarHistoricoMedicoes = filtrarHistoricoMedicoes;
     window.limparFiltrosHistoricoMedicoes = limparFiltrosHistoricoMedicoes;
+    window.toggleTipoAcerto = toggleTipoAcerto;
 }

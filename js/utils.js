@@ -22,6 +22,33 @@ export function mascaraMoeda(input) {
     });
 }
 
+// =====================================================
+// MÁSCARA DE VALOR COM SINAL NEGATIVO
+// =====================================================
+export function mascaraMoedaComSinal(input) {
+    input.addEventListener('input', function (e) {
+        let raw = this.value;
+        let sinal = raw.trim().startsWith('-') ? '-' : '';
+        let valor = raw.replace(/\D/g, '');
+        if (valor === '') { this.value = sinal + '0,00'; return; }
+        valor = valor.replace(/^0+/, '');
+        if (valor === '') valor = '0';
+        while (valor.length < 3) { valor = '0' + valor; }
+        let inteiro = valor.slice(0, -2);
+        let centavos = valor.slice(-2);
+        let inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        this.value = sinal + inteiroFormatado + ',' + centavos;
+        this.setSelectionRange(this.value.length, this.value.length);
+    });
+    input.addEventListener('blur', function () {
+        const v = this.value.replace('-', '');
+        if (v === '' || v === '0,00') { this.value = '0,00'; }
+    });
+    input.addEventListener('focus', function () {
+        this.setSelectionRange(this.value.length, this.value.length);
+    });
+}
+
 export function mascaraData(input) {
     input.addEventListener('input', function (e) {
         let valor = this.value.replace(/\D/g, '');
@@ -37,13 +64,17 @@ export function mascaraData(input) {
 }
 
 export function aplicarMascaras() {
-    document.querySelectorAll('.money-input').forEach(function (el) {
+    document.querySelectorAll('.money-input:not(.signed-money)').forEach(function (el) {
+        el.replaceWith(el.cloneNode(true));
+    });
+    document.querySelectorAll('.signed-money').forEach(function (el) {
         el.replaceWith(el.cloneNode(true));
     });
     document.querySelectorAll('.date-input').forEach(function (el) {
         el.replaceWith(el.cloneNode(true));
     });
-    document.querySelectorAll('.money-input').forEach(mascaraMoeda);
+    document.querySelectorAll('.money-input:not(.signed-money)').forEach(mascaraMoeda);
+    document.querySelectorAll('.signed-money').forEach(mascaraMoedaComSinal);
     document.querySelectorAll('.date-input').forEach(mascaraData);
 }
 
@@ -79,7 +110,7 @@ export function registrarUltimaAtualizacao() {
     const agora = new Date();
     const dia = String(agora.getDate()).padStart(2, '0');
     const mes = String(agora.getMonth() + 1).padStart(2, '0');
-    const ano = String(agora.getFullYear()); // CORRIGIDO: ano com 4 dígitos
+    const ano = String(agora.getFullYear());
     const horas = String(agora.getHours()).padStart(2, '0');
     const minutos = String(agora.getMinutes()).padStart(2, '0');
     const dataFormatada = `${dia}/${mes}/${ano}, ${horas}:${minutos}`;
@@ -102,17 +133,11 @@ export function getMesesDoAno(ano) {
     return meses;
 }
 
-// =====================================================
-// TOGGLE SIDEBAR (MOBILE)
-// =====================================================
 export function toggleSidebar() {
     document.getElementById('sidebarOverlay').classList.toggle('active');
     document.getElementById('sidebarMobile').classList.toggle('active');
 }
 
-// =====================================================
-// LIMPAR FILTROS
-// =====================================================
 export function limparFiltros(tipo, callbacks) {
     if (tipo === 'don') {
         const ids = ['filt-don-projeto', 'filt-don-diretor', 'filt-don-ano', 'filt-don-mes'];
@@ -145,9 +170,6 @@ export function limparFiltros(tipo, callbacks) {
     }
 }
 
-// =====================================================
-// FLYOUTS DO MENU
-// =====================================================
 export function initFlyouts() {
     const wraps = Array.prototype.slice.call(document.querySelectorAll('[data-flyout]'));
     let closeTimer = null;

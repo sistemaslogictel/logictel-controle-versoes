@@ -471,6 +471,10 @@ function calcularGruposSaldoStatus(medicoes, consumos, campoValor) {
     }
 
     medicoes.forEach(med => {
+        // Ignorar medições de ACERTO (valor_don negativo indica acerto)
+        const isAcerto = Number(med.valor_don || 0) < 0;
+        if (isAcerto) return;
+
         const key = `${med.gestor_logictel_id}|${med.projeto_id}|${med.ano}`;
         const g = garantirGrupo(key, med);
         const valor = Math.abs(Number(med[campoValor] || 0));
@@ -588,7 +592,19 @@ function calcularGruposSaldoDON(medicoes, consumos) {
         const dir = garantirDiretor(parent, med.diretor_id, med.diretores?.nome);
         todosMeses.add(med.mes);
 
-        const valor = -Math.abs(Number(med.valor_don || 0));
+        // =====================================================
+        // REGRA DE SINAL NO DON:
+        // - Medição NORMAL (valor_don > 0, ex: 500)  → vira -500 (desconta)
+        // - Medição ACERTO (valor_don < 0, ex: -200) → vira +200 (devolve)
+        //
+        // Ou seja: o sinal é SEMPRE invertido.
+        // 500  → -500
+        // -200 → +200
+        // -500 + 200 = -300 ✓
+        // =====================================================
+        const valorDonOriginal = Number(med.valor_don || 0);
+        const valor = -valorDonOriginal;  // inverte o sinal sempre
+
         if (!parent.meses[med.mes]) parent.meses[med.mes] = { medicao: 0, consumo: 0 };
         parent.meses[med.mes].medicao += valor;
         if (!dir.meses[med.mes]) dir.meses[med.mes] = { medicao: 0, consumo: 0 };
@@ -1396,7 +1412,7 @@ export async function carregarDashDON() {
         const { data: medicoes, error: errorMed } = await supabaseClient
             .from('medicoes')
             .select(`
-                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_don,
+                id, projeto_id, gestor_logictel_id, diretor_id, mes, ano, valor_status, valor_don,
                 projetos(nome), gestores_logictel(nome), diretores(nome)
             `);
         if (errorMed) throw errorMed;
