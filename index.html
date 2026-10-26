@@ -7,10 +7,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20260814">
+<link rel="stylesheet" href="css/styles.css?v=20261026">
 </head>
 <body>
 
@@ -84,6 +85,7 @@
         </div>
       </div>
       <div class="flex items-center gap-3 flex-wrap">
+        <button type="button" id="btn-survey-topbar" class="topbar-num-btn" onclick="mudarAba('survey-editor')" title="Editor de Surveys" aria-label="Editor de Surveys">7</button>
         <div id="datas-limites-topbar" class="flex items-center gap-2">
           <!-- Será preenchido via JavaScript -->
         </div>
@@ -510,6 +512,102 @@
       </div>
     </div>
 
+    <!-- ===================== EDITOR DE SURVEYS ===================== -->
+    <div id="tab-survey-editor" class="tab-content space-y-6">
+      <div id="header-survey-editor"></div>
+
+      <!-- Passo 1: ZIP + números -->
+      <div class="card card-pad">
+        <div class="filters-section-title">1. ZIP e números dos surveys</div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="label">Arquivo ZIP</label>
+            <input type="file" id="sv-zip" accept=".zip,application/zip" class="input">
+            <p class="sv-note">Serão lidos os XMLs das pastas cujo nome contém "moradia". Nada é enviado para servidor.</p>
+          </div>
+          <div>
+            <label class="label">Números dos surveys (um abaixo do outro)</label>
+            <textarea id="sv-numeros" class="input" rows="6" placeholder="R10&#10;R11&#10;R12" style="height:auto; font-family:'IBM Plex Mono', monospace;"></textarea>
+            <p class="sv-note" id="sv-num-info">Cada número vai para um XML, na ordem das pastas. Ele substitui o conteúdo de &lt;gravado&gt;false&lt;/gravado&gt;.</p>
+          </div>
+        </div>
+        <div class="flex justify-end pt-3">
+          <button type="button" class="btn-primary" data-act="aplicar-numeros">Aplicar números aos XMLs</button>
+        </div>
+        <p id="sv-msg" class="text-xs pt-2" style="min-height:16px;"></p>
+      </div>
+
+      <div id="sv-workspace" class="space-y-6" style="display:none;">
+        <div class="card card-pad"><div id="sv-resumo" class="text-sm"></div></div>
+
+        <!-- Passo 2: lote -->
+        <div class="card card-pad">
+          <div class="filters-section-title">2. Edição em lote</div>
+          <p class="sv-note" style="margin-bottom:8px;">Atalhos (campos encontrados nos XMLs):</p>
+          <div id="sv-atalhos" class="sv-chips"></div>
+          <div class="grid md:grid-cols-3 gap-3 pt-3">
+            <div>
+              <label class="label">Campo (nome da tag)</label>
+              <input type="text" id="sv-lote-campo" class="input" list="sv-tags" placeholder="ex.: fachada" autocomplete="off">
+              <datalist id="sv-tags"></datalist>
+            </div>
+            <div>
+              <label class="label">Tipo de edição</label>
+              <div class="flex gap-4 pt-2 text-sm">
+                <label><input type="radio" name="sv-modo" value="set" checked> Definir valor</label>
+                <label><input type="radio" name="sv-modo" value="substituir"> Localizar e substituir</label>
+              </div>
+            </div>
+            <div>
+              <label class="label">Aplicar em</label>
+              <div class="flex gap-4 pt-2 text-sm">
+                <label><input type="radio" name="sv-escopo" value="todos" checked> Todos</label>
+                <label><input type="radio" name="sv-escopo" value="sel"> Selecionados (<span id="sv-sel-count">0</span>)</label>
+              </div>
+            </div>
+          </div>
+          <div id="sv-bloco-set" class="grid md:grid-cols-2 gap-3 pt-3">
+            <div><label class="label">Novo valor</label><input type="text" id="sv-lote-valor" class="input" autocomplete="off"></div>
+            <div><label class="label">Somente onde o valor atual for (opcional)</label><input type="text" id="sv-lote-se" class="input" autocomplete="off"></div>
+          </div>
+          <div id="sv-bloco-sub" class="grid md:grid-cols-2 gap-3 pt-3" style="display:none;">
+            <div><label class="label">Localizar</label><input type="text" id="sv-lote-de" class="input" autocomplete="off"></div>
+            <div><label class="label">Substituir por</label><input type="text" id="sv-lote-para" class="input" autocomplete="off"></div>
+          </div>
+          <div id="sv-lote-valores" class="pt-2"></div>
+          <div class="flex justify-end pt-3">
+            <button type="button" class="btn-primary" data-act="aplicar-lote">Aplicar em lote</button>
+          </div>
+          <div class="filters-section-title" style="margin-top:14px;">Lotes aplicados</div>
+          <div id="sv-historico"></div>
+        </div>
+
+        <!-- Passo 3: lista -->
+        <div class="card card-pad">
+          <div class="filters-section-title">3. Surveys (edite cada um individualmente)</div>
+          <div class="flex gap-2 pb-2">
+            <button type="button" class="btn-secondary" data-act="sel-todos" style="font-size:10.5px; padding:4px 12px;">Selecionar todos</button>
+            <button type="button" class="btn-secondary" data-act="sel-nenhum" style="font-size:10.5px; padding:4px 12px;">Limpar seleção</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead><tr class="th-row"><th style="width:32px;"></th><th style="width:40px;">#</th><th>Arquivo</th><th>Survey</th><th>&lt;gravado&gt; original</th><th>Edições</th><th class="text-right">Ações</th></tr></thead>
+              <tbody id="sv-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Passo 4: gerar -->
+        <div class="card card-pad">
+          <div class="filters-section-title">4. Gerar novo ZIP</div>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <label class="text-sm"><input type="checkbox" id="sv-relatorio"> Incluir arquivo <code>surveys.txt</code> (número ↔ arquivo) dentro do ZIP</label>
+            <button type="button" id="sv-btn-gerar" class="btn-excel" data-act="gerar">📦 Gerar novo ZIP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===================== BACKUP ===================== -->
     <div id="tab-backup" class="tab-content space-y-6">
       <div id="header-backup"></div>
@@ -558,6 +656,7 @@
             <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">📚 Tutoriais</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="tutoriais-visualizar" class="permission-check"><span>Visualizar Tutoriais</span></label><label class="checkbox-item"><input type="checkbox" value="tutoriais-gerenciar" class="permission-check"><span>Gerenciar Tutoriais</span></label></div></div>
             <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">💾 Backup</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="backup" class="permission-check"><span>Backup</span></label></div></div>
             <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">⚙️ Administração</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label><label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label><label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label><label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label><label class="checkbox-item"><input type="checkbox" value="adm-datas" class="permission-check"><span>Datas Limites</span></label></div></div>
+            <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">🧭 Surveys</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="surveys" class="permission-check"><span>Editor de Surveys (botão 7)</span></label></div></div>
           </div>
         </form>
       </div>
@@ -853,6 +952,6 @@
   </main>
 </div>
 
-<script type="module" src="js/main.js?v=20260814"></script>
+<script type="module" src="js/main.js?v=20261026"></script>
 </body>
 </html>
