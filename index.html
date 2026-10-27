@@ -1,956 +1,758 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V.26.01 - Controle de Medições e DCs - Logictel</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=20261026">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Roteiro</title>
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
 
-<!-- ===================== TELA DE LOGIN ===================== -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-card">
-    <div class="login-logo">
-      <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
-    </div>
-    <div class="login-system-name">Sistema Financeiro</div>
-    <div class="login-title">Bem-vindo de volta</div>
-    <div class="login-subtitle">Faça login para acessar o sistema</div>
-
-    <div class="login-error" id="loginError">Usuário ou senha incorretos. Tente novamente.</div>
-
-    <form id="loginForm" onsubmit="return fazerLogin(event)">
-      <input type="text" id="loginUser" class="input" placeholder="Usuário" required autofocus>
-      <input type="password" id="loginPassword" class="input" placeholder="Senha" required>
-      <button type="submit" class="btn-primary">Entrar</button>
-    </form>
-  </div>
-</div>
-
-<!-- ===================== APP SHELL ===================== -->
-<div class="app-shell" id="appShell" style="display:none;">
-
-  <!-- SIDEBAR MOBILE -->
-  <div class="sidebar-mobile-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-  <div class="sidebar-mobile" id="sidebarMobile">
-    <div>
-      <div class="brand-box flex justify-between items-center">
-        <div class="brand-chip">
-          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
-          <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
-        </div>
-        <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
-      </div>
-      <nav class="sidenav" id="mobileNav"></nav>
-    </div>
-    <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
-  </div>
-
-  <!-- SIDEBAR DESKTOP -->
-  <aside class="sidebar hidden md:flex">
-    <div>
-      <div class="brand-box">
-        <div class="brand-chip">
-          <img src="assets/logo.png" alt="Logictel" onerror="this.style.display='none';">
-          <span class="brand-fallback" style="display:none;">LOGIC<em>TEL</em></span>
-        </div>
-      </div>
-      <nav class="sidenav" id="desktopNav"></nav>
-    </div>
-    <div class="sidebar-footer">Desenvolvido por: Nelson Martins &copy; 2026</div>
-  </aside>
-
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="content-area">
-
-    <!-- TOPBAR -->
-    <div class="topbar mb-3">
-      <div class="flex items-center gap-2.5">
-        <button class="mobile-menu-toggle md:hidden" onclick="toggleSidebar()">☰ Menu</button>
-        <span class="status-dot"></span>
-        <!-- Legenda limites dentro da topbar -->
-        <div class="legenda-limites">
-          <span style="font-weight:600;color:var(--text);">Legenda:</span>
-          <span class="legenda-item"><span class="legenda-cor amarelo"></span> 7 dias antes</span>
-          <span class="legenda-item"><span class="legenda-cor vermelho"></span> 3 dias antes</span>
-          <span class="legenda-item"><span class="legenda-cor piscando"></span> Dia (piscando)</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <button type="button" id="btn-survey-topbar" class="topbar-num-btn" onclick="mudarAba('survey-editor')" title="Editor de Surveys" aria-label="Editor de Surveys">7</button>
-        <div id="datas-limites-topbar" class="flex items-center gap-2">
-          <!-- Será preenchido via JavaScript -->
-        </div>
-        <span class="text-xs font-medium" style="color:var(--text-muted)">|</span>
-        <span class="text-xs font-mono" style="color:var(--text-soft);" id="badge-ultima-atualizacao"></span>
-        <div class="user-info">
-          <div class="user-avatar" id="userAvatar">U</div>
-          <span class="text-sm font-medium" id="userNameDisplay">Usuário</span>
-          <button onclick="fazerLogout()" class="logout-btn">Sair</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== DASHBOARD DON ===================== -->
-    <div id="tab-dash-don" class="tab-content active space-y-6">
-      <div id="header-dash-don"></div>
-      <div class="filters-bar-don">
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-don-projeto" class="input" onchange="carregarDashDON()"><option value="">Todos os Projetos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Diretor</label>
-          <select id="filt-don-diretor" class="input" onchange="carregarDashDON()"><option value="">Todos os Diretores</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-don-ano" class="input" onchange="carregarDashDON()"><option value="">Todos os Anos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-don-mes" class="input" onchange="carregarDashDON()"><option value="">Todos os Meses</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="carregarDashDON()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltros('don')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelDON()" class="btn-excel">📊 Exportar Excel</button>          
-        </div>
-      </div>
-      <div class="card">
-        <div class="dash-table-container">
-          <table>
-            <thead id="don-header" class="don-header">
-              <tr><th>Projeto</th><th>Diretor</th><th>Descrição</th><th class="mes-header">Mês 1</th><th class="mes-header">Mês 2</th><th>Total</th></tr>
-            </thead>
-            <tbody id="tabela-dash-don"><tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="don-total-geral" class="total-geral-card theme-don"></div>
-    </div>
-
-    <!-- ===================== DASHBOARD STATUS ===================== -->
-    <div id="tab-dash-apropriacao" class="tab-content space-y-6">
-      <div id="header-dash-apropriacao"></div>
-      <div class="filters-bar-status">
-        <div class="filter-group">
-          <label class="filter-label">Gestor</label>
-          <select id="filt-aprop-gestor" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Gestores</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-aprop-projeto" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Projetos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-aprop-ano" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Anos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-aprop-mes" class="input" onchange="carregarDashApropriacao()"><option value="">Todos os Meses</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="carregarDashApropriacao()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltros('aprop')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelStatus()" class="btn-excel">📊 Exportar Excel</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="dash-table-container">
-          <table>
-            <thead id="aprop-header" class="status-header">
-              <tr><th>Gestão</th><th>Projeto</th><th>Descrição</th><th class="mes-header">Mês 1</th><th class="mes-header">Mês 2</th><th>Total</th></tr>
-            </thead>
-            <tbody id="tabela-dash-apropriacao"><tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="aprop-total-geral" class="total-geral-card theme-status"></div>
-    </div>
-
-    <!-- ===================== DASHBOARD CRE ===================== -->
-    <div id="tab-dash-cre" class="tab-content space-y-6">
-      <div id="header-dash-cre"></div>
-      <div class="filters-bar-status">
-        <div class="filter-group">
-          <label class="filter-label">Gestor</label>
-          <select id="filt-cre-gestor" class="input" onchange="carregarDashCRE()"><option value="">Todos os Gestores</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-cre-projeto" class="input" onchange="carregarDashCRE()"><option value="">Todos os Projetos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-cre-ano" class="input" onchange="carregarDashCRE()"><option value="">Todos os Anos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-cre-mes" class="input" onchange="carregarDashCRE()"><option value="">Todos os Meses</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="carregarDashCRE()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltros('cre')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelCRE()" class="btn-excel">📊 Exportar Excel</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="dash-table-container">
-          <table>
-            <thead id="cre-header" class="cre-header">
-              <tr><th>Gestão</th><th>Projeto</th><th>DC *</th><th class="mes-header">Mês 1</th><th class="mes-header">Mês 2</th><th>Total</th></tr>
-            </thead>
-            <tbody id="tabela-dash-cre"><tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="cre-total-geral" class="total-geral-card theme-cre"></div>
-    </div>
-    
-    <!-- ===================== DASHBOARD PENDÊNCIAS ===================== -->
-    <div id="tab-dash-pendencias" class="tab-content space-y-6">
-      <div id="header-dash-pendencias"></div>
-      <div class="filters-bar-status">
-        <div class="filter-group">
-          <label class="filter-label">Gestor</label>
-          <select id="filt-pend-gestor" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Gestores</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Projeto</label>
-          <select id="filt-pend-projeto" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Projetos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Ano</label>
-          <select id="filt-pend-ano" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Anos</option></select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Mês</label>
-          <select id="filt-pend-mes" class="input" onchange="carregarDashPendencias()"><option value="">Todos os Meses</option></select>
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="carregarDashPendencias()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltros('pend')" class="btn-clear-filters">Limpar</button>
-          <button onclick="exportarExcelPendencias()" class="btn-excel">📊 Exportar Excel</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="dash-table-container">
-          <table>
-            <thead id="pend-header" class="pendencias-header">
-              <tr><th>Gestão</th><th>Projeto</th><th>DC *</th><th class="mes-header">Mês 1</th><th class="mes-header">Mês 2</th><th>Total</th></tr>
-            </thead>
-            <tbody id="tabela-dash-pendencias"><tr><td colspan="6" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="pend-total-geral" class="total-geral-card theme-pendencias"></div>
-    </div>
-
-    <!-- ===================== CADASTRO DE MEDIÇÃO ===================== -->
-    <div id="tab-cad-medicao" class="tab-content space-y-6">
-      <div id="header-cad-medicao"></div>
-      <div class="card card-pad">
-        <form id="form-medicao" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="hidden" id="med-edit-id" value="">
-          
-          <div class="md:col-span-3">
-            <div style="background:var(--gold-bg); border:2px solid var(--gold); border-radius:8px; padding:12px 16px; display:flex; align-items:center; gap:12px;">
-              <input type="checkbox" id="med-tipo-acerto" style="width:20px; height:20px; accent-color:var(--gold); cursor:pointer;" onchange="toggleTipoAcerto()">
-              <div>
-                <label for="med-tipo-acerto" style="font-weight:700; font-size:12px; color:#8A6A0A; cursor:pointer;">Marcar como ACERTO (Medição Negativa)</label>
-                <div style="font-size:10.5px; color:#8A6A0A; margin-top:2px;">Acertos descontam APENAS do DON (não afetam o Status)</div>
-              </div>
-            </div>
-          </div>
-
-          <div><label class="label">Projeto *</label><select id="med-projeto" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Gestor Logictel *</label><select id="med-gestor" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Diretor Cliente</label><select id="med-diretor" class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Mês *</label><select id="med-mes" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-          <div><label class="label">Ano *</label><input type="number" id="med-ano" value="2026" required class="input"></div>
-          <div><label class="label" id="label-valor-don">Valor DON *</label><input type="text" id="med-valor-don" required placeholder="0,00" class="input money-input signed-money"></div>
-          <div id="campo-valor-status-wrap"><label class="label" id="label-valor-status">Valor Status *</label><input type="text" id="med-valor-status" required placeholder="0,00" class="input money-input"></div>
-          <div><label class="label">Data E-mail</label><input type="text" id="med-data-email" placeholder="dd/mm/aaaa" class="input date-input"></div>
-          <div><label class="label">Status Medição *</label><select id="med-status" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="md:col-span-3"><label class="label">Observação</label><textarea id="med-observacao" rows="2" placeholder="Observações sobre a medição..." class="input"></textarea></div>
-          <div class="md:col-span-3 flex justify-end pt-2 gap-2">
-            <button type="button" onclick="cancelarEdicao('med')" class="btn-cancel" style="display:none;" id="med-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Medição</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- ===================== HISTÓRICO DAS MEDIÇÕES ===================== -->
-    <div id="tab-historico-medicoes" class="tab-content space-y-6">
-      <div id="header-historico-medicoes"></div>
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group"><label class="filter-label">Projeto</label><select id="filt-hist-med-projeto" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Diretor Cliente</label><select id="filt-hist-med-diretor" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Status Medição</label><select id="filt-hist-med-status" class="input" onchange="filtrarHistoricoMedicoes()"><option value="">Todos</option></select></div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarHistoricoMedicoes()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosHistoricoMedicoes()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="medicoes-table-container">
-          <table>
-            <thead><tr><th class="col-id">ID</th><th class="col-projeto">Projeto</th><th class="col-gestor">Gestor</th><th class="col-diretor">Diretor</th><th class="col-mes">Mês</th><th class="col-ano">Ano</th><th class="col-valor">Valor DON</th><th class="col-valor">Valor Status</th><th class="col-status">Status</th><th class="col-obs">Obs</th><th class="col-acoes">Ações</th></tr></thead>
-            <tbody id="tabela-historico-medicoes"><tr><td colspan="11" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="historico-medicoes-pagination"></div>
-    </div>
-
-    <!-- ===================== DC CARDS ===================== -->
-    <div id="tab-dcs" class="tab-content space-y-6">
-      <div id="header-dcs"></div>
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;">
-        <div class="filter-group"><label class="filter-label">DC</label><input type="text" id="filt-dcs-dc" placeholder="Digite para buscar..." oninput="filtrarDCCards()" class="input"></div>
-        <div class="filter-group"><label class="filter-label">Status DC</label><select id="filt-dcs-status" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Status NF</label><select id="filt-dcs-status-nf" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Projeto</label><select id="filt-dcs-projeto" class="input" onchange="filtrarDCCards()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Data</label><input type="date" id="filt-dcs-data" class="input" onchange="filtrarDCCards()"></div>
-        <div class="filter-actions" style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
-          <button onclick="filtrarDCCards()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosDCCards()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      <div class="dc-cards-grid" id="dc-cards-container"><div class="p-6 text-center" style="color:var(--text-soft)">Carregando DC's...</div></div>
-      <div id="dc-cards-pagination"></div>
-    </div>
-
-    <!-- ===================== CONSUMO DC ===================== -->
-    <div id="tab-cad-consumo" class="tab-content space-y-6">
-      <div id="header-cad-consumo"></div>
-      <div class="card card-pad">
-        <form id="form-consumo" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="hidden" id="consumo-edit-id" value="">
-          <div><label class="label">DC *</label><input type="text" id="dc-numero" required placeholder="Número da DC" class="input"></div>
-          <div><label class="label">Pedido</label><input type="text" id="dc-pedido" placeholder="Número do pedido" class="input"></div>
-          <div><label class="label">Projeto *</label><select id="dc-projeto" required class="input" onchange="carregarGestoresPorProjeto()"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Gestor Logictel *</label><select id="dc-gestor" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Tipo Medição *</label><select id="dc-tipo-medicao" required class="input"><option value="">Selecione...</option><option value="PA">PA - Parcial</option><option value="FI">FI - Final</option></select></div>
-          <div><label class="label">Diretor Cliente</label><select id="dc-diretor" class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Empresa *</label><select id="dc-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Mês Apropriação *</label><select id="dc-mes-apropriacao" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-          <div><label class="label">Ano *</label><input type="number" id="dc-ano" value="2026" required class="input"></div>
-          <div><label class="label">Valor (R$) *</label><input type="text" id="dc-valor" required placeholder="0,00" class="input money-input"></div>
-          <div><label class="label">Mês Medido *</label><select id="dc-mes-medido" required class="input"><option value="">Selecione...</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-          <div><label class="label">Data Solicitação *</label><input type="text" id="dc-data-solicitacao" required placeholder="dd/mm/aaaa" class="input date-input"></div>
-          <div><label class="label">FR (Folha de Registro)</label><input type="text" id="dc-fr" placeholder="Nº da Folha de Registro" class="input"></div>
-          <div><label class="label">Status DC *</label><select id="dc-status-dc" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Status NF *</label><select id="dc-status-nf" required onchange="controlarCamposNF()" class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Nº da NF</label><input type="text" id="dc-num-nf" disabled placeholder="Obrigatório se emitida" class="input"></div>
-          <div><label class="label">Data Emissão NF</label><input type="text" id="dc-data-nf" disabled placeholder="dd/mm/aaaa" class="input date-input"></div>
-          <div class="md:col-span-4 campos-extras" id="campos-extras-consumo">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div><label class="label">Centro de Custo</label><input type="text" id="dc-centro-custo" placeholder="Centro de Custo" class="input"></div>
-              <div><label class="label">Item</label><input type="text" id="dc-item" placeholder="Item" class="input"></div>
-              <div><label class="label">PO</label><input type="text" id="dc-po" placeholder="PO" class="input"></div>
-            </div>
-          </div>
-          <div class="md:col-span-4">
-            <label class="label">Observações</label>
-            <textarea id="dc-observacoes" rows="3" placeholder="Observações sobre este consumo..." class="input"></textarea>
-          </div>
-          <div class="md:col-span-4 flex justify-end pt-2 gap-2">
-            <button type="button" onclick="cancelarEdicao('consumo')" class="btn-cancel" style="display:none;" id="consumo-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary">Salvar Consumo</button>
-          </div>
-        </form>
-      </div>
-      <p class="text-sm" style="color:var(--text-muted)">A listagem completa e o histórico de consumos ficam na aba <strong>Histórico Consumo das DCs</strong>, no menu DC's.</p>
-    </div>
-    
-    <!-- ===================== HISTÓRICO CONSUMO DAS DCS ===================== -->
-    <div id="tab-historico-consumo-dcs" class="tab-content space-y-6">
-      <div id="header-historico-consumo-dcs"></div>
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group"><label class="filter-label">DC</label><input type="text" id="filt-consumo-dc" list="dclist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()"><datalist id="dclist-consumo"></datalist></div>
-        <div class="filter-group"><label class="filter-label">Pedido</label><input type="text" id="filt-consumo-pedido" list="pedidolist-consumo" placeholder="Digite para buscar..." class="input" oninput="filtrarConsumos()"><datalist id="pedidolist-consumo"></datalist></div>
-        <div class="filter-group"><label class="filter-label">Projeto</label><select id="filt-consumo-projeto" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Tipo</label><select id="filt-consumo-tipo-medicao" class="input" onchange="filtrarConsumos()"><option value="">Todos</option><option value="PA">PA</option><option value="FI">FI</option></select></div>
-        <div class="filter-group"><label class="filter-label">Diretor</label><select id="filt-consumo-diretor" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Mês Aprop.</label><select id="filt-consumo-mes-apropriacao" class="input" onchange="filtrarConsumos()"><option value="">Todos</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-        <div class="filter-group"><label class="filter-label">Mês Medido</label><select id="filt-consumo-mes-medido" class="input" onchange="filtrarConsumos()"><option value="">Todos</option><option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option><option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option><option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option><option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option></select></div>
-        <div class="filter-group"><label class="filter-label">FR</label><input type="text" id="filt-consumo-fr" placeholder="Nº da FR" class="input" oninput="filtrarConsumos()"></div>
-        <div class="filter-group"><label class="filter-label">Status NF</label><select id="filt-consumo-status-nf" class="input" onchange="filtrarConsumos()"><option value="">Todos</option></select></div>
-        <div class="filter-group"><label class="filter-label">Valor Exato</label><input type="text" id="filt-consumo-valor-exato" placeholder="0,00" class="input money-input" oninput="filtrarConsumos()"></div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarConsumos()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosConsumo()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="historico-table-container">
-          <table>
-            <thead><tr><th class="col-sticky col-dc">DC</th><th class="col-projeto">Projeto</th><th class="col-gestor">Gestor</th><th class="col-tipo">Tipo</th><th class="col-mes-aprop">Mês Aprop.</th><th class="col-mes-medido">Mês Medido</th><th class="col-status-nf">Status</th><th class="col-valor">Valor</th><th class="col-acoes">Ações</th></tr></thead>
-            <tbody id="tabela-consumos"><tr><td colspan="9" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="consumo-pagination"></div>
-    </div>
-
-    <!-- ===================== VISUALIZAR TUTORIAIS ===================== -->
-    <div id="tab-tutoriais-visualizar" class="tab-content space-y-6">
-      <div id="header-tutoriais-visualizar"></div>
-      <div class="filters-section-title">Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group">
-          <label class="filter-label">Buscar por Título</label>
-          <input type="text" id="filt-tutorial-visualizar-titulo" placeholder="Digite para buscar..." class="input" oninput="filtrarVisualizarTutoriais()">
-        </div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarVisualizarTutoriais()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosVisualizarTutoriais()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      <div class="dc-cards-grid" id="tutoriais-paginas-container"><div class="p-6 text-center" style="color:var(--text-soft)">Carregando tutoriais...</div></div>
-      <div id="tutoriais-visualizar-pagination"></div>
-    </div>
-
-    <!-- ===================== GERENCIAR TUTORIAIS ===================== -->
-    <div id="tab-tutoriais-gerenciar" class="tab-content space-y-4">
-      <div id="header-tutoriais-gerenciar"></div>
-      
-      <!-- Formulário de Página -->
-      <div class="card card-pad">
-        <h3 style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:12px;">Gerenciar Páginas</h3>
-        <form id="form-pagina-tutorial" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="hidden" id="pagina-edit-id" value="">
-          <div>
-            <label class="label">Título da Página *</label>
-            <input type="text" id="pagina-titulo" required placeholder="Ex: CADASTRANDO MEDIÇÃO" class="input">
-          </div>
-          <div>
-            <label class="label">Ordem</label>
-            <input type="number" id="pagina-ordem" placeholder="0" class="input" value="0">
-          </div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('pagina')" class="btn-cancel" style="display:none;" id="pagina-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Página</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Lista de Páginas -->
-      <div class="card">
-        <div class="filters-bar-grid" style="margin-bottom:12px;">
-          <div class="filter-group">
-            <label class="filter-label">Filtrar Páginas</label>
-            <input type="text" id="filt-pagina-titulo" placeholder="Digite para buscar..." class="input" oninput="filtrarPaginasTutoriais()">
-          </div>
-          <div class="filter-group filter-actions">
-            <button onclick="filtrarPaginasTutoriais()" class="btn-primary">Filtrar</button>
-            <button onclick="limparFiltrosPaginasTutoriais()" class="btn-clear-filters">Limpar</button>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Título</th><th>Ordem</th><th>Ações</th><th>Seções</th></tr></thead>
-            <tbody id="tabela-paginas-tutoriais"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-        <div id="paginas-tutoriais-pagination"></div>
-      </div>
-
-      <!-- Gerenciador de Seções -->
-      <div id="secoes-manager" style="display:none;">
-        <div class="card card-pad" style="border:2px solid var(--primary);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <h3 style="font-weight:700;font-size:16px;color:var(--primary);">Seções da Página: <span id="secoes-pagina-titulo"></span></h3>
-            <button onclick="fecharGerenciadorSecoes()" class="btn-cancel" style="font-size:10px;">Fechar</button>
-          </div>
-          <input type="hidden" id="secoes-pagina-id" value="">
-          
-          <!-- Formulário de Seção - COM CAMPO NOME ARQUIVO -->
-          <form id="form-secao-tutorial" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="margin-bottom:16px;display:none;">
-            <input type="hidden" id="secao-edit-id" value="">
-            <div>
-              <label class="label">Subtítulo *</label>
-              <input type="text" id="secao-subtitulo" required placeholder="Ex: Colocar DC em EE - EM EXECUÇÃO" class="input">
-            </div>
-            <div>
-              <label class="label">Ordem</label>
-              <input type="number" id="secao-ordem" placeholder="1" class="input" value="1">
-              <span style="font-size:9px;color:var(--text-soft);">Define a ordem de exibição</span>
-            </div>
-            <div class="md:col-span-2">
-              <label class="label">Nome do Arquivo (GIF/PNG)</label>
-              <input type="text" id="secao-nome-arquivo" placeholder="Ex: passo_1 (sem extensão)" class="input">
-              <span style="font-size:9px;color:var(--text-soft);">Deixe em branco para usar o subtítulo como nome. O sistema busca em assets/gifs/</span>
-            </div>
-            <div class="md:col-span-2">
-              <label class="label">Descrição</label>
-              <textarea id="secao-descricao" rows="3" placeholder="Descrição detalhada da seção..." class="input"></textarea>
-            </div>
-            <div class="flex items-end gap-2">
-              <button type="button" onclick="cancelarEdicao('secao')" class="btn-cancel" style="display:none;" id="secao-cancel-btn">Cancelar</button>
-              <button type="submit" class="btn-primary w-full">Salvar Seção</button>
-            </div>
-          </form>
-          
-          <!-- Lista de Seções -->
-          <div id="secoes-tutoriais-container"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== EDITOR DE SURVEYS ===================== -->
-    <div id="tab-survey-editor" class="tab-content space-y-6">
-      <div id="header-survey-editor"></div>
-
-      <!-- Passo 1: ZIP + números -->
-      <div class="card card-pad">
-        <div class="filters-section-title">1. ZIP e números dos surveys</div>
-        <div class="grid md:grid-cols-2 gap-4">
-          <div>
-            <label class="label">Arquivo ZIP</label>
-            <input type="file" id="sv-zip" accept=".zip,application/zip" class="input">
-            <p class="sv-note">Serão lidos os XMLs das pastas cujo nome contém "moradia". Nada é enviado para servidor.</p>
-          </div>
-          <div>
-            <label class="label">Números dos surveys (um abaixo do outro)</label>
-            <textarea id="sv-numeros" class="input" rows="6" placeholder="R10&#10;R11&#10;R12" style="height:auto; font-family:'IBM Plex Mono', monospace;"></textarea>
-            <p class="sv-note" id="sv-num-info">Cada número vai para um XML, na ordem das pastas. Ele substitui o conteúdo de &lt;gravado&gt;false&lt;/gravado&gt;.</p>
-          </div>
-        </div>
-        <div class="flex justify-end pt-3">
-          <button type="button" class="btn-primary" data-act="aplicar-numeros">Aplicar números aos XMLs</button>
-        </div>
-        <p id="sv-msg" class="text-xs pt-2" style="min-height:16px;"></p>
-      </div>
-
-      <div id="sv-workspace" class="space-y-6" style="display:none;">
-        <div class="card card-pad"><div id="sv-resumo" class="text-sm"></div></div>
-
-        <!-- Passo 2: lote -->
-        <div class="card card-pad">
-          <div class="filters-section-title">2. Edição em lote</div>
-          <p class="sv-note" style="margin-bottom:8px;">Atalhos (campos encontrados nos XMLs):</p>
-          <div id="sv-atalhos" class="sv-chips"></div>
-          <div class="grid md:grid-cols-3 gap-3 pt-3">
-            <div>
-              <label class="label">Campo (nome da tag)</label>
-              <input type="text" id="sv-lote-campo" class="input" list="sv-tags" placeholder="ex.: fachada" autocomplete="off">
-              <datalist id="sv-tags"></datalist>
-            </div>
-            <div>
-              <label class="label">Tipo de edição</label>
-              <div class="flex gap-4 pt-2 text-sm">
-                <label><input type="radio" name="sv-modo" value="set" checked> Definir valor</label>
-                <label><input type="radio" name="sv-modo" value="substituir"> Localizar e substituir</label>
-              </div>
-            </div>
-            <div>
-              <label class="label">Aplicar em</label>
-              <div class="flex gap-4 pt-2 text-sm">
-                <label><input type="radio" name="sv-escopo" value="todos" checked> Todos</label>
-                <label><input type="radio" name="sv-escopo" value="sel"> Selecionados (<span id="sv-sel-count">0</span>)</label>
-              </div>
-            </div>
-          </div>
-          <div id="sv-bloco-set" class="grid md:grid-cols-2 gap-3 pt-3">
-            <div><label class="label">Novo valor</label><input type="text" id="sv-lote-valor" class="input" autocomplete="off"></div>
-            <div><label class="label">Somente onde o valor atual for (opcional)</label><input type="text" id="sv-lote-se" class="input" autocomplete="off"></div>
-          </div>
-          <div id="sv-bloco-sub" class="grid md:grid-cols-2 gap-3 pt-3" style="display:none;">
-            <div><label class="label">Localizar</label><input type="text" id="sv-lote-de" class="input" autocomplete="off"></div>
-            <div><label class="label">Substituir por</label><input type="text" id="sv-lote-para" class="input" autocomplete="off"></div>
-          </div>
-          <div id="sv-lote-valores" class="pt-2"></div>
-          <div class="flex justify-end pt-3">
-            <button type="button" class="btn-primary" data-act="aplicar-lote">Aplicar em lote</button>
-          </div>
-          <div class="filters-section-title" style="margin-top:14px;">Lotes aplicados</div>
-          <div id="sv-historico"></div>
-        </div>
-
-        <!-- Passo 3: lista -->
-        <div class="card card-pad">
-          <div class="filters-section-title">3. Surveys (edite cada um individualmente)</div>
-          <div class="flex gap-2 pb-2">
-            <button type="button" class="btn-secondary" data-act="sel-todos" style="font-size:10.5px; padding:4px 12px;">Selecionar todos</button>
-            <button type="button" class="btn-secondary" data-act="sel-nenhum" style="font-size:10.5px; padding:4px 12px;">Limpar seleção</button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead><tr class="th-row"><th style="width:32px;"></th><th style="width:40px;">#</th><th>Arquivo</th><th>Survey</th><th>&lt;gravado&gt; original</th><th>Edições</th><th class="text-right">Ações</th></tr></thead>
-              <tbody id="sv-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Passo 4: gerar -->
-        <div class="card card-pad">
-          <div class="filters-section-title">4. Gerar novo ZIP</div>
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <label class="text-sm"><input type="checkbox" id="sv-relatorio"> Incluir arquivo <code>surveys.txt</code> (número ↔ arquivo) dentro do ZIP</label>
-            <button type="button" id="sv-btn-gerar" class="btn-excel" data-act="gerar">📦 Gerar novo ZIP</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== BACKUP ===================== -->
-    <div id="tab-backup" class="tab-content space-y-6">
-      <div id="header-backup"></div>
-      <div class="card card-pad" id="backup-container">
-        <div class="p-6 text-center" style="color:var(--text-soft);">
-          Carregando...
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== CADASTRO USUÁRIO ===================== -->
-    <div id="tab-adm-user" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Usuário</h2>
-      <div class="card card-pad">
-        <form id="form-usuario" class="space-y-4">
-          <input type="hidden" id="user-edit-id" value="">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label class="label">Usuário *</label><input type="text" id="user-nome" required placeholder="Nome do usuário" class="input"></div>
-            <div>
-              <label class="label">Senha *</label>
-              <div class="flex flex-col gap-2">
-                <div class="flex gap-2">
-                  <input type="text" id="user-senha" required placeholder="Senha" class="input" oninput="validarSenha()">
-                  <button type="button" onclick="gerarSenhaForte()" class="btn-generate" style="white-space:nowrap;">Gerar</button>
+    <!-- HEADER AZUL -->
+    <header class="app-header" role="banner">
+        <div class="app-header-left">
+            <div class="brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#fff"/>
+                        <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
-                <div class="password-strength" id="senha-criterios">
-                  <span class="criteria unmet" id="criterio-tamanho"><span class="check">✕</span> Mínimo 8 caracteres</span>
-                  <span class="criteria unmet" id="criterio-maiuscula"><span class="check">✕</span> 1 maiúscula</span>
-                  <span class="criteria unmet" id="criterio-minuscula"><span class="check">✕</span> 1 minúscula</span>
-                  <span class="criteria unmet" id="criterio-numero"><span class="check">✕</span> 1 número</span>
-                  <span class="criteria unmet" id="criterio-especial"><span class="check">✕</span> 1 caractere especial</span>
-                </div>
-              </div>
+                <span class="brand-name">LOGICTEL</span>
             </div>
-            <div class="flex items-end gap-2">
-              <button type="button" onclick="cancelarEdicao('user')" class="btn-cancel" style="display:none;" id="user-cancel-btn">Cancelar</button>
-              <button type="submit" class="btn-primary w-full" id="user-submit-btn" disabled>Salvar Usuário</button>
+            <span class="brand-divider"></span>
+            <h1 class="app-title">Cadastro de Roteiro</h1>
+
+            <nav class="header-nav" id="sideNav" aria-label="Navegação rápida entre seções">
+                <button data-goto="panel1" title="1. Buscar Localização" type="button">1</button>
+                <button data-goto="resultsPanel" title="2. Endereços Encontrados" type="button">2</button>
+                <button data-goto="formPanel" title="3. Survey" type="button">3</button>
+                <button data-goto="listPanel" title="4. Surveys Salvos" type="button">4</button>
+                <button data-goto="uploadPanel" title="5. Cadastrar Roteiro" type="button" id="navUploadBtn">5</button>
+                <button data-goto="ibgePanel" title="6. Cadastrar Base IBGE" type="button" id="navIbgeBtn" style="display:none">6</button>
+            </nav>
+        </div>
+        <div class="app-header-right">
+            <button class="icon-btn icon-btn-export" id="exportHeaderBtn" type="button" title="Exportar XMLs (ZIP)" aria-label="Exportar XMLs (ZIP)" style="display:none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            </button>
+
+            <button class="icon-btn" id="padronizarEnderecoBtn" type="button" title="Padronizar endereços do report (.xlsx)" aria-label="Carregar planilha report para padronizar endereços">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                    <polyline points="9 15 12 12 15 15"></polyline>
+                </svg>
+            </button>
+            <input type="file" id="padronizarEnderecoInput" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+
+            <button class="icon-btn" id="detectarPadroesBtn" type="button" title="Detectar Padrões (IA)" aria-label="Detectar Padrões IA">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+
+            <button class="icon-btn" id="themeToggle" type="button" title="Alternar tema" aria-label="Alternar tema">
+                <span aria-hidden="true">🌙</span>
+            </button>
+            <button class="icon-btn" id="zipViewBtn" type="button" title="Abrir ZIP (somente leitura)" aria-label="Abrir ZIP somente leitura">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </button>
+            <input type="file" id="zipViewInput" accept=".zip,application/zip" multiple hidden>
+            <button class="icon-btn" id="infoBtn" type="button" title="Informações" aria-label="Informações" aria-haspopup="dialog" aria-controls="infoModal">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+            </button>
+            <div class="user-chip" title="Usuário">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="userLabel">-</span>
             </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-200">
-            <label class="label" style="font-size:13px; color:var(--text);">Permissões de Acesso</label>
-            <p class="text-xs text-muted mb-2" style="color:var(--text-soft);">Selecione as áreas que este usuário terá acesso</p>
-            <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">📊 Dashboards</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="dash-don" class="permission-check"><span>Dash DON</span></label><label class="checkbox-item"><input type="checkbox" value="dash-apropriacao" class="permission-check"><span>Dash Status</span></label><label class="checkbox-item"><input type="checkbox" value="dash-cre" class="permission-check"><span>Dash Tramitando CRE</span></label><label class="checkbox-item"><input type="checkbox" value="dash-pendencias" class="permission-check"><span>Dash Pendências</span></label></div></div>
-            <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">📋 Medições</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Cadastro de Medição</span></label><label class="checkbox-item"><input type="checkbox" value="medicoes" class="permission-check"><span>Histórico das Medições</span></label></div></div>
-            <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">📋 DC's</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Consumo DC</span></label><label class="checkbox-item"><input type="checkbox" value="consumos" class="permission-check"><span>Histórico Consumo das DCs</span></label><label class="checkbox-item"><input type="checkbox" value="dcs" class="permission-check"><span>DC's</span></label></div></div>
-            <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">📚 Tutoriais</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="tutoriais-visualizar" class="permission-check"><span>Visualizar Tutoriais</span></label><label class="checkbox-item"><input type="checkbox" value="tutoriais-gerenciar" class="permission-check"><span>Gerenciar Tutoriais</span></label></div></div>
-            <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">💾 Backup</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="backup" class="permission-check"><span>Backup</span></label></div></div>
-            <div class="mb-3"><span class="text-xs font-semibold" style="color:var(--text-muted);">⚙️ Administração</span><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox" value="adm-user" class="permission-check"><span>Cad. ADM</span></label><label class="checkbox-item"><input type="checkbox" value="adm-cliente" class="permission-check"><span>Cad. Cliente</span></label><label class="checkbox-item"><input type="checkbox" value="adm-logictel" class="permission-check"><span>Cad. Logictel</span></label><label class="checkbox-item"><input type="checkbox" value="adm-status" class="permission-check"><span>Cad. Status</span></label><label class="checkbox-item"><input type="checkbox" value="adm-datas" class="permission-check"><span>Datas Limites</span></label></div></div>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Usuário</th><th>Senha</th><th>Permissões</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-usuarios"><tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
+            <button id="logoutBtn" class="icon-btn-logout" type="button" title="Sair">Sair</button>
         </div>
-      </div>
+    </header>
+
+    <!-- CONTAINER -->
+    <main class="app-main" id="main-content" role="main">
+        <div class="layout-2col">
+            <div class="col-left">
+
+                <!-- 1. Buscar Localização -->
+                <section class="card" id="panel1">
+                    <header class="card-header">
+                        <span class="card-badge">1</span>
+                        <svg class="card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <h2 class="card-title">Buscar Localização</h2>
+                        <button class="toggle-btn" data-target="panel1-body" type="button" aria-expanded="true">&#9660;</button>
+                    </header>
+                    <div class="card-body" id="panel1-body">
+                        <label class="field-label-sm">Endereço ou CEP</label>
+                        <div class="search-box">
+                            <div class="search-wrapper">
+                                <input type="text" id="searchInput" placeholder="Rua Exemplo, 123 - Bairro, Cidade - UF ou CEP" autocomplete="off" aria-label="Buscar logradouro ou CEP">
+                                <button id="searchClearBtn" class="search-clear" type="button" title="Limpar" aria-label="Limpar campo">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                                <div id="suggestions" class="suggestions" role="listbox" aria-label="Sugestões de logradouro"></div>
+                            </div>
+                            <button id="searchBtn" class="btn-primary" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                Buscar
+                            </button>
+                        </div>
+                        <div class="info-box">
+                            <span class="info-icon">i</span>
+                            <span>Só é possível salvar logradouros que estejam no <strong>Roteiro</strong>. Não achou o seu? Envie um e-mail para <a href="mailto:pp-logradouro@correios.com.br">PP-Logradouro</a>.</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Endereços Encontrados -->
+                <section class="card" id="resultsPanel">
+                    <header class="card-header">
+                        <span class="card-badge">2</span>
+                        <svg class="card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <h2 class="card-title">Endereços Encontrados</h2>
+                        <button class="toggle-btn" data-target="resultsBody" type="button" aria-expanded="true">&#9660;</button>
+                    </header>
+                    <div class="card-body" id="resultsBody">
+                        <div class="info-line">
+                            <svg class="info-line-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span class="info-line-label">Coordenadas:</span>
+                            <span id="coordsDisplay" class="info-line-value">-</span>
+                        </div>
+                        <div class="info-line">
+                            <svg class="info-line-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span class="info-line-label">Origem:</span>
+                            <span id="origemDisplay" class="info-line-value">-</span>
+                        </div>
+                        <div id="enderecosList" role="list">
+                            <p class="empty-state">Nenhum endereço consultado ainda. Busque um logradouro acima.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Survey -->
+                <section class="card" id="formPanel">
+                    <header class="card-header">
+                        <span class="card-badge">3</span>
+                        <svg class="card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        <h2 class="card-title">Survey</h2>
+                        <button class="toggle-btn" data-target="formBody" type="button" aria-expanded="true">&#9660;</button>
+                    </header>
+                    <div class="card-body" id="formBody">
+                        <div id="enderecoBaseInfo" class="endereco-base-info">
+                            <p class="empty-state-sm">Selecione uma fonte em "Endereços Encontrados".</p>
+                        </div>
+
+                        <input type="hidden" id="surveyTipo" value="">
+                        <input type="hidden" id="surveyLogradouro" value="">
+                        <input type="hidden" id="surveyBairro" value="">
+                        <input type="hidden" id="surveyMunicipio" value="">
+                        <input type="hidden" id="surveyUf" value="">
+                        <input type="hidden" id="surveyCep" value="">
+
+                        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+                            <input type="text" id="surveyLatitude" placeholder="Latitude" title="Latitude" autocomplete="off" style="flex:1;min-width:0;padding:6px 8px;font-size:13px;">
+                            <input type="text" id="surveyLongitude" placeholder="Longitude" title="Longitude" autocomplete="off" style="flex:1;min-width:0;padding:6px 8px;font-size:13px;">
+                            <button type="button" id="coordsOkBtn" class="btn-add-survey" style="width:auto;margin:0;padding:6px 12px;font-size:13px;">OK</button>
+                        </div>
+
+                        <div class="multiuc-row">
+                            <label class="multiuc-toggle" title="Marque para cadastrar um prédio, condomínio ou galeria com várias unidades de cliente (UCs)">
+                                <input type="checkbox" id="multiUcToggle"> <span>Imóvel com várias UCs</span>
+                            </label>
+                            <button type="button" id="multiUcBtn" class="multiuc-btn" style="display:none;">Configurar UCs</button>
+                            <span id="multiUcResumo" class="multiuc-resumo"></span>
+                            <label class="check-inline multiuc-rec" id="multiUcRecWrap" style="display:none;" title="Mantém as UCs, o tipo de edificação e a ocupação ao salvar, para o próximo prédio (as fotos são sempre novas)">
+                                <input type="checkbox" id="multiUcRecorrente">
+                                <span>Recorrência</span>
+                            </label>
+                        </div>
+
+                        <div class="grid-2col">
+                            <div class="field-group">
+                                <div class="field-header">
+                                    <label for="numeroInput">Nº Fachada</label>
+                                    <label class="check-inline">
+                                        <input type="checkbox" id="numeroRecorrente">
+                                        <span>Recorrência</span>
+                                    </label>
+                                </div>
+                                <input type="text" id="numeroInput" placeholder="Ex.: 71" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <div class="field-header">
+                                    <label for="pisosInput">Pisos</label>
+                                    <label class="check-inline">
+                                        <input type="checkbox" id="pisosRecorrente">
+                                        <span>Recorrência</span>
+                                    </label>
+                                </div>
+                                <input type="text" id="pisosInput" placeholder="Ex.: 1" inputmode="numeric">
+                            </div>
+                        </div>
+
+                        <div class="field-group field-comp">
+                            <div class="comp-grid" style="grid-template-columns: 1fr 1.4fr;">
+                                <div>
+                                    <label for="tipoImovelInput" class="field-label-sm">Tipo do Imóvel</label>
+                                    <select id="tipoImovelInput"></select>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                                        <label for="imovelInput" class="field-label-sm">Nome do Imóvel</label>
+                                        <label class="check-inline"><input type="checkbox" id="imovelRecorrente"><span>Recorrência</span></label>
+                                    </div>
+                                    <input type="text" id="imovelInput" placeholder="Ex.: RESIDENCIAL GUAPORE" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <div class="field-header">
+                                <label for="zonaInput">Zona</label>
+                                <label class="check-inline">
+                                    <input type="checkbox" id="zonaRecorrente">
+                                    <span>Recorrência</span>
+                                </label>
+                            </div>
+                            <input type="text" id="zonaInput" list="zonaDatalist" placeholder="Ex.: PR_FZR_FZAB_001" autocomplete="off">
+                            <datalist id="zonaDatalist"></datalist>
+                        </div>
+
+                        <!-- Complemento 1 -->
+                        <div class="field-group field-comp">
+                            <div class="comp-grid" style="grid-template-columns: 1fr 1.4fr;">
+                                <div>
+                                    <label for="comp1Tipo" class="field-label-sm">Tipo</label>
+                                    <select id="comp1Tipo">
+                                        <option value="">Selecione</option>
+                                        <option>Academia</option><option>Acampamento</option><option>Administração</option>
+                                        <option>Ala</option><option>Almoxarifado</option><option>Alto</option><option>Altos</option>
+                                        <option>Ambulatório</option><option>Andar</option><option>Anexo</option>
+                                        <option>Apartamento</option><option>Armazém</option><option>ATE</option>
+                                        <option>Baixos</option><option>Banca</option><option>Barrão</option>
+                                        <option>Beco</option><option>Bloco</option><option>Box</option>
+                                        <option>Brigada de incêncio</option><option>Cais</option><option>Carpintaria</option>
+                                        <option>Casa</option><option>Cela</option><option>Central</option>
+                                        <option>Chácara</option><option>Cobertura</option><option>Colina</option>
+                                        <option>Condomínio</option><option>Conjunto</option><option>Conjunto Residencial</option>
+                                        <option>Corredor</option><option>Depósito</option><option>Diretoria</option>
+                                        <option>Divisão</option><option>Edifício</option><option>Entrada</option>
+                                        <option>Escritório</option><option>Espaço de Convivência</option><option>Estação</option>
+                                        <option>Etapa</option><option>Frente</option><option>Fundos</option>
+                                        <option>Fórum</option><option>Galeria</option><option>Galpão</option>
+                                        <option>Garagem</option><option>Gleba</option><option>Granja</option>
+                                        <option>Grupo</option><option>Guichê</option><option>Hagar</option>
+                                        <option>Lado</option><option>Lanchonete</option><option>Letra</option>
+                                        <option>Loja</option><option>Lote</option><option>Loteamento</option>
+                                        <option>Lâmina</option><option>Mansão</option><option>Mart</option>
+                                        <option>Mercado</option><option>Mezanino</option><option>Módulo</option>
+                                        <option>Não Disponível</option><option>Não se aplica</option>
+                                        <option>Núcleo</option><option>Oficina mecânica</option><option>Orgão</option>
+                                        <option>Palácio</option><option>Parada</option><option>Pavilhão</option>
+                                        <option>Pavimento</option><option>Pilotis</option><option>Piso</option>
+                                        <option>Plataforma</option><option>Portão</option><option>Porão</option>
+                                        <option>Poço</option><option>Presidência</option><option>Prédio</option>
+                                        <option>Pátio</option><option>Quadra</option><option>Quarto</option>
+                                        <option>Quilômetro</option><option>Quinta</option><option>Quiosque</option>
+                                        <option>Ramal</option><option>Recepção</option><option>Refeitório</option>
+                                        <option>Restaurante</option><option>Rótula</option><option>Sala</option>
+                                        <option>Sala técnica</option><option>Salão de eventos</option>
+                                        <option>Sem complemento</option><option>Setor</option><option>Seção</option>
+                                        <option>Sobrado</option><option>Sobreloja</option><option>Stand</option>
+                                        <option>Sub número</option><option>Subestação</option><option>Subsolo</option>
+                                        <option>Super quadra</option><option>Terreno</option><option>Torre</option>
+                                        <option>Travessa</option><option>Trecho</option><option>Térreo</option>
+                                        <option>Vila</option><option>Vizinho</option><option>XX</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                                        <label for="comp1Valor" class="field-label-sm">Complemento 1</label>
+                                        <label class="check-inline"><input type="checkbox" id="comp1Recorrente"><span>Recorrência</span></label>
+                                    </div>
+                                    <input type="text" id="comp1Valor" placeholder="Ex.: 5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Complemento 2 -->
+                        <div class="field-group field-comp">
+                            <div class="comp-grid" style="grid-template-columns: 1fr 1.4fr;">
+                                <div>
+                                    <label for="comp2Tipo" class="field-label-sm">Tipo</label>
+                                    <select id="comp2Tipo">
+                                        <option value="">Selecione</option>
+                                        <option>Academia</option><option>Acampamento</option><option>Administração</option>
+                                        <option>Ala</option><option>Almoxarifado</option><option>Alto</option><option>Altos</option>
+                                        <option>Ambulatório</option><option>Andar</option><option>Anexo</option>
+                                        <option>Apartamento</option><option>Armazém</option><option>ATE</option>
+                                        <option>Baixos</option><option>Banca</option><option>Barrão</option>
+                                        <option>Beco</option><option>Bloco</option><option>Box</option>
+                                        <option>Brigada de incêncio</option><option>Cais</option><option>Carpintaria</option>
+                                        <option>Casa</option><option>Cela</option><option>Central</option>
+                                        <option>Chácara</option><option>Cobertura</option><option>Colina</option>
+                                        <option>Condomínio</option><option>Conjunto</option><option>Conjunto Residencial</option>
+                                        <option>Corredor</option><option>Depósito</option><option>Diretoria</option>
+                                        <option>Divisão</option><option>Edifício</option><option>Entrada</option>
+                                        <option>Escritório</option><option>Espaço de Convivência</option><option>Estação</option>
+                                        <option>Etapa</option><option>Frente</option><option>Fundos</option>
+                                        <option>Fórum</option><option>Galeria</option><option>Galpão</option>
+                                        <option>Garagem</option><option>Gleba</option><option>Granja</option>
+                                        <option>Grupo</option><option>Guichê</option><option>Hagar</option>
+                                        <option>Lado</option><option>Lanchonete</option><option>Letra</option>
+                                        <option>Loja</option><option>Lote</option><option>Loteamento</option>
+                                        <option>Lâmina</option><option>Mansão</option><option>Mart</option>
+                                        <option>Mercado</option><option>Mezanino</option><option>Módulo</option>
+                                        <option>Não Disponível</option><option>Não se aplica</option>
+                                        <option>Núcleo</option><option>Oficina mecânica</option><option>Orgão</option>
+                                        <option>Palácio</option><option>Parada</option><option>Pavilhão</option>
+                                        <option>Pavimento</option><option>Pilotis</option><option>Piso</option>
+                                        <option>Plataforma</option><option>Portão</option><option>Porão</option>
+                                        <option>Poço</option><option>Presidência</option><option>Prédio</option>
+                                        <option>Pátio</option><option>Quadra</option><option>Quarto</option>
+                                        <option>Quilômetro</option><option>Quinta</option><option>Quiosque</option>
+                                        <option>Ramal</option><option>Recepção</option><option>Refeitório</option>
+                                        <option>Restaurante</option><option>Rótula</option><option>Sala</option>
+                                        <option>Sala técnica</option><option>Salão de eventos</option>
+                                        <option>Sem complemento</option><option>Setor</option><option>Seção</option>
+                                        <option>Sobrado</option><option>Sobreloja</option><option>Stand</option>
+                                        <option>Sub número</option><option>Subestação</option><option>Subsolo</option>
+                                        <option>Super quadra</option><option>Terreno</option><option>Torre</option>
+                                        <option>Travessa</option><option>Trecho</option><option>Térreo</option>
+                                        <option>Vila</option><option>Vizinho</option><option>XX</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                                        <label for="comp2Valor" class="field-label-sm">Complemento 2</label>
+                                        <label class="check-inline"><input type="checkbox" id="comp2Recorrente"><span>Recorrência</span></label>
+                                    </div>
+                                    <input type="text" id="comp2Valor" placeholder="Ex.: Casa Creche 52">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Complemento 3 -->
+                        <div class="field-group field-comp">
+                            <div class="comp-grid" style="grid-template-columns: 1fr 1.4fr;">
+                                <div>
+                                    <label for="comp3Tipo" class="field-label-sm">Tipo</label>
+                                    <select id="comp3Tipo">
+                                        <option value="">Selecione</option>
+                                        <option>Academia</option><option>Acampamento</option><option>Administração</option>
+                                        <option>Ala</option><option>Almoxarifado</option><option>Alto</option><option>Altos</option>
+                                        <option>Ambulatório</option><option>Andar</option><option>Anexo</option>
+                                        <option>Apartamento</option><option>Armazém</option><option>ATE</option>
+                                        <option>Baixos</option><option>Banca</option><option>Barrão</option>
+                                        <option>Beco</option><option>Bloco</option><option>Box</option>
+                                        <option>Brigada de incêncio</option><option>Cais</option><option>Carpintaria</option>
+                                        <option>Casa</option><option>Cela</option><option>Central</option>
+                                        <option>Chácara</option><option>Cobertura</option><option>Colina</option>
+                                        <option>Condomínio</option><option>Conjunto</option><option>Conjunto Residencial</option>
+                                        <option>Corredor</option><option>Depósito</option><option>Diretoria</option>
+                                        <option>Divisão</option><option>Edifício</option><option>Entrada</option>
+                                        <option>Escritório</option><option>Espaço de Convivência</option><option>Estação</option>
+                                        <option>Etapa</option><option>Frente</option><option>Fundos</option>
+                                        <option>Fórum</option><option>Galeria</option><option>Galpão</option>
+                                        <option>Garagem</option><option>Gleba</option><option>Granja</option>
+                                        <option>Grupo</option><option>Guichê</option><option>Hagar</option>
+                                        <option>Lado</option><option>Lanchonete</option><option>Letra</option>
+                                        <option>Loja</option><option>Lote</option><option>Loteamento</option>
+                                        <option>Lâmina</option><option>Mansão</option><option>Mart</option>
+                                        <option>Mercado</option><option>Mezanino</option><option>Módulo</option>
+                                        <option>Não Disponível</option><option>Não se aplica</option>
+                                        <option>Núcleo</option><option>Oficina mecânica</option><option>Orgão</option>
+                                        <option>Palácio</option><option>Parada</option><option>Pavilhão</option>
+                                        <option>Pavimento</option><option>Pilotis</option><option>Piso</option>
+                                        <option>Plataforma</option><option>Portão</option><option>Porão</option>
+                                        <option>Poço</option><option>Presidência</option><option>Prédio</option>
+                                        <option>Pátio</option><option>Quadra</option><option>Quarto</option>
+                                        <option>Quilômetro</option><option>Quinta</option><option>Quiosque</option>
+                                        <option>Ramal</option><option>Recepção</option><option>Refeitório</option>
+                                        <option>Restaurante</option><option>Rótula</option><option>Sala</option>
+                                        <option>Sala técnica</option><option>Salão de eventos</option>
+                                        <option>Sem complemento</option><option>Setor</option><option>Seção</option>
+                                        <option>Sobrado</option><option>Sobreloja</option><option>Stand</option>
+                                        <option>Sub número</option><option>Subestação</option><option>Subsolo</option>
+                                        <option>Super quadra</option><option>Terreno</option><option>Torre</option>
+                                        <option>Travessa</option><option>Trecho</option><option>Térreo</option>
+                                        <option>Vila</option><option>Vizinho</option><option>XX</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                                        <label for="comp3Valor" class="field-label-sm">Complemento 3</label>
+                                        <label class="check-inline"><input type="checkbox" id="comp3Recorrente"><span>Recorrência</span></label>
+                                    </div>
+                                    <input type="text" id="comp3Valor" placeholder="Ex.: B2B">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <div class="field-header">
+                                <label for="obsInput">Obs.</label>
+                                <label class="check-inline">
+                                    <input type="checkbox" id="obsRecorrente">
+                                    <span>Recorrência</span>
+                                </label>
+                            </div>
+                            <input type="text" id="obsInput" placeholder="Ex.: Cadastrado conforme planilha" autocomplete="off">
+                        </div>
+
+                        
+
+                        <button id="addBtn" class="btn-add-survey" type="button">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Adicionar ao Survey
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 4. Surveys Salvos -->
+                <section class="card" id="listPanel" style="display:none;">
+                    <header class="card-header">
+                        <span class="card-badge">4</span>
+                        <svg class="card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        <h2 class="card-title">Surveys Salvos</h2>
+                        <button class="toggle-btn" data-target="listBody" type="button" aria-expanded="true">&#9660;</button>
+                    </header>
+                    <div class="card-body" id="listBody">
+                        <div id="gruposToolbar" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+                            <button type="button" id="grpExpandir" class="btn-editar" style="padding:6px 10px;">Expandir tudo</button>
+                            <button type="button" id="grpRecolher" class="btn-editar" style="padding:6px 10px;">Recolher tudo</button>
+                            <button type="button" id="grpAlterarRoteiro" class="btn-editar" style="padding:6px 10px;" disabled>Alterar roteiro dos selecionados (0)</button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="surveysTable">
+                                <colgroup>
+                                    <col style="width: 25%;">
+                                    <col style="width: 6%;">
+                                    <col style="width: 13%;">
+                                    <col style="width: 13%;">
+                                    <col style="width: 13%;">
+                                    <col style="width: 16%;">
+                                    <col style="width: 14%;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>Logradouro</th>
+                                        <th>Nº</th>
+                                        <th>Complementos</th>
+                                        <th>Bairro</th>
+                                        <th>Município/UF</th>
+                                        <th>CEP</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="actions">
+                            <button id="exportBtn" class="btn-success" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Exportar XMLs (ZIP)
+                            </button>
+                            <button id="clearBtn" class="btn-danger" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Limpar Tudo
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. Cadastrar Roteiro (só ADM) -->
+                <section class="card" id="uploadPanel">
+                    <header class="card-header">
+                        <span class="card-badge">5</span>
+                        <svg class="card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <h2 class="card-title">Cadastrar Roteiro</h2>
+                        <button class="toggle-btn" data-target="uploadBody" type="button" aria-expanded="true">&#9660;</button
+                                                </header>
+                    <div class="card-body" id="uploadBody">
+                        <div class="info-box">
+                            <span class="info-icon">i</span>
+                            <span>Selecione o arquivo <strong>roteiro.xml</strong> (padrão dos Correios). Os logradouros serão salvos e ficarão disponíveis no motor de busca.</span>
+                        </div>
+                        <div class="upload-row">
+                            <input type="file" id="roteiroFile" accept=".xml,.csv,.txt" aria-label="Selecionar arquivo de roteiro">
+                            <button id="uploadBtn" class="btn-primary" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Importar Roteiro
+                            </button>
+                        </div>
+                        <div id="uploadStatus" class="upload-status" role="status" aria-live="polite"></div>
+                    </div>
+                </section>
+
+                <!-- 6. Base IBGE (só ATR) -->
+                <section class="card" id="ibgePanel" style="display:none">
+                    <header class="card-header">
+                        <span class="card-badge">6</span>
+                        <svg class="card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                        <h2 class="card-title">Cadastrar Base IBGE</h2>
+                        <button class="toggle-btn" data-target="ibgeBody" type="button" aria-expanded="true">&#9660;</button>
+                    </header>
+                    <div class="card-body" id="ibgeBody">
+                        <div class="info-box">
+                            <span class="info-icon">i</span>
+                            <span>Selecione a planilha do <strong>IBGE</strong> (.xlsx, .xls ou .csv) com as colunas: qtd_andares, cep, bairro, tipo, logradouro, numero_fachada, latitude, longitude e tipo_complemento1..5 / complemento1..5. As fachadas aparecem no mapa como casinhas brancas translúcidas, atrás dos surveys.</span>
+                        </div>
+                        <div class="upload-row">
+                            <input type="file" id="ibgeFile" accept=".xlsx,.xls,.csv,.txt" aria-label="Selecionar planilha da base IBGE">
+                            <button id="ibgeUploadBtn" class="btn-primary" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Importar Base IBGE
+                            </button>
+                        </div>
+                        <label class="ibge-substituir">
+                            <input type="checkbox" id="ibgeSubstituir">
+                            <span>Substituir toda a base IBGE atual antes de importar</span>
+                        </label>
+                        <div id="ibgeStatus" class="upload-status" role="status" aria-live="polite"></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- COLUNA DIREITA — MAPA -->
+            <div class="col-right">
+                <section class="card card-map" id="panel2">
+                    <header class="card-header card-header-map">
+                        <svg class="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                            <line x1="8" y1="2" x2="8" y2="18"></line>
+                            <line x1="16" y1="6" x2="16" y2="22"></line>
+                        </svg>
+                        <h2 class="card-title">Mapa</h2>
+                        <div class="map-tabs">
+                            <button class="map-tab" data-layer="mub" type="button" title="MUB (arquivo .mbtiles georreferenciado)">MUB</button>
+                            <button class="map-tab" data-layer="satellite" type="button">Satélite</button>
+                            <button class="map-tab active" data-layer="map" type="button">Mapa</button>
+                        </div>
+                        <button class="icon-btn-sm" id="fullscreenBtn" type="button" title="Tela cheia">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            </svg>
+                        </button>
+                    </header>
+                    <div class="card-body card-body-map">
+                        <input type="file" id="mubFileInput" accept=".mbtiles,image/*,.png,.jpg,.jpeg,.webp" hidden>
+                        <div id="map" role="application" aria-label="Mapa interativo"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- CHAT DA IA -->
+    <div class="ia-chat" id="iaChat" data-state="minimized">
+        <div class="ia-chat-header" id="iaChatHeader">
+            <div class="ia-chat-avatar">
+                <span aria-hidden="true">🤖</span>
+            </div>
+            <div class="ia-chat-title">
+                <strong>IA Logictel</strong>
+                <span class="ia-chat-status">Online</span>
+            </div>
+            <span class="ia-header-badge" id="iaHeaderBadge" style="display:none;">1</span>
+            <div class="ia-chat-actions">
+                <button class="ia-chat-btn" id="iaMinimizeBtn" type="button" title="Minimizar" aria-label="Minimizar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+                <button class="ia-chat-btn" id="iaCloseBtn" type="button" title="Fechar" aria-label="Fechar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="ia-modes" id="iaModes" role="toolbar" aria-label="Modos da IA">
+            <button class="ia-mode" type="button" data-modo="ibge" title="Verificar fachadas do IBGE e cadastrar">
+                <span class="ia-mode-ico" aria-hidden="true">🏠</span><span>IBGE</span>
+            </button>
+            <button class="ia-mode" type="button" data-modo="padroes" title="Detectar padrões nos surveys cadastrados">
+                <span class="ia-mode-ico" aria-hidden="true">🔍</span><span>Padrões</span>
+            </button>
+            <button class="ia-mode" type="button" data-modo="linhas" title="Desenhar linhas no mapa para cadastrar">
+                <span class="ia-mode-ico" aria-hidden="true">📏</span><span>Linhas</span>
+            </button>
+            <button class="ia-mode" type="button" data-modo="espacializacao" title="Alinhar surveys em uma linha mantendo as distâncias">
+                <span class="ia-mode-ico" aria-hidden="true">📐</span><span>Espacializar</span>
+            </button>
+        </div>
+
+        <div class="ia-chat-body" id="iaChatBody"></div>
+
+        <div class="ia-chat-footer" id="iaChatFooter">
+            <input type="text" id="iaChatInput" placeholder="Ou digite: IBGE, padrões, linhas, espacializar" autocomplete="off">
+            <button id="iaChatSendBtn" type="button" title="Enviar" aria-label="Enviar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
     </div>
 
-    <!-- ===================== CLIENTE: EMPRESA ===================== -->
-    <div id="tab-adm-empresa" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Empresa</h2>
-      <div class="card card-pad">
-        <form id="form-empresa" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="empresa-edit-id" value="">
-          <div><label class="label">Nome da Empresa *</label><input type="text" id="empresa-nome" required placeholder="Nome da empresa" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('empresa')" class="btn-cancel" style="display:none;" id="empresa-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Empresa</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Empresa</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-empresas"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
+    <button class="ia-fab" id="iaFab" type="button" title="Abrir IA Logictel" aria-label="Abrir IA Logictel" style="display:none;">
+        <span aria-hidden="true">🤖</span>
+        <span class="ia-fab-badge" id="iaFabBadge" style="display:none;">1</span>
+    </button>
+
+    <!-- LEITOR DE ZIP (SOMENTE LEITURA) -->
+    <aside class="zip-view" id="zipViewPanel" aria-label="ZIP carregado (somente leitura)" hidden>
+        <header class="zip-view-header">
+            <div>
+                <strong id="zipViewTitle">ZIP</strong>
+                <small id="zipViewSummary"></small>
+            </div>
+            <button type="button" id="zipViewClose" class="zip-view-close">Fechar</button>
+        </header>
+        <ol class="zip-view-list" id="zipViewList"></ol>
+    </aside>
+
+    <!-- POPUP DE INFORMAÇÕES -->
+    <div class="info-modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle" hidden>
+        <div class="info-modal-box">
+            <button class="info-modal-close" id="infoModalClose" type="button" aria-label="Fechar">&times;</button>
+            <h3 id="infoModalTitle">Informações</h3>
+            <div class="info-modal-item">
+                <span class="info-modal-label">Desenvolvimento</span>
+                <span class="info-modal-value">Nelson Silva Martins</span>
+            </div>
+            <div class="info-modal-item">
+                <span class="info-modal-label">Colaborações Técnicas</span>
+                <span class="info-modal-value">Samuel Silva Guimarães</span>
+                <span class="info-modal-value">Marcio Silva de Sousa</span>
+            </div>
+            <div class="info-modal-item info-modal-versao">
+                <span class="info-modal-label">Versão</span>
+                <span class="info-modal-value">v.22</span>
+            </div>
+            <div class="info-modal-item">
+                <span class="info-modal-label">Atualização</span>
+                <span class="info-modal-value">Acrescentado o campo &quot;Imóvel com várias UCs&quot;</span>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- ===================== CLIENTE: DIRETOR CLIENTE ===================== -->
-    <div id="tab-adm-diretor" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Diretor Cliente</h2>
-      <div class="card card-pad">
-        <form id="form-diretor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="diretor-edit-id" value="">
-          <div><label class="label">Nome do Diretor *</label><input type="text" id="diretor-nome" required placeholder="Nome do diretor" class="input"></div>
-          <div><label class="label">Empresa *</label><select id="diretor-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('diretor')" class="btn-cancel" style="display:none;" id="diretor-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Diretor</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Diretor</th><th>Empresa</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-diretores"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <script>
+        (function () {
+            const btn = document.getElementById('infoBtn');
+            const modal = document.getElementById('infoModal');
+            const fechar = document.getElementById('infoModalClose');
+            const abrir = () => { modal.hidden = false; fechar.focus(); };
+            const esconder = () => { modal.hidden = true; btn.focus(); };
+            btn.addEventListener('click', abrir);
+            fechar.addEventListener('click', esconder);
+            modal.addEventListener('click', (e) => { if (e.target === modal) esconder(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) esconder(); });
+        })();
+    </script>
 
-    <!-- ===================== CLIENTE: CONTRATO ===================== -->
-    <div id="tab-adm-contrato" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Contrato</h2>
-      <div class="card card-pad">
-        <form id="form-contrato" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="hidden" id="contrato-edit-id" value="">
-          <div><label class="label">Número do Contrato *</label><input type="text" id="contrato-numero" required placeholder="Número do contrato" class="input"></div>
-          <div><label class="label">Empresa *</label><select id="contrato-empresa" required class="input"><option value="">Selecione...</option></select></div>
-          <div><label class="label">Diretor *</label><select id="contrato-diretor" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('contrato')" class="btn-cancel" style="display:none;" id="contrato-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Contrato</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Contrato</th><th>Empresa</th><th>Diretor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-contratos"><tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== LOGICTEL: PROJETO ===================== -->
-    <div id="tab-adm-projeto" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Projeto</h2>
-      <div class="card card-pad">
-        <form id="form-projeto" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="projeto-edit-id" value="">
-          <div><label class="label">Nome do Projeto *</label><input type="text" id="projeto-nome" required placeholder="Ex: 306, 340, 7200-306" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('projeto')" class="btn-cancel" style="display:none;" id="projeto-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Projeto</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-projetos"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== LOGICTEL: GESTOR ===================== -->
-    <div id="tab-adm-gestor" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Gestor Logictel</h2>
-      <div class="card card-pad">
-        <form id="form-gestor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="gestor-edit-id" value="">
-          <div><label class="label">Nome do Gestor *</label><input type="text" id="gestor-nome" required placeholder="Nome do gestor" class="input"></div>
-          <div><label class="label">Projeto *</label><select id="gestor-projeto" required class="input"><option value="">Selecione...</option></select></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('gestor')" class="btn-cancel" style="display:none;" id="gestor-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Gestor</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Gestor Logictel</th><th>Projeto</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-gestores"><tr><td colspan="4" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== STATUS ===================== -->
-    <div id="tab-adm-status-dc" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status DC</h2>
-      <div class="card card-pad">
-        <form id="form-status-dc" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="statusdc-edit-id" value="">
-          <div><label class="label">Código *</label><input type="text" id="statusdc-codigo" required placeholder="Ex: ZE, AA, CM" class="input" style="text-transform:uppercase;"></div>
-          <div><label class="label">Nome *</label><input type="text" id="statusdc-nome" required placeholder="Nome do status" class="input"></div>
-          <div><label class="label">Motivo</label><textarea id="statusdc-motivo" rows="2" placeholder="Motivo/observação do status" class="input"></textarea></div>
-          <div><label class="label">Responsável</label><select id="statusdc-responsavel" class="input"><option value="Logictel">Logictel</option><option value="V.tal">V.tal</option></select></div>
-          <div><label class="label">Cor</label><input type="color" id="statusdc-cor" value="#3498DB" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('statusdc')" class="btn-cancel" style="display:none;" id="statusdc-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Status DC</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Código</th><th>Nome</th><th>Motivo</th><th>Responsável</th><th>Cor</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-statusdc"><tr><td colspan="7" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-adm-status-med" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status Medição</h2>
-      <div class="card card-pad">
-        <form id="form-status-med" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="statusmed-edit-id" value="">
-          <div><label class="label">Nome do Status *</label><input type="text" id="statusmed-nome" required placeholder="Ex: Pendente, Aprovada, Rejeitada" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('statusmed')" class="btn-cancel" style="display:none;" id="statusmed-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Status Medição</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Status Medição</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-statusmed"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-adm-status-nf" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Status NF</h2>
-      <div class="card card-pad">
-        <form id="form-status-nf" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="hidden" id="statusnf-edit-id" value="">
-          <div><label class="label">Nome do Status *</label><input type="text" id="statusnf-nome" required placeholder="Ex: Emitida, Cancelada, Pendente" class="input"></div>
-          <div class="flex items-end gap-2">
-            <button type="button" onclick="cancelarEdicao('statusnf')" class="btn-cancel" style="display:none;" id="statusnf-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary w-full">Salvar Status NF</button>
-          </div>
-        </form>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>ID</th><th>Status NF</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-statusnf"><tr><td colspan="3" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== DATAS LIMITES ===================== -->
-    <div id="tab-adm-datas-limites" class="tab-content space-y-4">
-      <h2 class="text-2xl font-bold" style="color:var(--text)">Cadastro de Datas Limites</h2>
-      <p class="text-sm mt-0.5" style="color:var(--text-muted)">Defina as datas limites para emissão de FR e NF por mês/ano.</p>
-      <div class="card card-pad" style="padding:12px 16px;">
-        <form id="form-datas-limites" class="grid grid-cols-1 md:grid-cols-4 gap-2">
-          <input type="hidden" id="datalimite-edit-id" value="">
-          <div>
-            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Mês *</label>
-            <select id="datalimite-mes" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
-              <option value="">Selecione...</option>
-              <option value="Janeiro">Janeiro</option>
-              <option value="Fevereiro">Fevereiro</option>
-              <option value="Março">Março</option>
-              <option value="Abril">Abril</option>
-              <option value="Maio">Maio</option>
-              <option value="Junho">Junho</option>
-              <option value="Julho">Julho</option>
-              <option value="Agosto">Agosto</option>
-              <option value="Setembro">Setembro</option>
-              <option value="Outubro">Outubro</option>
-              <option value="Novembro">Novembro</option>
-              <option value="Dezembro">Dezembro</option>
-            </select>
-          </div>
-          <div>
-            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Ano *</label>
-            <input type="number" id="datalimite-ano" value="2026" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
-          </div>
-          <div>
-            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Data Limite FR *</label>
-            <input type="date" id="datalimite-data-fr" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
-            <span class="text-xs" style="color:var(--text-soft); font-size:8px;">(Horário limite: 12h)</span>
-          </div>
-          <div>
-            <label class="label" style="font-size:8.5px; margin-bottom:2px;">Data Limite NF *</label>
-            <input type="date" id="datalimite-data-nf" required class="input" style="font-size:10.5px; padding:5px 8px; height:32px;">
-            <span class="text-xs" style="color:var(--text-soft); font-size:8px;">(Horário limite: 23h)</span>
-          </div>
-          <div class="md:col-span-4 flex justify-end pt-1 gap-2">
-            <button type="button" onclick="cancelarEdicao('datalimite')" class="btn-cancel" style="display:none; font-size:10.5px; padding:5px 12px; height:32px;" id="datalimite-cancel-btn">Cancelar</button>
-            <button type="submit" class="btn-primary" style="font-size:10.5px; padding:5px 14px; height:32px;">Salvar Data Limite</button>
-          </div>
-        </form>
-      </div>
-      <div class="filters-section-title">🔍 Filtros</div>
-      <div class="filters-bar-grid">
-        <div class="filter-group"><label class="filter-label">Mês</label><select id="filt-datas-mes" class="input" onchange="filtrarDatasLimites()"><option value="">Todos os Meses</option></select></div>
-        <div class="filter-group"><label class="filter-label">Ano</label><select id="filt-datas-ano" class="input" onchange="filtrarDatasLimites()"><option value="">Todos os Anos</option></select></div>
-        <div class="filter-group filter-actions">
-          <button onclick="filtrarDatasLimites()" class="btn-primary">Filtrar</button>
-          <button onclick="limparFiltrosDatasLimites()" class="btn-clear-filters">Limpar</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead><tr class="th-row"><th>Mês</th><th>Ano</th><th>Data Limite FR</th><th>Data Limite NF</th><th class="text-right">Ações</th></tr></thead>
-            <tbody id="tabela-datas-limites"><tr><td colspan="5" class="p-6 text-center" style="color:var(--text-soft)">Carregando...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== MODAL VISUALIZAÇÃO DC ===================== -->
-    <div id="modal-visualizacao-dc" style="display:none; position:fixed; inset:0; background:rgba(8,16,32,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-      <div style="background:var(--surface); border-radius:16px; max-width:900px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); padding:32px 36px; position:relative;">
-        <button onclick="fecharVisualizacaoDC()" style="position:absolute; top:12px; right:16px; background:transparent; border:none; font-size:24px; color:var(--text-soft); cursor:pointer;">✕</button>
-        <h2 style="font-family:'Space Grotesk', sans-serif; font-size:20px; font-weight:700; color:var(--text); margin-bottom:4px; text-align:center;">Visualização da DC</h2>
-        <p style="text-align:center; font-size:12px; color:var(--text-muted); margin-bottom:20px;">Clique em <strong>Editar</strong> para modificar os dados</p>
-        <div id="modal-visualizacao-conteudo"></div>
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-          <button onclick="fecharVisualizacaoDC()" class="btn-cancel" style="padding:10px 24px;">Fechar</button>
-          <button id="btn-editar-visualizacao" onclick="habilitarEdicaoVisualizacao()" class="btn-primary" style="padding:10px 24px;">✏️ Editar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================== MODAL VISUALIZAÇÃO TUTORIAL ===================== -->
-    <div id="modal-visualizacao-tutorial" style="display:none; position:fixed; inset:0; background:rgba(8,16,32,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-      <div style="background:var(--surface); border-radius:16px; max-width:800px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); padding:32px 36px; position:relative;">
-        <button onclick="fecharVisualizacaoTutorial()" style="position:absolute; top:12px; right:16px; background:transparent; border:none; font-size:20px; color:var(--text-soft); cursor:pointer; font-family:'Inter', sans-serif;">✕</button>
-        <div id="modal-tutorial-conteudo"></div>
-        <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-          <button onclick="fecharVisualizacaoTutorial()" class="btn-cancel" style="padding:10px 24px; font-family:'Inter', sans-serif;">Fechar</button>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
-
-<script type="module" src="js/main.js?v=20261026"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="vendor/jszip.min.js"></script>
+    <script>
+        // Fallback: se o arquivo local não carregar por algum motivo, tenta o CDN
+        if (typeof JSZip === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
