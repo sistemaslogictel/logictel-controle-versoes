@@ -210,8 +210,7 @@ const AREA_MAP = {
     'adm-status-dc': 'adm-status',
     'adm-status-med': 'adm-status',
     'adm-status-nf': 'adm-status',
-    'adm-datas-limites': 'adm-datas',
-    'survey-editor': 'surveys'
+    'adm-datas-limites': 'adm-datas'
 };
 
 // Ordem de prioridade usada para decidir em qual aba cair logo após o login
@@ -222,7 +221,8 @@ const ORDEM_ABAS_PADRAO = Object.keys(AREA_MAP);
 // =====================================================
 export function mudarAba(nomeAba) {
     const area = AREA_MAP[nomeAba] || nomeAba;
-    if (!temPermissao(area)) {
+    // O Editor de Surveys (botão 7) é liberado para todos os usuários
+    if (nomeAba !== 'survey-editor' && !temPermissao(area)) {
         alert('Você não tem permissão para acessar esta área.');
         return;
     }

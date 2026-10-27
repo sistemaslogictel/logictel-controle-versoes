@@ -7,7 +7,6 @@
 //  3) edita cada survey ou faz edições em lote (roteiro, logradouro, baixos, fachada...)
 //  4) gera um novo ZIP com tudo aplicado
 // Nada é enviado para servidor: o zip é lido e gerado no próprio navegador.
-import { temPermissao } from './session.js';
 import {
     listarCampos, aplicarOp, aplicarOps, definirGravado, gravadoAtual,
     montarCatalogo, ATALHOS, ehPastaMoradia, compararNatural, lerNumeros,
@@ -31,7 +30,7 @@ const MAX_CAMPOS_PAINEL = 300;
 // ---------- Botão da topbar ----------
 export function atualizarBotaoSurvey() {
     const btn = $('btn-survey-topbar');
-    if (btn) btn.style.display = temPermissao('surveys') ? '' : 'none';
+    if (btn) btn.style.display = ''; // disponível para todos os usuários
 }
 
 // ---------- Mensagens ----------
